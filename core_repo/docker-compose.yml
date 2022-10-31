@@ -1,0 +1,50 @@
+version: '3.7'
+
+networks:
+  core_default:
+    external:
+      name: core_virtual_network
+
+services:
+  core:
+    build:
+      context: ./
+      dockerfile: dockerfiles/app.dockerfile    
+    container_name: core_container
+    volumes:
+      - ./database:/src/database
+      - ./src/alembic:/src/alembic
+    command: tail -F anything
+    networks:
+      - core_default
+  db:
+    container_name: core_db
+    image: postgres
+    restart: always
+    ports:
+      - 65432:5432
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: taiharry
+      POSTGRES_DB: mydb
+    networks:
+      - core_default
+  test_db:
+    container_name: core_test_db
+    image: postgres
+    restart: always
+    ports:
+      - 65433:5432
+    environment:
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_USER: taiharry
+      POSTGRES_DB: mydb
+    networks:
+      - core_default
+  redis:
+    container_name: default_redis
+    image: redis
+    networks:
+      - core_default
