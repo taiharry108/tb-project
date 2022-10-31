@@ -1,0 +1,13 @@
+version: '3.7'
+
+services:
+  web:
+    build:
+      context: ./
+      dockerfile: dockerfiles/app.dockerfile
+    command: uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    container_name: encryption_main
+    ports:
+      - 60888:8000
+    volumes:
+      - ./webapp:/webapp

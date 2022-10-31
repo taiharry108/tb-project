@@ -1,0 +1,10 @@
+{
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/../core_repo",
+        "${workspaceFolder}/webapp"
+    ],
+    "terminal.integrated.env.linux": {
+        "ZSH_INIT_COMMAND": "source ${workspaceFolder}/init_env.sh"
+    },
+    "python.defaultInterpreterPath": "${env:HOME}/miniconda3/envs/encryption_project/bin/python"
+}
