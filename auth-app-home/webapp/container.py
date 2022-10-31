@@ -70,7 +70,9 @@ class Container(containers.DeclarativeContainer):
         security_service=security_service,
     )
 
-    redis = providers.Singleton(Redis)
+    redis = providers.Singleton(Redis,
+        host=config.redis.url
+    )
 
     session_backend = providers.Singleton(
         RedisBackend[UUID, SessionData],

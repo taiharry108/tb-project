@@ -1,13 +1,29 @@
 version: '3.7'
 
+networks:
+  core_default:
+    external:
+      name: core_virtual_network
+
 services:
   web:
     build:
       context: ./
-      dockerfile: dockerfiles/app.dockerfile
-    command: uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
-    container_name: CONTAINER_NAME
+      dockerfile: dockerfiles/app.dockerfile    
+    command:
+      - /bin/sh
+      - -c
+      - |
+        source ./init_env.sh
+        uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    container_name: auth_app
     ports:
       - 60888:8000
     volumes:
       - ./webapp:/webapp
+      - ../core_repo/database/:/core/database
+      - ../core_repo/session/:/core/session
+    networks:
+      - core_default
+    environment:
+      - PYTHONPATH=/core
