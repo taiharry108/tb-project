@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>My Website</title>
+    <link href="css/main.css" rel="stylesheet" />
+    <script src="https://kit.fontawesome.com/8ec5d7faa2.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="static/script.js" async></script>
+</head>
+
+<body>
+    <section class="bg-blue-100 dark:bg-blue-900 md:h-screen">
+        <form id="form" enctype="multipart/form-data">
+            <div class="container flex justify-center items-center w-full mx-auto text-blue-700">
+                <label for="dropzone-file" id="dropzone-file"
+                    class="flex flex-col justify-center items-center w-full h-64 bg-blue-50 rounded-lg border-2 border-blue-300 border-dashed cursor-pointer dark:hover:bg-bray-800 dark:bg-blue-300 hover:bg-blue-100 dark:border-blue-600 dark:hover:border-blue-500 dark:hover:bg-blue-200 my-5">
+                    <div class="flex flex-col justify-center items-center pt-5 pb-6">
+                        <svg aria-hidden="true" class="mb-3 w-10 h-10" fill="none" stroke="currentColor"
+                            viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12">
+                            </path>
+                        </svg>
+                        <p class="mb-2 text-sm">
+                            <span class="font-semibold">Click to upload</span> or drag and
+                            drop
+                        </p>
+                    </div>
+                    <input id="dropzone-file" type="file" class="hidden" name="file" value="" />
+                </label>
+            </div>
+        </form>
+        <div class="container mx-auto overflow-x-auto relative shadow-md sm:rounded-lg">
+            <table class="w-full text-sm text-left text-blue-500 dark:text-blue-700">
+                <thead class="text-xs text-blue-300 uppercase bg-blue-50 dark:bg-blue-300 dark:text-blue-700">
+                    <tr>
+                        <th scope="col" class="py-3 px-6">
+                            ID
+                        </th>
+                        <th scope="col" class="py-3 px-6">
+                            Filename
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="tbody">
+                </tbody>
+            </table>
+        </div>
+        <div class="flex container mx-auto justify-center mt-5">
+            <div>
+                <button type="button" id="logout-btn"
+                    class="mx-auto text-blue-900 border
+                            border-blue-800 hover:bg-blue-900 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2
+                            dark:bg-blue-300 dark:border-blue-600 dark:text-blue-700 dark:hover:bg-blue-200 dark:focus:ring-blue-800">Logout</button>
+            </div>
+        </div>
+
+    </section>
+</body>
+
+</html>

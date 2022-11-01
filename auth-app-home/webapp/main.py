@@ -3,6 +3,7 @@ from logging import config
 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from container import Container
 from routers import main
@@ -15,7 +16,7 @@ def create_app() -> FastAPI:
     container = Container()
 
     app = FastAPI()
-    
+
     origins = ["http://localhost:60889"]
 
     app.add_middleware(
@@ -25,6 +26,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.mount("/css", StaticFiles(directory="/client/src/css/"), name="css")
 
     setattr(app, 'container', container)
 
@@ -36,6 +38,6 @@ def create_app() -> FastAPI:
 app = create_app()
 
 
-@app.get("/")
-async def root():
-    return {"message": "hello world!"}
+# @app.get("/")
+# async def root():
+#     return {"message": "hello world!"}

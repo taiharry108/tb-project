@@ -1,6 +1,6 @@
 from typing import List
 from dependency_injector.wiring import inject, Provide
-from fastapi import APIRouter, Depends, UploadFile
+from fastapi import APIRouter, Depends, UploadFile, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import delete
 
@@ -50,6 +50,42 @@ async def encrypt(file: UploadFile,
     }
 
 
+@router.get("/file/{file_id}", response_model=File)
+@inject
+async def get_file(file_id: int,
+                   session_data: SessionData = Depends(get_session_data),
+                   db_service: DatabaseService = Depends(
+        Provide[Container.db_service]),
+        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    async with db_service.session() as session:
+        async with session.begin():
+            user_id = await crud_service.get_id_by_attr(session, User, "email", session_data.username)
+            db_file = await crud_service.get_item_by_id(session, DBFile, file_id)
+            if not db_file or db_file.user_id != user_id:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                    detail="file does not exist")
+
+    return db_file
+
+
+@router.delete("/file/{file_id}")
+@inject
+async def delete_file(file_id: int,
+                   session_data: SessionData = Depends(get_session_data),
+                   db_service: DatabaseService = Depends(
+        Provide[Container.db_service]),
+        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    async with db_service.session() as session:
+        async with session.begin():
+            user_id = await crud_service.get_id_by_attr(session, User, "email", session_data.username)
+            db_user = await crud_service.remove_item_from_obj(session, User, DBFile, user_id, file_id, "files")
+            if db_user:
+                return {"success": True}
+            else:
+                raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                                    detail="Operation Failed")
+
+
 @router.get("/files", response_model=List[File])
 @inject
 async def files(session_data: SessionData = Depends(get_session_data),
@@ -67,9 +103,9 @@ async def files(session_data: SessionData = Depends(get_session_data),
 @router.delete("/files")
 @inject
 async def files(session_data: SessionData = Depends(get_session_data),
-                    db_service: DatabaseService = Depends(
-                        Provide[Container.db_service]),
-                    crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+                db_service: DatabaseService = Depends(
+        Provide[Container.db_service]),
+        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
     async with db_service.session() as session:
         async with session.begin():
             user_id = await crud_service.get_id_by_attr(session, User, "email", session_data.username)

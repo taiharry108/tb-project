@@ -6,6 +6,14 @@ networks:
       name: core_virtual_network
 
 services:
+  frontend:
+    build:
+      context: ./
+      dockerfile: dockerfiles/client.dockerfile
+    command: npm run start
+    container_name: client_builder
+    volumes:
+      - ./client/src:/app/src
   web:
     build:
       context: ./
@@ -23,6 +31,7 @@ services:
       - ./webapp:/webapp
       - ../core_repo/database/:/core/database
       - ../core_repo/session/:/core/session
+      - ./client:/client
     networks:
       - core_default
     environment:

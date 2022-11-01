@@ -6,6 +6,7 @@ from pathlib import Path
 
 from core.store_service import StoreService
 from database.database_service import DatabaseService
+from database.crud_service import CRUDService
 
 from database.models import User, File, PrivateKey
 from routers.auth import get_session_data
@@ -25,7 +26,21 @@ async def encrypt_path(): return "/api/encrypt"
 
 
 @pytest.fixture(scope="module")
+async def api_file_path(): return "/api/file"
+
+
+@pytest.fixture(scope="module")
 async def all_files_path(): return "/api/files"
+
+
+@pytest.fixture(scope="module")
+async def test_file(database: DatabaseService, crud_service: CRUDService, username: str) -> File:
+    name = "test.txt"
+    async with database.session() as session:
+        async with session.begin():
+            user_id = await crud_service.get_id_by_attr(session, User, "email", username)
+            db_file = await crud_service.create_obj(session, File, filename=name, user_id=user_id)
+            return db_file
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -75,4 +90,38 @@ async def test_delete_all_files(client: AsyncClient, all_files_path: str, userna
 
     resp = await client.get(all_files_path)
     assert len(resp.json()) == 0
+
+
+@pytest.mark.anyio
+@inject
+async def test_get_file_successful(client: AsyncClient, api_file_path: str, test_file: File):
+    resp = await client.get(api_file_path + f"/{test_file.id}")
+    json_resp = resp.json()
+    assert "filename" in json_resp
+    assert json_resp["filename"] == test_file.filename
+    assert json_resp["id"] == test_file.id
+
+
+@pytest.mark.anyio
+@inject
+async def test_get_file_fail(client: AsyncClient, api_file_path: str):
+    resp = await client.get(api_file_path + "/123456")
+    assert resp.status_code == 422
+
+
+@pytest.mark.anyio
+@inject
+async def test_delete_file_successful(client: AsyncClient, api_file_path, test_file: File):
+    resp = await client.get(api_file_path + f"/{test_file.id}")
+    json_resp = resp.json()
+    assert "filename" in json_resp
+    assert json_resp["filename"] == test_file.filename
+    assert json_resp["id"] == test_file.id
+
+    resp = await client.delete(api_file_path + f"/{test_file.id}")
+    
+    assert resp.json() == {"success": True}
+
+    resp = await client.get(api_file_path + f"/{test_file.id}")
+    assert resp.status_code == 422
 
