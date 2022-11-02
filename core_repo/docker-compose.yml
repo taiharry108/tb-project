@@ -6,10 +6,21 @@ networks:
       name: core_virtual_network
 
 services:
+  web:
+    image: nginx:alpine
+    volumes:
+      - ./static:/usr/share/nginx/html:ro
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/cache:/data/nginx/cache
+    container_name: core_nginx
+    ports:
+      - 60080:80
+    networks:
+      - core_default
   core:
     build:
       context: ./
-      dockerfile: dockerfiles/app.dockerfile    
+      dockerfile: dockerfiles/app.dockerfile
     container_name: core_container
     volumes:
       - ./database:/src/database

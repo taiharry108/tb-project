@@ -44,7 +44,7 @@ $(function ($) {
             result.forEach(file => {
                 tbody.append(`<tr id=row-${file.id} class="bg-white border-b dark:bg-blue-100 dark:border-gray-700" text-gray-900 dark:text-white>`);
                 $(`#row-${file.id}`).append(`<th scope="row" class="py-4 px-6 font-medium whitespace-nowrap">${file.id}</th>`);
-                $(`#row-${file.id}`).append(`<td class="py-4 px-6"><span><i id=trash-${file.id} class="fa-solid fa-trash mx-2"></i></span>${file.filename}</td>`);
+                $(`#row-${file.id}`).append(`<td class="py-4 px-6"><span><i id=trash-${file.id} class="fa-solid fa-trash mx-2 hover:text-red-600"></i></span>${file.filename}</td>`);
 
                 $(`#trash-${file.id}`).on("click", () => {
                     $.ajax({

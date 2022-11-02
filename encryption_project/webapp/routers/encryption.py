@@ -88,7 +88,7 @@ async def delete_file(file_id: int,
 
 @router.get("/files", response_model=List[File])
 @inject
-async def files(session_data: SessionData = Depends(get_session_data),
+async def get_files(session_data: SessionData = Depends(get_session_data),
                 db_service: DatabaseService = Depends(
         Provide[Container.db_service]),
         crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
@@ -102,7 +102,7 @@ async def files(session_data: SessionData = Depends(get_session_data),
 
 @router.delete("/files")
 @inject
-async def files(session_data: SessionData = Depends(get_session_data),
+async def delete_files(session_data: SessionData = Depends(get_session_data),
                 db_service: DatabaseService = Depends(
         Provide[Container.db_service]),
         crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
