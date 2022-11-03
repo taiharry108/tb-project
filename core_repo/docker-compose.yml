@@ -26,6 +26,8 @@ services:
       - ./database:/src/database
       - ./src/alembic:/src/alembic
       - ./queue_service:/src/queue_service
+      - ./store_service:/src/store_service
+      - ./.vscode-server:/root/.vscode-server
     command: tail -F anything
     networks:
       - core_default

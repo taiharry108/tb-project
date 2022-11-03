@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from dataclasses_json import DataClassJsonMixin
 import uuid
 from time import time
-from typing import Any, Generic, Optional, TypeVar, Union
+from typing import Any, Generic, Optional, TypeVar, Union, Type
 
 MessageType = TypeVar('MessageType', bound='Message')
 
@@ -19,6 +19,7 @@ class Error:
     message: str
     retry: bool = False
     surface: bool = False
+    exception_type: Union[Type[Exception], None] = None
 
 
 @dataclass
