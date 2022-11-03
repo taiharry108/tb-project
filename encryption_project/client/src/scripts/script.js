@@ -18,7 +18,7 @@ $(function ($) {
 
         $.ajax({
             type: 'POST',
-            url: 'api/encrypt',
+            url: 'api/file',
             processData: false,
             contentType: false,
             async: false,

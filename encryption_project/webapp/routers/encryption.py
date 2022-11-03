@@ -19,9 +19,9 @@ router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/token")
 
 
-@router.post("/encrypt")
+@router.post("/file")
 @inject
-async def encrypt(file: UploadFile,
+async def post_file(file: UploadFile,
                   store_service: StoreService = Depends(
                       Provide[Container.store_service]),
                   db_service: DatabaseService = Depends(

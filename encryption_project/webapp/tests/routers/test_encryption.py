@@ -22,7 +22,7 @@ async def file_path(): return Path("tmp/test.txt")
 
 
 @pytest.fixture(scope="module")
-async def encrypt_path(): return "/api/encrypt"
+async def encrypt_path(): return "/api/file"
 
 
 @pytest.fixture(scope="module")
