@@ -14,3 +14,9 @@ class StoreService(Protocol):
 
     async def file_exists(self, path: str) -> bool:
         """Check if a file exists"""
+    
+    def file_exists_sync(self, path: str) -> bool:
+        """Check if a file exists"""
+    
+    def remove_file(self, path: str) -> bool:
+        """Remove a file if exsits"""

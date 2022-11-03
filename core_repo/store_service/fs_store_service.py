@@ -1,5 +1,6 @@
 import hashlib
 from logging import getLogger
+import os
 from pathlib import Path
 from typing import AsyncIterator, Dict
 
@@ -61,5 +62,17 @@ class FSStoreService(StoreService):
 
     async def file_exists(self, path: str) -> bool:
         """Return True if a file with a given path exists"""
+        return self.file_exists_sync(path)
+    
+    def file_exists_sync(self, path: str) -> bool:
+        """Return True if a file with a given path exists"""
         absolute_path = Path(path)
         return absolute_path.exists()
+    
+    def remove_file(self, path: str) -> bool:
+        absolute_path = Path(path)
+        try:
+            os.remove(absolute_path)
+        except Exception as ex:
+            return False
+        return True
