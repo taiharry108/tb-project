@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import delete
 from pathlib import Path
 
-from core.store_service import StoreService
+from store_service.store_service import StoreService
 from database.database_service import DatabaseService
 from database.crud_service import CRUDService
 

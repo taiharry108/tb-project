@@ -88,5 +88,5 @@ async def auth(token: str,
         raise credentials_exception
     await create_session(username, response, backend, cookie)
     response.status_code = status.HTTP_307_TEMPORARY_REDIRECT
-    response.headers["location"] = "/"
+    response.headers["location"] = "/encrypt/"
     return response

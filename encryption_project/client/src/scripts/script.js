@@ -18,7 +18,7 @@ $(function ($) {
 
         $.ajax({
             type: 'POST',
-            url: '/api/encrypt',
+            url: 'api/encrypt',
             processData: false,
             contentType: false,
             async: false,
@@ -38,7 +38,7 @@ $(function ($) {
     const tbody = $("#tbody");
 
     const fetchAllFiles = () => {
-        fetch("/api/files").then(
+        fetch("api/files").then(
             resp => resp.json()
         ).then(result => {
             result.forEach(file => {
@@ -49,7 +49,7 @@ $(function ($) {
                 $(`#trash-${file.id}`).on("click", () => {
                     $.ajax({
                         type: 'DELETE',
-                        url: `/api/file/${file.id}`,
+                        url: `api/file/${file.id}`,
                         processData: false,
                         contentType: false,
                         async: false,
@@ -76,7 +76,7 @@ $(function ($) {
     const logout = () => {
         $.ajax({
             type: 'POST',
-            url: '/auth/logout',
+            url: 'auth/logout',
             processData: false,
             contentType: false,
             async: false,

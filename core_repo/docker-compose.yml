@@ -25,6 +25,7 @@ services:
     volumes:
       - ./database:/src/database
       - ./src/alembic:/src/alembic
+      - ./queue_service:/src/queue_service
     command: tail -F anything
     networks:
       - core_default

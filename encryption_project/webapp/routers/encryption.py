@@ -6,7 +6,7 @@ from sqlalchemy import delete
 
 from container import Container
 
-from core.store_service import StoreService
+from store_service.store_service import StoreService
 from session.session_verifier import SessionData
 from .auth import get_session_data
 from database.crud_service import CRUDService

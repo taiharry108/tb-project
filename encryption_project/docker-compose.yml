@@ -28,6 +28,7 @@ services:
       - ./webapp:/webapp
       - ../core_repo/database/:/core/database
       - ../core_repo/session/:/core/session
+      - ../core_repo/store_service/:/core/store_service
       - ./client:/client
     networks:
       - core_default

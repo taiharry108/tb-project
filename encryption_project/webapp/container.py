@@ -5,16 +5,16 @@ from fastapi import HTTPException
 from fastapi_sessions.frontends.implementations import SessionCookie, CookieParameters
 from fastapi_sessions.backends.implementations import InMemoryBackend
 from logging import config as log_config, getLogger
+from redis import Redis
 from sqlalchemy import orm
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from uuid import UUID
 
-from core.fs_store_service import FSStoreService
+from store_service.fs_store_service import FSStoreService
 from core.fernet_encrypt_service import FernetEncryptService
 from core.security_service import SecurityService
 from core.key_management_service import KeyManagementService
 
-from redis import Redis
 from session.redis_backend import RedisBackend
 from session.session_verifier import BasicVerifier, SessionData
 

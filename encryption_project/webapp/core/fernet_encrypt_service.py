@@ -1,7 +1,7 @@
 from pathlib import Path
 from typing import Callable
 
-from core.store_service import StoreService
+from store_service.store_service import StoreService
 from .encrypt_service import EncryptService
 from cryptography.fernet import Fernet
 
