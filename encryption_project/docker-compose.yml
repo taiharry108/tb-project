@@ -29,6 +29,8 @@ services:
       - ../core_repo/database/:/core/database
       - ../core_repo/session/:/core/session
       - ../core_repo/store_service/:/core/store_service
+      - ../core_repo/queue_service/:/core/queue_service
+      - ./.vscode-server:/root/.vscode-server
       - ./client:/client
     networks:
       - core_default

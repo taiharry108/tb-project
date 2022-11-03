@@ -2,3 +2,4 @@ tmp
 uploaded
 encrypted
 *.key
+.vscode-server

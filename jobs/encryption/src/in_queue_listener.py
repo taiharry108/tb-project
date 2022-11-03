@@ -22,7 +22,6 @@ class InQueueListener(QueueListener):
         key = self.database_service.get_private_key_from_username(username)
 
         try:
-
             success = self.encrypt_service.encrypt_file_sync(key=key.encode('utf-8'),
                                                             src_file=Path(
                                                                 f"{self.upload_path}/{filename}"),

@@ -11,12 +11,14 @@ services:
     build:
       context: ./encryption
       dockerfile: Dockerfile
-    command: tail -F anything
+    command: python main.py
     volumes:
       - ../core_repo/store_service:/core/store_service
       - ../core_repo/queue_service:/core/queue_service
       - ../encryption_project/webapp/core/:/core/encrypt_service/
       - ./encryption/src:/src
+      - ../encryption_project/webapp/uploaded/:/uploaded
+      - ../encryption_project/webapp/encrypted/:/encrypted
     environment:
       - PYTHONPATH=/core
     networks:

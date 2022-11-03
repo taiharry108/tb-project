@@ -43,3 +43,10 @@ class Message(Generic[MessageType], DataClassJsonMixin):
 @dataclass
 class DefaultMessage(Message[MessageType]):
     """Default Message"""
+
+
+@dataclass
+class EncryptMessage(Message[MessageType]):
+    filename: str = ""
+    username: str = ""
+    encryption_success: bool = False

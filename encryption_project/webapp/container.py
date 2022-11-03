@@ -10,16 +10,18 @@ from sqlalchemy import orm
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from uuid import UUID
 
-from store_service.fs_store_service import FSStoreService
 from core.fernet_encrypt_service import FernetEncryptService
 from core.security_service import SecurityService
 from core.key_management_service import KeyManagementService
-
-from session.redis_backend import RedisBackend
-from session.session_verifier import BasicVerifier, SessionData
-
 from database.database_service import DatabaseService
 from database.crud_service import CRUDService
+
+from queue_service.redis_queue_service import RedisQueueService
+from queue_service.messages import EncryptMessage
+from session.redis_backend import RedisBackend
+from session.session_verifier import BasicVerifier, SessionData
+from store_service.fs_store_service import FSStoreService
+
 
 def init_process_pool(max_workers: int):
     process_pool = ProcessPoolExecutor(max_workers=max_workers)
@@ -101,6 +103,13 @@ class Container(containers.DeclarativeContainer):
 
     redis = providers.Singleton(Redis,
         host=config.redis.url
+    )
+
+    redis_queue_service = providers.Singleton(
+        RedisQueueService,
+        redis,
+        EncryptMessage,
+        0
     )
     
     session_backend = providers.Singleton(
