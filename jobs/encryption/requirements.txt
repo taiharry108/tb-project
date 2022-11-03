@@ -1,0 +1,7 @@
+autopep8==2.0.0
+cryptography==38.0.1
+dataclasses_json==0.5.7
+psycopg2-binary==2.9.3
+python-dotenv==0.21.0
+redis==4.3.4
+sqlalchemy==1.4.42

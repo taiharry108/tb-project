@@ -1,0 +1,23 @@
+version: '3.7'
+
+networks:
+  core_default:
+    external:
+      name: core_virtual_network
+
+services:
+  encryption:
+    container_name: encryption_job
+    build:
+      context: ./encryption
+      dockerfile: Dockerfile
+    command: tail -F anything
+    volumes:
+      - ../core_repo/store_service:/core/store_service
+      - ../core_repo/queue_service:/core/queue_service
+      - ../encryption_project/webapp/core/:/core/encrypt_service/
+      - ./encryption/src:/src
+    environment:
+      - PYTHONPATH=/core
+    networks:
+      - core_default
