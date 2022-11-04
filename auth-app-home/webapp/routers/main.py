@@ -1,5 +1,5 @@
 from datetime import timedelta
-from typing import List
+from typing import List, Union
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends, Form, HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordBearer
@@ -62,8 +62,16 @@ def create_access_token(sub: str, security_service: SecurityService) -> str:
 
 
 @router.get("/", response_class=HTMLResponse)
-async def login_page(request: Request, redirect_url: str):
-    return templates.TemplateResponse("login.html", {"request": request, "redirect_url": redirect_url})
+async def login_page(request: Request, session_data: SessionData = Depends(get_session_data), redirect_url: Union[str, None] = None):
+    if not session_data:
+        return templates.TemplateResponse("login.html", {"request": request, "redirect_url": redirect_url})
+    else:
+        return RedirectResponse("whoami")
+
+
+@router.get("/signup", response_class=HTMLResponse)
+async def login_page(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request, "signup": True})
 
 
 @router.post("/signup")
@@ -91,7 +99,7 @@ async def signup(user_service: UserService = Depends(Provide[Container.user_serv
 async def logout(response: Response,
                  request: Request,
                  cookie: SessionFrontend = Depends(Provide[Container.cookie]),
-                 backend: SessionBackend = Depends(Provide[Container.session_backend])):    
+                 backend: SessionBackend = Depends(Provide[Container.session_backend])):
     session_id = cookie(request)
     await backend.delete(session_id)
 
@@ -105,7 +113,7 @@ async def logout(response: Response,
 async def login_for_access_token(
         response: Response,
         username: str = Form(...), password: str = Form(...),
-        redirect_url: str = Form(...),
+        redirect_url: Union[str, None] = Form(default=None),
         db_service: DatabaseService = Depends(Provide[Container.db_service]),
         user_service: UserService = Depends(Provide[Container.user_service]),
         security_service: SecurityService = Depends(
@@ -113,7 +121,7 @@ async def login_for_access_token(
         backend: SessionBackend = Depends(Provide[Container.session_backend]),
         cookie: SessionFrontend = Depends(Provide[Container.cookie]),
         allowed_redirect: List[str] = Depends(Provide[Container.config.allowed_redirect])):
-    if redirect_url not in allowed_redirect:
+    if redirect_url and redirect_url not in allowed_redirect:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         )
@@ -127,24 +135,30 @@ async def login_for_access_token(
             detail="Incorrect username or password",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    access_token = create_access_token(db_user.email, security_service)
-    await create_session(username, response, backend, cookie)
-    response.status_code = status.HTTP_302_FOUND
-    response.headers['location'] = quote(
-        f"{redirect_url}?token={access_token}", safe=":/%#?=@[]!$&'()*+,;")
+    if redirect_url:
+        access_token = create_access_token(db_user.email, security_service)
+        response.headers['location'] = quote(
+            f"{redirect_url}?token={access_token}", safe=":/%#?=@[]!$&'()*+,;")
+    else:
+        response.headers['location'] = quote(
+            "whoami", safe=":/%#?=@[]!$&'()*+,;")
+        await create_session(username, response, backend, cookie)
+        response.status_code = status.HTTP_302_FOUND
+
     return response
 
 
 @router.get("/whoami")
 @inject
 async def whoami(session_data: SessionData = Depends(get_session_data)):
+    if not session_data:
+        return RedirectResponse("/auth/user/")
     return session_data
 
 
 @router.get("/auth", response_class=RedirectResponse)
 @inject
-async def authenticate(request: Request,
-                        redirect_url: str,
+async def authenticate(redirect_url: str,
                        session_data: SessionData = Depends(get_session_data),
                        security_service: SecurityService = Depends(
                            Provide[Container.security_service]),

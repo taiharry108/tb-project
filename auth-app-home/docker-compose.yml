@@ -10,7 +10,7 @@ services:
     build:
       context: ./
       dockerfile: dockerfiles/client.dockerfile
-    command: npm run start
+    command: tail -F anything
     container_name: client_builder
     volumes:
       - ./client/src:/app/src

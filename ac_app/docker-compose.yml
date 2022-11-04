@@ -5,34 +5,19 @@ networks:
     external:
       name: core_virtual_network
 services:
-  frontend:
-    image: auth-app-home_frontend
-    command: tail -F anything
-    container_name: encryption_app_frontend_builder
-    volumes:
-      - ./client/src:/app/src
   web:
     build:
       context: ./
       dockerfile: dockerfiles/app.dockerfile
-    command:
-      - /bin/sh
-      - -c
-      - |
-        source ./init_env.sh 
-        uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
-    container_name: encryption_app
-    ports:
-      - 60889:8000
+    command: uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    container_name: ac_app
     volumes:
       - ./webapp:/webapp
       - ../core_repo/database/:/core/database
       - ../core_repo/session/:/core/session
       - ../core_repo/store_service/:/core/store_service
       - ../core_repo/queue_service/:/core/queue_service
-      - ../core_repo/security_service/:/core/security_service
       - ./.vscode-server:/root/.vscode-server
-      - ./client:/client
     networks:
       - core_default
     environment:
