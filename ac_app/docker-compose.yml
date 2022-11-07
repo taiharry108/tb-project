@@ -13,11 +13,16 @@ services:
     container_name: ac_app
     volumes:
       - ./webapp:/webapp
+      - ../core_repo/async_service/:/core/async_service
       - ../core_repo/database/:/core/database
+      - ../core_repo/download_service/:/core/download_service
+      - ../core_repo/queue_service/:/core/queue_service
+      - ../core_repo/security_service/:/core/security_service
       - ../core_repo/session/:/core/session
       - ../core_repo/store_service/:/core/store_service
-      - ../core_repo/queue_service/:/core/queue_service
       - ./.vscode-server:/root/.vscode-server
+    ports:
+      - 60890:8000
     networks:
       - core_default
     environment:

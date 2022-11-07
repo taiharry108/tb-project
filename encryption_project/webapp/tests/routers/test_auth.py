@@ -39,6 +39,6 @@ async def test_auth_fail(client: AsyncClient, wrong_token: str):
 async def test_auth_successful(client: AsyncClient, correct_token: str):
     resp = await client.get("/auth", params={"token": correct_token})
     assert resp.status_code == 307
-    assert resp.headers["location"] == "/"
+    assert resp.headers["location"] == "/encrypt/"
     assert "set-cookie" in resp.headers
     assert "e_session_id" in resp.headers["set-cookie"]

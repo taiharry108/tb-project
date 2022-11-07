@@ -1,10 +1,11 @@
 from dependency_injector.wiring import inject
 from httpx import AsyncClient
 import pytest
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from database.crud_service import CRUDService
 from database.database_service import DatabaseService
 from database.models import User, PrivateKey
-
 
 @pytest.fixture(scope="module")
 async def key_path(): return "/admin/key"

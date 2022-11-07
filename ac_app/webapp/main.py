@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from container import Container
-
+from routers import api
 
 
 def create_app() -> FastAPI:
@@ -21,6 +21,7 @@ def create_app() -> FastAPI:
     )
 
     setattr(app, 'container', container)
+    app.include_router(api.router, prefix="/api")
     container.init_resources()
 
     return app

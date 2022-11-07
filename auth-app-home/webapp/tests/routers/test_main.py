@@ -10,7 +10,7 @@ from database.models import User as DBUser
 
 @pytest.fixture
 async def redirect_url() -> str:
-    return "http://localhost:60801/auth"
+    return "http://localhost:60889/auth"
 
 
 @pytest.fixture(scope="module")
@@ -35,11 +35,6 @@ def logout_path() -> str: return "/user/logout"
 
 @pytest.fixture(scope="module")
 def auth_path() -> str: return "/user/auth"
-
-
-@pytest.fixture(scope="module")
-def redirect_url():
-    return "http://localhost:60801/auth"
 
 
 @pytest.fixture(scope="module")
@@ -139,7 +134,7 @@ async def test_auth_fail(client: AsyncClient, redirect_url: str, auth_path: str)
 @pytest.mark.anyio
 async def test_auth_successful(client: AsyncClient, username: str, password: str,
                                redirect_url: str, login_path: str, auth_path: str):
-    await client.post(login_path, data={
+    tmp = await client.post(login_path, data={
         "username": username,
         "password": password,
         "redirect_url": redirect_url

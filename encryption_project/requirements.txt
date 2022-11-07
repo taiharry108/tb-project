@@ -1,6 +1,7 @@
 asyncpg==0.26.0
 autopep8==1.7.0
 cryptography==38.0.1
+dataclasses_json==0.5.7
 dependency-injector==4.40.0
 fastapi==0.84.0
 fastapi-sessions==0.3.2

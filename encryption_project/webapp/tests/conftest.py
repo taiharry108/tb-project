@@ -45,7 +45,7 @@ async def database(container: Container) -> DatabaseService:
 async def crud_service(container: Container, database: DatabaseService):
     container.crud_service.override(providers.Singleton(
         CRUDService, database
-    ))
+    ))    
     return container.crud_service()
 
 

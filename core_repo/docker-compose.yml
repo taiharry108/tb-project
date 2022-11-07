@@ -27,6 +27,9 @@ services:
       - ./src/alembic:/src/alembic
       - ./queue_service:/src/queue_service
       - ./store_service:/src/store_service
+      - ./download_service:/src/download_service
+      - ./async_service:/src/async_service
+      - ./tests:/src/tests
       - ./.vscode-server:/root/.vscode-server
     command: tail -F anything
     networks:

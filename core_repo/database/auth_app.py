@@ -14,3 +14,4 @@ class User(Base):
 
     files = relationship("File", back_populates="user")
     private_keys = relationship("PrivateKey", uselist=False, back_populates="user")
+    history_mangas = relationship("History", back_populates="user")

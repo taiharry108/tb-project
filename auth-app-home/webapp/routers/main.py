@@ -10,6 +10,7 @@ from fastapi_sessions.frontends.session_frontend import SessionFrontend
 from fastapi_sessions.frontends.implementations import SessionCookie
 
 from pydantic import EmailStr
+from sqlalchemy.ext.asyncio import AsyncSession
 from urllib.parse import quote
 from uuid import uuid4
 
@@ -17,7 +18,7 @@ from container import Container
 from core.user_service import UserService
 from core.security_service import SecurityService
 from core.models.user import User
-from database.database_service import DatabaseService
+from routers.utils import get_db_session
 from session.session_verifier import BasicVerifier, SessionData
 
 router = APIRouter()
@@ -28,11 +29,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/token")
 templates = Jinja2Templates(directory="templates")
 
 
-@inject
 async def create_session(username: str, response: Response,
                          backend: SessionBackend,
                          cookie: SessionFrontend):
-
     session = uuid4()
     data = SessionData(username=username)
 
@@ -78,13 +77,9 @@ async def login_page(request: Request):
 @inject
 async def signup(user_service: UserService = Depends(Provide[Container.user_service]),
                  username: EmailStr = Form(...), password: str = Form(...),
-                 db_service: DatabaseService = Depends(
-                     Provide[Container.db_service]),
-                 ):
+                 session: AsyncSession = Depends(get_db_session)):
     db_user = None
-    async with db_service.session() as session:
-        async with session.begin():
-            db_user = await user_service.create_user(session, username, password)
+    db_user = await user_service.create_user(session, username, password)
     if not db_user:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
@@ -114,22 +109,21 @@ async def login_for_access_token(
         response: Response,
         username: str = Form(...), password: str = Form(...),
         redirect_url: Union[str, None] = Form(default=None),
-        db_service: DatabaseService = Depends(Provide[Container.db_service]),
         user_service: UserService = Depends(Provide[Container.user_service]),
         security_service: SecurityService = Depends(
             Provide[Container.security_service]),
         backend: SessionBackend = Depends(Provide[Container.session_backend]),
         cookie: SessionFrontend = Depends(Provide[Container.cookie]),
-        allowed_redirect: List[str] = Depends(Provide[Container.config.allowed_redirect])):
+        allowed_redirect: List[str] = Depends(Provide[Container.config.allowed_redirect]),
+        session: AsyncSession = Depends(get_db_session)):
     if redirect_url and redirect_url not in allowed_redirect:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         )
     db_user = None
-    async with db_service.session() as session:
-        async with session.begin():
-            db_user = await user_service.get_user(session, username)
-    if not db_user or not user_service.authenticate_user(db_user, password):
+    db_user = await user_service.get_user(session, username)
+
+    if not db_user or not user_service.authenticate_user(db_user, password):        
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -142,8 +136,8 @@ async def login_for_access_token(
     else:
         response.headers['location'] = quote(
             "whoami", safe=":/%#?=@[]!$&'()*+,;")
-        await create_session(username, response, backend, cookie)
-        response.status_code = status.HTTP_302_FOUND
+    await create_session(username, response, backend, cookie)
+    response.status_code = status.HTTP_302_FOUND    
 
     return response
 
@@ -168,6 +162,6 @@ async def authenticate(redirect_url: str,
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         )
     if session_data is None:
-        return f"./?redirect_url={redirect_url}"
+        return f"./?redirect_url={redirect_url}"    
     access_token = create_access_token(session_data.username, security_service)
     return f"{redirect_url}?token=" + access_token

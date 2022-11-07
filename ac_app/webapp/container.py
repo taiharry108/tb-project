@@ -8,11 +8,16 @@ from sqlalchemy import orm
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from uuid import UUID
 
+from download_service.download_service import DownloadService
+from core.scraping_service.manhuaren_scraping_service import ManhuarenScrapingService
+from core.scraping_service.copymanga_scraping_service import CopyMangaScrapingService
+
 from database.database_service import DatabaseService
 from database.crud_service import CRUDService
 
 from queue_service.redis_queue_service import RedisQueueService
 from queue_service.messages import EncryptMessage
+from security_service.security_service import SecurityService
 from session.redis_backend import RedisBackend
 from session.session_verifier import BasicVerifier, SessionData
 from store_service.fs_store_service import FSStoreService
@@ -20,7 +25,7 @@ from store_service.fs_store_service import FSStoreService
 
 class Container(containers.DeclarativeContainer):
 
-    wiring_config = containers.WiringConfiguration(packages=["routers"])
+    wiring_config = containers.WiringConfiguration(packages=["routers", "tests"])
     config = providers.Configuration(yaml_files=["config.yml"])
 
     store_service_factory = providers.FactoryAggregate(
@@ -107,4 +112,23 @@ class Container(containers.DeclarativeContainer):
         auto_error=True,
         secret_key="DONOTUSE",
         cookie_params=cookie_params,
+    )
+
+    download_service = providers.Factory(
+        DownloadService,
+        max_connections=config.download_service.max_connections,
+        max_keepalive_connections=config.download_service.max_keepalive_connections,
+        headers=config.download_service.headers,
+        store_service=store_service,
+        proxy=config.download_service.proxy
+    )
+
+    scraping_service_factory = providers.FactoryAggregate(
+        manhuaren=providers.Singleton(
+            ManhuarenScrapingService,
+            download_service=download_service),
+        copymanga=providers.Singleton(
+            CopyMangaScrapingService,
+            download_service=download_service            
+        )
     )

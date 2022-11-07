@@ -34,3 +34,6 @@ class DatabaseService:
             raise
         finally:
             await session.close()
+    
+    def new_session(self):
+        return self._session_factory()
