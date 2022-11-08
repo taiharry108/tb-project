@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="overflow-x-auto relative shadow-md mt-5 sm:rounded-t-lg dark:bg-gray-600 border-b">
+    <div id="tabs" class="grid w-full text-sm text-left text-gray-200 dark:text-gray-300 grid-cols-3 text-center text-lg">
+    </div>
+</div>
+
+<div class="overflow-x-auto relative shadow-md sm:rounded-b-lg dark:bg-gray-800">
+    <div id="chap-table" class="grid w-full text-sm text-left text-gray-200 dark:text-gray-300 grid-cols-4 text-center">
+    </div>
+</div>
+
+<div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto"
+    id="view-modal" tabindex="-1" aria-labelledby="view-modal" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen relative w-auto pointer-events-none max-w-4xl">
+        <div
+            class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding rounded-md outline-none text-current">
+            <div class="modal-content-container">
+                
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+{% block post_body %}
+<script>const mangaId = {{ manga_id }}</script>
+{% endblock %}

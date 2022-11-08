@@ -74,7 +74,7 @@ async def test_get_meta(scraping_service: MangaSiteScrapingService, manga: Manga
     {"title": "第701话", "page_url": 'https://copymanga.net/comic/huoyingrenzhe/chapter/1089aa80-c955-11e8-88c0-024352452ce0'}
 ])
 async def test_get_page_urls(scraping_service: MangaSiteScrapingService, chapter: Chapter):
-    img_urls = await scraping_service.get_page_urls(chapter)
+    img_urls = await scraping_service.get_page_urls(chapter.page_url)
     assert len(img_urls) == 24
 
     for img_url in img_urls:

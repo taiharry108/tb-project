@@ -15,7 +15,7 @@ class MangaSiteScrapingService(Protocol):
     async def get_chapters(self, manga_url: str) -> Dict[MangaIndexTypeEnum, List[Chapter]]:
         """Get index page of manga, return a manga with chapters"""
 
-    async def get_page_urls(self, chapter: Chapter) -> List[str]:
+    async def get_page_urls(self, chapter_url: str) -> List[str]:
         """Get all the urls of a chaper, return a list of strings"""
     
     def extract_meta_from_soup(self, soup: BeautifulSoup) -> Meta:

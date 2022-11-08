@@ -75,7 +75,7 @@ async def test_get_meta(scraping_service: MangaSiteScrapingService, manga: Manga
     {"title": "第187话", "page_url": 'https://www.manhuaren.com/m1199828/'}
 ])
 async def test_get_page_urls(scraping_service: MangaSiteScrapingService, chapter: Chapter):
-    img_urls = await scraping_service.get_page_urls(chapter)
+    img_urls = await scraping_service.get_page_urls(chapter.page_url)
     assert len(img_urls) == 18
 
     for img_url in img_urls:

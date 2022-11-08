@@ -9,7 +9,7 @@ services:
   web:
     image: nginx:alpine
     volumes:
-      - ./static:/usr/share/nginx/html:ro
+      - ../static:/static:ro
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/cache:/data/nginx/cache
     container_name: core_nginx

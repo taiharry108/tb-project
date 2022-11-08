@@ -3,7 +3,7 @@ from dependency_injector import providers
 from dependency_injector.wiring import inject, Provide
 from httpx import AsyncClient
 import pytest
-from sqlalchemy.ext.asyncio import create_async_engine
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from container import Container
 from database.crud_service import CRUDService
@@ -52,3 +52,16 @@ def anyio_backend():
 async def client():
     async with AsyncClient(app=main.app, base_url="http://localhost:60802") as client:
         yield client
+
+
+@pytest.fixture()
+async def db_session(database: DatabaseService) -> AsyncSession:
+    session = database.new_session()
+    try:
+        async with session.begin():
+            yield session
+    except Exception:
+        await session.rollback()
+        raise
+    finally:
+        await session.close()

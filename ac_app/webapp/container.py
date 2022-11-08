@@ -8,6 +8,7 @@ from sqlalchemy import orm
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from uuid import UUID
 
+from async_service.async_service import AsyncService
 from download_service.download_service import DownloadService
 from core.scraping_service.manhuaren_scraping_service import ManhuarenScrapingService
 from core.scraping_service.copymanga_scraping_service import CopyMangaScrapingService
@@ -131,4 +132,10 @@ class Container(containers.DeclarativeContainer):
             CopyMangaScrapingService,
             download_service=download_service            
         )
+    )
+
+    async_service = providers.Singleton(
+        AsyncService,
+        num_workers=config.async_service.num_workers,
+        delay=config.async_service.delay,
     )

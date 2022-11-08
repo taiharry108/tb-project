@@ -123,9 +123,9 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
 
         return chapters
 
-    async def get_page_urls(self, chapter: Chapter) -> List[str]:
+    async def get_page_urls(self, chapter_url: str) -> List[str]:
         """Get all the urls of a chaper, return a list of strings"""
-        soup = await self.download_service.get_soup(chapter.page_url)
+        soup = await self.download_service.get_soup(chapter_url)
         passphrase = self.get_passphrase('jojo = ', soup)
         encrypted = soup.find('div', class_="imageData").get('contentkey')
         json_data = json.loads(

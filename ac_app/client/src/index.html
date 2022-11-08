@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mb-6 mt-72 w-3/4">
+    <label for="large-input" class="block mb-2 text-sm font-medium text-gray-900 dark:text-gray-300">Large
+        input</label>
+    <input type="text" id="search-input"
+        class="block p-4 w-full text-gray-900 bg-gray-50 rounded-lg border border-gray-300 sm:text-md focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500">
+    <ul id="suggestion-form"
+        class="w-full text-sm font-medium text-gray-900 bg-white rounded-b-lg border-gray-200 dark:bg-gray-700 dark:border-gray-600 dark:text-white">
+    </ul>
+</div>
+{% endblock %}
