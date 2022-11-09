@@ -66,7 +66,18 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
     def url(self):
         return self.site.url
 
-    def extract_meta_from_soup(self, soup: BeautifulSoup) -> Dict[str, any]:
+    async def extract_meta_from_soup(self, soup: BeautifulSoup, manga_url: str) -> Dict[str, any]:
+        manga_name = manga_url.split('/')[-1]
+        json_data = await self.get_json_data_from_soup(soup, manga_name)
+
+        last_chap_dict = json_data['groups']['default']['last_chapter']
+
+        chapter_title = last_chap_dict['name']
+        comic_path_word = last_chap_dict['comic_path_word']
+        chapter_uuid = last_chap_dict['uuid']
+
+        chapter_url = f"{self.url}comic/{comic_path_word}/chapter/{chapter_uuid}"
+
         span = soup.find('span', class_='comicParticulars-sigezi')
         last_update = span.findNext('span').text.strip()
         span = span.parent.findNext('li').select('span:nth-of-type(2)')
@@ -76,7 +87,8 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
         return Meta(
             last_update=datetime.strptime(last_update, "%Y-%m-%d"),
             finished=finished,
-            thum_img=thum_img
+            thum_img=thum_img,
+            latest_chapter=Chapter(title=chapter_title, page_url=chapter_url)
         )
 
     def get_passphrase(self, var_name: str, soup: BeautifulSoup):
@@ -85,6 +97,19 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
             match = pattern.search(script_tag.text)
             if match:
                 return match.group(1)
+
+    async def get_json_data_from_soup(self, soup: BeautifulSoup, manga_name: str):        
+        url = f'{self.url}comicdetail/{manga_name}/chapters'
+
+        passphrase = self.get_passphrase('dio = ', soup)
+
+        data = await self.download_service.get_json(url)
+        if data['code'] != 200:
+            return {}
+        encrypted = data['results']
+        decrypted = decrypt(encrypted[16:], passphrase, encrypted[:16])
+        json_data = json.loads(decrypted)
+        return json_data
 
     async def get_chapters(self, manga_url: str) -> Dict[MangaIndexTypeEnum, List[Chapter]]:
         """Get index page of manga, return a manga with chapters"""
@@ -98,17 +123,11 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
             return type_
 
         manga_name = manga_url.split('/')[-1]
-        url = f'{self.url}comicdetail/{manga_name}/chapters'
 
         soup = await self._get_index_page(manga_url)
-        passphrase = self.get_passphrase('dio = ', soup)
-
-        data = await self.download_service.get_json(url)
-        if data['code'] != 200:
+        json_data = await self.get_json_data_from_soup(soup, manga_name)
+        if not json_data:
             return {}
-        encrypted = data['results']
-        json_data = json.loads(
-            decrypt(encrypted[16:], passphrase, encrypted[:16]))
 
         type_dict = {t_dict['id']: t_dict['name']
                      for t_dict in json_data['build']['type']}

@@ -1,5 +1,16 @@
 {% extends "base.html" %}
 {% block content %}
+<!-- Jumbotron -->
+<div id="manga-meta" class="p-6 shadow-lg rounded-lg dark:bg-gray-600 text-gray-100 mt-5 flex">
+    <img class="max-w-sm h-auto shadow-lg" />
+    <div class="ml-5 flex flex-col text-gray-300">
+        <div class="m-2 manga-title text-5xl grow"></div>
+        <div class="mx-2 mt-4 text-lg">Latest Chapter: <span class="latest-chapter-title"></span></div>
+        <div class="mx-2 mt-4 text-lg">Last Read Chapter: <span class="last-read-chapter-title"></span></div>
+        <div class="m-2 text-lg">Last Update: <span class="manga-last-update hover:"></span></div>
+    </div>
+</div>
+<!-- Jumbotron -->
 <div class="overflow-x-auto relative shadow-md mt-5 sm:rounded-t-lg dark:bg-gray-600 border-b">
     <div id="tabs" class="grid w-full text-sm text-left text-gray-200 dark:text-gray-300 grid-cols-3 text-center text-lg">
     </div>
@@ -12,7 +23,7 @@
 
 <div class="modal fade fixed top-0 left-0 hidden w-full h-full outline-none overflow-x-hidden overflow-y-auto"
     id="view-modal" tabindex="-1" aria-labelledby="view-modal" aria-hidden="true">
-    <div class="modal-dialog modal-fullscreen relative w-auto pointer-events-none max-w-4xl">
+    <div class="modal-dialog modal-fullscreen relative w-auto pointer-events-none max-w-4xl h-auto">
         <div
             class="modal-content border-none shadow-lg relative flex flex-col w-full pointer-events-auto bg-white bg-clip-padding rounded-md outline-none text-current">
             <div class="modal-content-container">
@@ -23,5 +34,7 @@
 </div>
 {% endblock %}
 {% block post_body %}
-<script>const mangaId = {{ manga_id }}</script>
+<script>const mangaId = {{ manga_id }}; const mangaName = "{{ manga_name }}" </script>
+<script src="/ac/scripts/manga.js" async></script>
+
 {% endblock %}

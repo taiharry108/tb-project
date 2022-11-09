@@ -18,7 +18,7 @@ class MangaSiteScrapingService(Protocol):
     async def get_page_urls(self, chapter_url: str) -> List[str]:
         """Get all the urls of a chaper, return a list of strings"""
     
-    def extract_meta_from_soup(self, soup: BeautifulSoup) -> Meta:
+    async def extract_meta_from_soup(self, soup: BeautifulSoup) -> Meta:
         """Get meta data for manga"""
     
     async def _get_index_page(self, manga_url: str):
@@ -33,4 +33,4 @@ class MangaSiteScrapingService(Protocol):
     async def get_meta(self, manga_url: str) -> Meta:
         """Get meta data for manga"""
         soup = await self._get_index_page(manga_url)
-        return self.extract_meta_from_soup(soup)
+        return await self.extract_meta_from_soup(soup, manga_url)

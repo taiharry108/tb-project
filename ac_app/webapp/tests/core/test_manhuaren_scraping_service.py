@@ -69,6 +69,8 @@ async def test_get_meta(scraping_service: MangaSiteScrapingService, manga: Manga
     assert meta_data.last_update == datetime(2016, 4, 23)
     assert meta_data.finished == True
     assert meta_data.thum_img == 'https://mhfm6us.cdndm5.com/1/444/20181129142416_180x240_30.jpg'
+    assert meta_data.latest_chapter == Chapter(
+        title="外传：20", page_url="https://www.manhuaren.com/m249654/")
 
 
 @pytest.mark.parametrize("c_data", [

@@ -5,21 +5,24 @@ from fastapi.responses import StreamingResponse
 import json
 from logging import getLogger
 from pathlib import Path
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List, Iterable
 
+from async_service.async_service import AsyncService
 from container import Container
 from core.models.chapter import Chapter
-from core.models.manga import MangaBase
+from core.models.manga import MangaBase, MangaSimple
 from core.models.manga_index_type_enum import MangaIndexTypeEnum, m_types
 from core.models.manga_site_enum import MangaSiteEnum
 from core.models.meta import Meta
 from core.scraping_service.manga_site_scraping_service import MangaSiteScrapingService as MSSService
 from database.crud_service import CRUDService
-from database.models import MangaSite, Manga, Chapter as DBChapter, Page
+from database.models import MangaSite, Manga, Chapter as DBChapter, Page, User, History
 from download_service.download_service import DownloadService
-from async_service.async_service import AsyncService
+from routers.user import get_user_id_from_session_data
 from routers.utils import get_db_session
+
 
 router = APIRouter()
 
@@ -144,6 +147,20 @@ async def search_manga(
               for manga in mangas]
     return await crud_service.bulk_create_objs_with_unique_key(session, Manga, mangas, "url")
 
+@router.get('/manga', response_model=MangaSimple)
+@inject
+async def get_manga(
+        user_id: int = Depends(get_user_id_from_session_data),
+        crud_service: CRUDService = Depends(Provide[Container.crud_service]), 
+        db_session: AsyncSession = Depends(get_db_session),
+        db_manga: Manga = Depends(_get_db_manga_from_id),):
+    q = select(History).where(History.manga_id == db_manga.id).where(History.user_id == user_id)
+    history = (await db_session.execute(q)).one()[0]
+    db_chapter = await crud_service.get_item_by_id(db_session, DBChapter, history.chapter_id)
+    manga = MangaSimple.from_orm(db_manga)
+    manga.last_read_chapter = Chapter.from_orm(db_chapter)
+    return manga
+
 
 @router.get('/chapters', response_model=Dict[MangaIndexTypeEnum, List[Chapter]])
 @inject
@@ -180,7 +197,9 @@ async def get_meta(
             _get_scraping_service_from_manga),
         download_service: DownloadService = Depends(
             Provide[Container.download_service]),
-        download_path: str = Depends(Provide[Container.config.api.download_path])):
+        download_path: str = Depends(Provide[Container.config.api.download_path]),
+        crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+        db_session: AsyncSession = Depends(get_db_session)):
 
     meta = await scraping_service.get_meta(db_manga.url)
 
@@ -189,6 +208,12 @@ async def get_meta(
 
     download_result = await download_service.download_img(url=meta.thum_img, download_path=download_path, filename="thum_img")
     meta.thum_img = download_result['pic_path']
+
+    await crud_service.update_object(
+        db_session, Manga, db_manga.id,
+        finished=meta.finished,
+        thum_img=str(meta.thum_img),
+        last_update=meta.last_update)
 
     return meta
 

@@ -91,7 +91,7 @@ class ManhuarenScrapingService(MangaSiteScrapingService):
     def url(self):
         return self.site.url
 
-    def extract_meta_from_soup(self, soup: BeautifulSoup) -> Meta:
+    async def extract_meta_from_soup(self, soup: BeautifulSoup, manga_url: str) -> Meta:
         div = soup.find(
             'div', {'id': 'tempc'}).find('div', class_='detail-list-title')
         last_update = div.find(
@@ -99,10 +99,21 @@ class ManhuarenScrapingService(MangaSiteScrapingService):
         finished = div.find('span', class_='detail-list-title-1').text == '已完结'
         thum_img = soup.find('img', class_='detail-main-bg').get('src')
 
+        latest_chap_tag = div.find(
+            'a', class_='detail-list-title-2')
+        chapter_title = latest_chap_tag.text.strip()
+        chapter_url = convert_url(latest_chap_tag.get('href'), self.url)
+
+        if "月" in last_update:
+            last_update = datetime.strptime(f"{datetime.now().year}年{last_update}", "%Y年%m月%d号")
+        else:
+            last_update = datetime.strptime(last_update, "%Y-%m-%d")
+
         return Meta(
-            last_update=datetime.strptime(last_update, "%Y-%m-%d"),
+            last_update=last_update,
             finished=finished,
-            thum_img=thum_img
+            thum_img=thum_img,
+            latest_chapter=Chapter(title=chapter_title, page_url=chapter_url)
         )
 
     async def get_chapters(self, manga_url: str) -> Dict[MangaIndexTypeEnum, List[Chapter]]:

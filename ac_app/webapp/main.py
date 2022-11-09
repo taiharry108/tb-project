@@ -6,7 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from container import Container
-from routers import api, main
+from routers import api, main, auth, user
 
 
 def create_app() -> FastAPI:
@@ -27,6 +27,8 @@ def create_app() -> FastAPI:
 
     setattr(app, 'container', container)
     app.include_router(api.router, prefix="/api")
+    app.include_router(auth.router, prefix="/auth")
+    app.include_router(user.router, prefix="/user")
     app.include_router(main.router, prefix="")
     container.init_resources()
 
