@@ -1,0 +1,15 @@
+{% extends "manga.html" %}
+{% block content %}
+{{ super() }}
+<template id="vid-player-template">
+    <div>
+        <video controls autoplay class="embed-responsive embed-responsive-16by9 relative w-full overflow-hidden vid-player"
+            type="video/mp4">
+        </video>
+    </div>
+</template>
+{% endblock %}
+{% block post_body %}
+<script>const animeId = {{ anime_id }}; const animeName = "{{ anime_name }}" </script>
+<script src="/ac/scripts/anime.js" async></script>
+{% endblock %}

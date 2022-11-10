@@ -1,9 +1,28 @@
 $(function ($) {
     const searchEndpoint = '/ac/api/search';
 
+    let site = "manhuaren";
+
+    const setSite = (siteStr) => {
+        switch (siteStr) {
+            case "ManHuaRen":
+                site = "manhuaren"
+                break;
+            case "Copy Manga":
+                site = "copymanga"
+                break;
+            case "Anime1":
+                site = "anime1"
+                break;
+            default:
+                site = "manhuaren"
+                break;
+        }
+    }
+
     $('#search-input').on('keydown', (e) => {
         if (e.key == 'Enter') {
-            const data = { keyword: e.target.value, site: "manhuaren" };
+            const data = { keyword: e.target.value, site: site };
             $.ajax({
                 type: 'GET',
                 url: searchEndpoint,
@@ -32,5 +51,11 @@ $(function ($) {
             window.location.href = `manga?manga_id=${e.target.attributes["manga-id"].value}`;
         });
     }
+
+    $("ul.dropdown-menu > li").click((e) => {
+        setSite(e.target.text);
+        $("span.site-name").text(e.target.text);
+        console.log(site);
+    });
 })
 

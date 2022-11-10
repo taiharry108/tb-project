@@ -13,3 +13,6 @@ class Anime(BaseModel):
 
     class Config:
         orm_mode = True
+
+class AnimeBase(Anime):
+    pass

@@ -12,6 +12,7 @@ from async_service.async_service import AsyncService
 from download_service.download_service import DownloadService
 from core.scraping_service.manhuaren_scraping_service import ManhuarenScrapingService
 from core.scraping_service.copymanga_scraping_service import CopyMangaScrapingService
+from core.scraping_service.anime1_scraping_service import Anime1ScrapingService
 
 from database.database_service import DatabaseService
 from database.crud_service import CRUDService
@@ -26,7 +27,8 @@ from store_service.fs_store_service import FSStoreService
 
 class Container(containers.DeclarativeContainer):
 
-    wiring_config = containers.WiringConfiguration(packages=["routers", "tests"])
+    wiring_config = containers.WiringConfiguration(
+        packages=["routers", "tests"])
     config = providers.Configuration(yaml_files=["config.yml"])
 
     store_service_factory = providers.FactoryAggregate(
@@ -130,7 +132,11 @@ class Container(containers.DeclarativeContainer):
             download_service=download_service),
         copymanga=providers.Singleton(
             CopyMangaScrapingService,
-            download_service=download_service            
+            download_service=download_service
+        ),
+        anime1=providers.Singleton(
+            Anime1ScrapingService,
+            download_service=download_service
         )
     )
 

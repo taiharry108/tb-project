@@ -20,6 +20,7 @@ class MangaSite(Base):
     url = Column(String, index=True, unique=True)
 
     mangas = relationship("Manga", back_populates="manga_site")
+    animes = relationship("Anime", back_populates="manga_site")
 
 
 class Manga(Base):
@@ -59,3 +60,38 @@ class Page(Base):
     pic_path = Column(String, index=True, unique=True)
     idx = Column(Integer, index=True)
     total = Column(Integer)
+
+
+class Anime(Base):
+    __tablename__ = "animes"
+
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, index=True)
+    url = Column(String, index=True, unique=True)
+    eps = Column(String)
+    year = Column(String)
+    season = Column(String)
+    sub = Column(String)
+    last_update = Column(DateTime, index=True)
+    thum_img = Column(String, index=True)
+    episodes = relationship("Episode", back_populates="anime")
+    manga_site_id = Column(Integer, ForeignKey("manga_sites.id"))
+    manga_site = relationship("MangaSite", back_populates="animes")
+
+
+class Episode(Base):
+    __tablename__ = "episodes"
+    __table_args__ = (
+        # this can be db.PrimaryKeyConstraint if you want it to be a primary key
+        UniqueConstraint('title', 'anime_id'),
+    )
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    data = Column(String, index=True)
+    last_update = Column(DateTime, index=True)
+
+    anime_id = Column(Integer, ForeignKey("animes.id"))
+    anime = relationship("Anime", back_populates="episodes")
+
+    manual_key = Column(String, unique=True)

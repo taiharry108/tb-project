@@ -12,9 +12,10 @@ $(function ($) {
 
     const staticFilesEndpoint = "http://tai-server.local:60080/static";
 
-    const getChapterFromIndices = (tabIdx, chapIdx) => {
+    const getChapterFromIndices = (tabIdx, chapIdx) => {        
         if (chapterDict) {
             const noChaps = chapterDict[tabs[tabIdx]].length;
+            console.log(noChaps, chapIdx)
             if ((chapIdx < noChaps) && (chapIdx >= 0))
                 return chapterDict[tabs[tabIdx]][chapIdx];
         }
@@ -48,7 +49,7 @@ $(function ($) {
         titleDiv.attr({ "data-bs-toggle": "modal", "data-bs-target": "#view-modal" });
         titleDiv.click((e) => {
             const chapIdx = $(e.target).attr("chap-idx");
-            currentChapIdx = chapIdx;
+            currentChapIdx = parseInt(chapIdx);
             const chapId = getChapterFromIndices(currentTabIdx, chapIdx).id;
             fetchPages(chapId);            
         });
@@ -56,7 +57,7 @@ $(function ($) {
 
     const addMeta = (metaDict) => {
         const metaDiv = $("#manga-meta");
-        const thumImg = metaDict.thum_img.replace("/downloaded", "http://tai-server.local:60080/static");
+        const thumImg = metaDict.thum_img.replace("/downloaded", staticFilesEndpoint);
         metaDiv.find('img').attr("src", thumImg);
         metaDiv.find('.manga-title').text(mangaName)
         const dateStr = (new Date(metaDict.last_update)).toISOString().substring(0, 10);
@@ -116,7 +117,8 @@ $(function ($) {
                 modalContainer.find(`div[page-idx=${data.idx}]`).append(`<img class="mx-auto" src="${picPath}"></img>`)
             }
         }
-        updateHistory(chapId);        
+        updateHistory(chapId);
+        updateLastRead();
     }
 
     const fetchManga = () => {
@@ -147,16 +149,20 @@ $(function ($) {
                     });
                 }
             });
-            $.ajax({
-                type: 'GET',
-                url: mangaEndpoint,
-                data: data,
-                success: (response) => {
-                    $(".last-read-chapter-title").text(response.last_read_chapter.title);
-                }
-            });
+           updateLastRead();
         }
     };
+
+    const updateLastRead = () => {
+        $.ajax({
+            type: 'GET',
+            url: mangaEndpoint,
+            data: data,
+            success: (response) => {
+                $(".last-read-chapter-title").text(response.last_read_chapter.title);
+            }
+        });
+    }
 
     addTabs();
     fetchManga();

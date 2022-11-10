@@ -44,7 +44,7 @@ def decrypt(encrypted, passphrase, iv) -> str:
 class CopyMangaScrapingService(MangaSiteScrapingService):
     def __init__(self, download_service: DownloadService):
         self.site: Site = Site(
-            id=0, name="copymanga", url="https://copymanga.net/")
+            id=1, name="copymanga", url="https://copymanga.net/")
         self.download_service = download_service
         self._index_page_cache = {}
 

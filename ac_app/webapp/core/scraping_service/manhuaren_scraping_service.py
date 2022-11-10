@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup
-from datetime import datetime
+from datetime import datetime, timedelta
 from collections import defaultdict
 from logging import getLogger
 import re
@@ -91,6 +91,23 @@ class ManhuarenScrapingService(MangaSiteScrapingService):
     def url(self):
         return self.site.url
 
+    def _parse_datetime(self, dt_str) -> datetime:
+        print(dt_str)        
+        if "月" in dt_str:
+            dt = datetime.strptime(
+                f"{datetime.now().year}年{dt_str}", "%Y年%m月%d号")
+        elif "前天" in dt_str:
+            dt = datetime.now() - timedelta(days=2)
+        elif "昨天" in dt_str:
+            dt = datetime.now() - timedelta(days=1)
+        elif "今天" in dt_str:
+            dt = datetime.now()
+        else:
+            dt = datetime.strptime(dt_str, "%Y-%m-%d")
+        dt = datetime(dt.year, dt.month, dt.day)
+        return dt
+
+
     async def extract_meta_from_soup(self, soup: BeautifulSoup, manga_url: str) -> Meta:
         div = soup.find(
             'div', {'id': 'tempc'}).find('div', class_='detail-list-title')
@@ -104,10 +121,7 @@ class ManhuarenScrapingService(MangaSiteScrapingService):
         chapter_title = latest_chap_tag.text.strip()
         chapter_url = convert_url(latest_chap_tag.get('href'), self.url)
 
-        if "月" in last_update:
-            last_update = datetime.strptime(f"{datetime.now().year}年{last_update}", "%Y年%m月%d号")
-        else:
-            last_update = datetime.strptime(last_update, "%Y-%m-%d")
+        last_update = self._parse_datetime(last_update)
 
         return Meta(
             last_update=last_update,

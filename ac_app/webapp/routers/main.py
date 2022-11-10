@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 
 from container import Container
 from database.crud_service import CRUDService
-from database.models import Manga
+from database.models import Manga, Anime
 from routers.auth import get_session_data
 from routers.utils import get_db_session
 from session.session_verifier import SessionData
@@ -57,10 +57,25 @@ async def history_page(request: Request,
                        session_data: SessionData = Depends(get_session_data),
                        redirect_response: RedirectResponse = Depends(
                            get_redirect_response),
-                       crud_service: CRUDService = Depends(
-                           Provide[Container.crud_service]),
-                       db_session: AsyncSession = Depends(get_db_session)
                        ):
     if not session_data:
         return redirect_response
     return templates.TemplateResponse("history.html", {"request": request, })
+
+
+@router.get("/anime")
+@inject
+async def anime_page(request: Request, anime_id: int,
+                     session_data: SessionData = Depends(get_session_data),
+                     redirect_response: RedirectResponse = Depends(
+                         get_redirect_response),
+                     crud_service: CRUDService = Depends(
+                         Provide[Container.crud_service]),
+                     db_session: AsyncSession = Depends(get_db_session)
+                     ):
+    if not session_data:
+        return redirect_response
+
+    anime_name = await crud_service.get_attr_of_item_by_id(db_session, Anime, anime_id, "name")
+
+    return templates.TemplateResponse("anime.html", {"request": request, "anime_id": anime_id, "anime_name": anime_name})

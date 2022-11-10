@@ -7,22 +7,26 @@ from logging import getLogger
 from pathlib import Path
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-from typing import Dict, List, Iterable
+from typing import Dict, List, Iterable, Union
 
 from async_service.async_service import AsyncService
 from container import Container
 from core.models.chapter import Chapter
+from core.models.anime import AnimeBase
+from core.models.episode import Episode
 from core.models.manga import MangaBase, MangaSimple
 from core.models.manga_index_type_enum import MangaIndexTypeEnum, m_types
 from core.models.manga_site_enum import MangaSiteEnum
 from core.models.meta import Meta
+from core.scraping_service.anime_site_scraping_service import AnimeSiteScrapingService as ASSService
+from core.scraping_service.anime1_scraping_service import Anime1ScrapingService
 from core.scraping_service.manga_site_scraping_service import MangaSiteScrapingService as MSSService
 from database.crud_service import CRUDService
-from database.models import MangaSite, Manga, Chapter as DBChapter, Page, User, History
+from database.models import MangaSite, Manga, Chapter as DBChapter, Page, History, Anime, Episode as DBEpisode
 from download_service.download_service import DownloadService
 from routers.user import get_user_id_from_session_data
 from routers.utils import get_db_session
-
+from sqlalchemy.exc import NoResultFound
 
 router = APIRouter()
 
@@ -76,6 +80,20 @@ async def _get_db_manga_from_id(
 
 
 @inject
+async def _get_db_anime_from_id(
+        anime_id: int,
+        session: AsyncSession = Depends(get_db_session),
+        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    db_anime = await crud_service.get_item_by_id(session, Anime, anime_id)
+    if db_anime is None:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="Anime does not exist"
+        )
+    return db_anime
+
+
+@inject
 async def _get_manga_site_from_manga(
         session: AsyncSession = Depends(get_db_session),
         db_manga: Manga = Depends(_get_db_manga_from_id),
@@ -85,24 +103,37 @@ async def _get_manga_site_from_manga(
 
 
 @inject
+async def _get_manga_site_from_anime(
+        session: AsyncSession = Depends(get_db_session),
+        db_anime: Anime = Depends(_get_db_anime_from_id),
+        crud_service: CRUDService = Depends(
+        Provide[Container.crud_service])) -> str:
+    return await crud_service.get_attr_of_item_by_id(session, MangaSite, db_anime.manga_site_id, "name")
+
+
+@inject
 def _get_scraping_service_from_site(
         site: MangaSiteEnum,
         ss_factory: FactoryAggregate[MSSService] = Depends(
-        Provider[Container.scraping_service_factory])) -> MSSService:
+        Provider[Container.scraping_service_factory])) -> Union[MSSService, ASSService]:
     return ss_factory(
         site)
 
 
 @inject
 def _get_scraping_service_from_manga(
-    manga_site_name: str = Depends(_get_manga_site_from_manga),
-    ss_factory: FactoryAggregate[MSSService] = Depends(
-        Provider[Container.scraping_service_factory])) -> MSSService:
-    return ss_factory(manga_site_name)
+        manga_site_name: str = Depends(_get_manga_site_from_manga)) -> MSSService:
+    return _get_scraping_service_from_site(manga_site_name)
 
 
 @inject
-async def _get_chapter_from_chapter_id(
+def _get_scraping_service_from_anime(
+        manga_site_name: str = Depends(_get_manga_site_from_anime)) -> ASSService:
+    return _get_scraping_service_from_site(manga_site_name)
+
+
+@inject
+async def _get_chapter_from_id(
         chapter_id: int,
         crud_service: CRUDService = Depends(
             Provide[Container.crud_service]),
@@ -111,18 +142,35 @@ async def _get_chapter_from_chapter_id(
     if not db_chapter:
         raise HTTPException(
             status_code=status.HTTP_406_NOT_ACCEPTABLE,
-            detail="Manga does not exist"
+            detail="Chapter does not exist"
         )
     return db_chapter
 
 
 @inject
-async def _get_manga_from_chapter_id(db_chapter: DBChapter = Depends(_get_chapter_from_chapter_id),
-                                     crud_service: CRUDService = Depends(
-                                         Provide[Container.crud_service]),
-                                     session: AsyncSession = Depends(get_db_session),):
-    db_manga = await _get_db_manga_from_id(db_chapter.manga_id, session)
-    return db_manga
+async def _get_episode_from_id(
+        episode_id: int,
+        crud_service: CRUDService = Depends(
+            Provide[Container.crud_service]),
+        session: AsyncSession = Depends(get_db_session),):
+    db_episode = await crud_service.get_item_by_id(session, DBEpisode, episode_id)
+    if not db_episode:
+        raise HTTPException(
+            status_code=status.HTTP_406_NOT_ACCEPTABLE,
+            detail="Episode does not exist"
+        )
+    return db_episode
+
+@inject
+async def _get_manga_from_chapter_id(db_chapter: DBChapter = Depends(_get_chapter_from_id),
+                                     session: AsyncSession = Depends(get_db_session),) -> Manga:
+    return await _get_db_manga_from_id(db_chapter.manga_id, session)
+
+
+@inject
+async def _get_anime_from_episode_id(db_episode: DBEpisode = Depends(_get_episode_from_id),
+                                     session: AsyncSession = Depends(get_db_session),) -> Anime:
+    return await _get_db_anime_from_id(db_episode.anime_id, session)
 
 
 @inject
@@ -133,33 +181,95 @@ async def _get_scraping_service_from_chapter(
     return _get_scraping_service_from_manga(manga_site_name)
 
 
-@router.get("/search", response_model=list[MangaBase])
 @inject
-async def search_manga(
-        keyword: str,
-        crud_service: CRUDService = Depends(Provide[Container.crud_service]),
-        manga_site_id: int = Depends(_get_manga_site_id),
-        session: AsyncSession = Depends(get_db_session),
-        scraping_service: MSSService = Depends(_get_scraping_service_from_site)):
+async def _get_scraping_service_from_episode(
+        db_anime: Anime = Depends(_get_anime_from_episode_id),
+        session: AsyncSession = Depends(get_db_session),) -> MSSService:        
+    manga_site_name = await _get_manga_site_from_anime(session, db_anime)
+    return _get_scraping_service_from_manga(manga_site_name)
+
+
+
+@inject
+async def _search_manga(keyword: str,
+                        crud_service: CRUDService = Depends(
+                            Provide[Container.crud_service]),
+                        manga_site_id: int = Depends(_get_manga_site_id),
+                        session: AsyncSession = Depends(get_db_session),
+                        scraping_service: MSSService = Depends(_get_scraping_service_from_site)):
     mangas = await scraping_service.search_manga(keyword)
 
     mangas = [{"name": manga.name, "url": str(manga.url), "manga_site_id": manga_site_id}
               for manga in mangas]
-    return await crud_service.bulk_create_objs_with_unique_key(session, Manga, mangas, "url")
+    mangas = await crud_service.bulk_create_objs_with_unique_key(session, Manga, mangas, "url")
+    return [MangaBase.from_orm(manga) for manga in mangas]
+
+
+@inject
+async def _search_anime(keyword: str,
+                        crud_service: CRUDService = Depends(
+                            Provide[Container.crud_service]),
+                        manga_site_id: int = Depends(_get_manga_site_id),
+                        session: AsyncSession = Depends(get_db_session),
+                        scraping_service: ASSService = Depends(_get_scraping_service_from_site)):
+    animes = await scraping_service.search_anime(keyword)
+
+    animes = [{"name": anime.name, "url": str(anime.url), "manga_site_id": manga_site_id,
+               "eps": anime.eps, "year": anime.year, "season": anime.season, "sub": anime.season}
+              for anime in animes]
+    animes = await crud_service.bulk_create_objs_with_unique_key(session, Anime, animes, "url")
+    return [AnimeBase.from_orm(anime) for anime in animes]
+
+
+@router.get("/search",)
+@inject
+async def search(
+        keyword: str,
+        manga_site_id: int = Depends(_get_manga_site_id),
+        session: AsyncSession = Depends(get_db_session),
+        scraping_service: MSSService = Depends(_get_scraping_service_from_site)):
+
+    if not isinstance(scraping_service, Anime1ScrapingService):
+        return await _search_manga(keyword, manga_site_id=manga_site_id, session=session, scraping_service=scraping_service)
+    else:
+        return await _search_anime(keyword, manga_site_id=manga_site_id, session=session, scraping_service=scraping_service)
+
 
 @router.get('/manga', response_model=MangaSimple)
 @inject
 async def get_manga(
         user_id: int = Depends(get_user_id_from_session_data),
-        crud_service: CRUDService = Depends(Provide[Container.crud_service]), 
+        crud_service: CRUDService = Depends(Provide[Container.crud_service]),
         db_session: AsyncSession = Depends(get_db_session),
         db_manga: Manga = Depends(_get_db_manga_from_id),):
-    q = select(History).where(History.manga_id == db_manga.id).where(History.user_id == user_id)
-    history = (await db_session.execute(q)).one()[0]
-    db_chapter = await crud_service.get_item_by_id(db_session, DBChapter, history.chapter_id)
     manga = MangaSimple.from_orm(db_manga)
-    manga.last_read_chapter = Chapter.from_orm(db_chapter)
+    q = select(History).where(History.manga_id ==
+                              db_manga.id).where(History.user_id == user_id)
+    try:
+        history = (await db_session.execute(q)).one()[0]
+        db_chapter = await crud_service.get_item_by_id(db_session, DBChapter, history.chapter_id)
+        manga.last_read_chapter = Chapter.from_orm(db_chapter)
+    except NoResultFound:
+        logger.warning("no history is found")
     return manga
+
+
+@router.get('/episodes', response_model=List[Episode])
+@inject
+async def get_episodes(
+        crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+        session: AsyncSession = Depends(get_db_session),
+        db_anime: Anime = Depends(_get_db_anime_from_id),
+        scraping_service: ASSService = Depends(_get_scraping_service_from_anime)) -> List[Episode]:
+
+    episodes = await scraping_service.get_index_page(db_anime)
+
+    episodes_to_insert = [{"title": ep.title, "last_update": ep.last_update,
+                           "data": ep.data, "anime_id": db_anime.id,
+                           "manual_key": f"{db_anime.id}:{ep.title}"} for ep in episodes]
+
+    db_episodes = await crud_service.bulk_create_objs_with_unique_key(session, DBEpisode, episodes_to_insert, "manual_key")
+    return db_episodes
 
 
 @router.get('/chapters', response_model=Dict[MangaIndexTypeEnum, List[Chapter]])
@@ -197,7 +307,8 @@ async def get_meta(
             _get_scraping_service_from_manga),
         download_service: DownloadService = Depends(
             Provide[Container.download_service]),
-        download_path: str = Depends(Provide[Container.config.api.download_path]),
+        download_path: str = Depends(
+            Provide[Container.config.api.download_path]),
         crud_service: CRUDService = Depends(Provide[Container.crud_service]),
         db_session: AsyncSession = Depends(get_db_session)):
 
@@ -257,10 +368,28 @@ async def _sse_img_gen(page_list):
     yield 'data: {}\n\n'
 
 
+@router.get("/episode")
+@inject
+async def get_episode(
+        db_episode: DBEpisode = Depends(_get_episode_from_id),
+        db_anime: Anime = Depends(_get_anime_from_episode_id),
+        scraping_service: ASSService = Depends(
+            _get_scraping_service_from_episode),
+        download_path: str = Depends(Provide[Container.config.api.download_path])):
+
+    download_path = Path(download_path) / \
+            scraping_service.site.name / db_anime.name / db_anime.season
+        
+    vid_url = await scraping_service.get_video_url(db_episode)
+    
+    download_service: DownloadService = scraping_service.download_service
+    result = await download_service.download_vid(url=vid_url, download_path=download_path, filename=db_episode.title)
+    return result
+
 @router.get("/pages")
 @inject
 async def get_pages(
-        db_chapter: DBChapter = Depends(_get_chapter_from_chapter_id),
+        db_chapter: DBChapter = Depends(_get_chapter_from_id),
         db_manga: Manga = Depends(_get_manga_from_chapter_id),
         session: AsyncSession = Depends(get_db_session),
         crud_service: CRUDService = Depends(Provide[Container.crud_service]),
@@ -276,12 +405,12 @@ async def get_pages(
 
         download_path = Path(download_path) / \
             scraping_service.site.name / db_manga.name / db_chapter.title
-        
+
         page_gen = _download_pages(
             download_path, page_urls, db_chapter, session)
 
     headers = {"Content-Type": "text/event-stream",
                "Crawled": "false" if pages else "true"}
 
-    return StreamingResponse(_sse_img_gen(page_gen), 
-            headers=headers)
+    return StreamingResponse(_sse_img_gen(page_gen),
+                             headers=headers)
