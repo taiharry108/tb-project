@@ -268,7 +268,12 @@ async def get_episodes(
                            "data": ep.data, "anime_id": db_anime.id,
                            "manual_key": f"{db_anime.id}:{ep.title}"} for ep in episodes]
 
-    db_episodes = await crud_service.bulk_create_objs_with_unique_key(session, DBEpisode, episodes_to_insert, "manual_key")
+    db_episodes = await crud_service.bulk_create_objs_with_unique_key(
+        session,
+        DBEpisode,
+        episodes_to_insert,
+        "manual_key",
+        update_attrs=["data"])
     return db_episodes
 
 
@@ -383,6 +388,7 @@ async def get_episode(
     vid_url = await scraping_service.get_video_url(db_episode)
     
     download_service: DownloadService = scraping_service.download_service
+    logger.info(f"{download_service.client.cookies=}")
     result = await download_service.download_vid(url=vid_url, download_path=download_path, filename=db_episode.title)
     return result
 

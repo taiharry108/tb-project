@@ -2,20 +2,25 @@ $(function ($) {
     const searchEndpoint = '/ac/api/search';
 
     let site = "manhuaren";
+    let isManga = true;
 
     const setSite = (siteStr) => {
         switch (siteStr) {
             case "ManHuaRen":
-                site = "manhuaren"
+                site = "manhuaren";
+                isManga = true;
                 break;
             case "Copy Manga":
-                site = "copymanga"
+                site = "copymanga";
+                isManga = true;
                 break;
             case "Anime1":
-                site = "anime1"
+                site = "anime1";
+                isManga = false;
                 break;
             default:
-                site = "manhuaren"
+                site = "manhuaren";
+                isManga = true;
                 break;
         }
     }
@@ -42,13 +47,14 @@ $(function ($) {
 
     const addItemToSugg = (suggestions) => {
         const n = suggestions.length;
+        const resultType = isManga ? "manga" : "anime";
         suggestions.forEach((suggestion, idx) => {
             let liCls = "p-4 w-full dark:hover:bg-gray-400";
             liCls += idx == n - 1 ? "rounded-b-lg" : "border-b border-gray-600";
-            $('#suggestion-form').append(`<li manga-id=${suggestion["id"]} class="${liCls}">${suggestion["name"]}</li>`);
+            $('#suggestion-form').append(`<li ${resultType}-id=${suggestion["id"]} class="${liCls}">${suggestion["name"]}</li>`);
         });
         $('#suggestion-form > li').on("click", (e) => {
-            window.location.href = `manga?manga_id=${e.target.attributes["manga-id"].value}`;
+            window.location.href = `${resultType}?${resultType}_id=${e.target.attributes[resultType + "-id"].value}`;
         });
     }
 

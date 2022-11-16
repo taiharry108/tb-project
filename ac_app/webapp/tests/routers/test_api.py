@@ -208,142 +208,142 @@ async def test_get_episode(anime_url: str, episode_path: str,
     print(resp.json())
 
 
-# async def test_get_chapters_manga_nonexistent(chapters_path: str,
-#                                               client: AsyncClient,):
-#     resp = await client.get(chapters_path, params={
-#         "manga_id": 12973
-#     })
-#     assert resp.status_code == 406
+async def test_get_chapters_manga_nonexistent(chapters_path: str,
+                                              client: AsyncClient,):
+    resp = await client.get(chapters_path, params={
+        "manga_id": 12973
+    })
+    assert resp.status_code == 406
 
 
-# async def test_get_meta_data_successful(manga_site: MangaSite,
-#                                         manga_name: str,
-#                                         manga_url: str, meta_path: str,
-#                                         client: AsyncClient,
-#                                         crud_service: CRUDService,
-#                                         db_session: AsyncSession):
-#     manga_id = await crud_service.get_id_by_attr(db_session, Manga, "url", manga_url)
-#     resp = await client.get(meta_path, params={
-#         "manga_id": manga_id
-#     })
+async def test_get_meta_data_successful(manga_site: MangaSite,
+                                        manga_name: str,
+                                        manga_url: str, meta_path: str,
+                                        client: AsyncClient,
+                                        crud_service: CRUDService,
+                                        db_session: AsyncSession):
+    manga_id = await crud_service.get_id_by_attr(db_session, Manga, "url", manga_url)
+    resp = await client.get(meta_path, params={
+        "manga_id": manga_id
+    })
 
-#     meta_data: Dict[str, Any] = resp.json()
-#     assert 'last_update' in meta_data
-#     assert 'finished' in meta_data
-#     assert 'thum_img' in meta_data
+    meta_data: Dict[str, Any] = resp.json()
+    assert 'last_update' in meta_data
+    assert 'finished' in meta_data
+    assert 'thum_img' in meta_data
 
-#     assert meta_data['last_update'] == '2016-04-23T00:00:00'
-#     assert meta_data['finished'] == True
-#     assert f"{manga_site}/{manga_name}/thum_img" in meta_data['thum_img']
+    assert meta_data['last_update'] == '2016-04-23T00:00:00'
+    assert meta_data['finished'] == True
+    assert f"{manga_site}/{manga_name}/thum_img" in meta_data['thum_img']
 
-#     db_manga = await crud_service.get_item_by_id(db_session, Manga, manga_id)
+    db_manga = await crud_service.get_item_by_id(db_session, Manga, manga_id)
 
-#     assert db_manga.thum_img == meta_data['thum_img']
-#     assert db_manga.finished == meta_data['finished']
-
-
-# async def test_get_pages_with_wrong_chapter_id(
-#     pages_path: str,
-#     client: AsyncClient,
-# ):
-#     async with client.stream("GET", pages_path, params={"chapter_id": 999999}) as r:
-#         assert r.status_code == 406
+    assert db_manga.thum_img == meta_data['thum_img']
+    assert db_manga.finished == meta_data['finished']
 
 
-# async def test_get_pages_successful(
-#     manga_site: MangaSite,
-#     manga_name: str,
-#     chapter_url: str, pages_path: str,
-#     client: AsyncClient,
-#     crud_service: CRUDService,
-#     db_session: AsyncSession
-# ):
-#     chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", chapter_url)
-#     assert chapter_id
-#     pic_dict = {}
-#     async with client.stream("GET", pages_path, params={"chapter_id": chapter_id}) as r:
-#         async for line in r.aiter_lines():
-#             if line.startswith("data"):
-#                 result = json.loads(line.replace("data: ", ""))
-#                 if not result:
-#                     continue
-#                 assert "pic_path" in result
-#                 assert "idx" in result
-#                 assert "total" in result
-#                 assert f"{manga_site}/{manga_name}" in result['pic_path']
-
-#                 pic_dict[result['idx']] = result
-
-#     pages = await crud_service.get_items_by_same_attr(db_session, Page, "chapter_id", chapter_id)
-#     assert pages
-#     for page in pages:
-#         idx = page.idx
-#         assert page.pic_path == pic_dict[idx]['pic_path']
+async def test_get_pages_with_wrong_chapter_id(
+    pages_path: str,
+    client: AsyncClient,
+):
+    async with client.stream("GET", pages_path, params={"chapter_id": 999999}) as r:
+        assert r.status_code == 406
 
 
-# @inject
-# async def test_save_pages(
-#         db_session: AsyncSession,
-#         crud_service: CRUDService,
-#         chapter_url: str,
-#         database: DatabaseService,
-#         pic_path: str):
-#     chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", chapter_url)
-#     pages = [{"pic_path": pic_path, "idx": 0,
-#               "total": 1, "chapter_id": chapter_id}]
-#     await save_pages(pages, chapter_id, db_session)
-#     async with database.new_session() as session:
-#         async with session.begin():
-#             db_page = await crud_service.get_item_by_attr(session, Page, "pic_path", "test.png")
-#             assert db_page
-#             assert db_page.chapter_id == chapter_id
-#             assert db_page.total == 1
-#             await session.execute(delete(Page).where(Page.id == db_page.id))
-#             await session.commit()
+async def test_get_pages_successful(
+    manga_site: MangaSite,
+    manga_name: str,
+    chapter_url: str, pages_path: str,
+    client: AsyncClient,
+    crud_service: CRUDService,
+    db_session: AsyncSession
+):
+    chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", chapter_url)
+    assert chapter_id
+    pic_dict = {}
+    async with client.stream("GET", pages_path, params={"chapter_id": chapter_id}) as r:
+        async for line in r.aiter_lines():
+            if line.startswith("data"):
+                result = json.loads(line.replace("data: ", ""))
+                if not result:
+                    continue
+                assert "pic_path" in result
+                assert "idx" in result
+                assert "total" in result
+                assert f"{manga_site}/{manga_name}" in result['pic_path']
+
+                pic_dict[result['idx']] = result
+
+    pages = await crud_service.get_items_by_same_attr(db_session, Page, "chapter_id", chapter_id)
+    assert pages
+    for page in pages:
+        idx = page.idx
+        assert page.pic_path == pic_dict[idx]['pic_path']
 
 
-# async def test_get_pages_from_db(
-#     chapter_url: str, pages_path: str,
-#     client: AsyncClient,
-#     crud_service: CRUDService,
-#     db_session: AsyncSession,
-# ):
-#     chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", chapter_url)
-#     assert chapter_id
-#     pages = await crud_service.get_items_by_same_attr(db_session, Page, "chapter_id", chapter_id)
-#     assert pages
-#     pages = {page.idx: page for page in pages}
-#     async with client.stream("GET", pages_path, params={"chapter_id": chapter_id}) as r:
-#         assert r.headers['crawled'] == 'false'
-#         async for line in r.aiter_lines():
-#             if line.startswith("data"):
-#                 result = json.loads(line.replace("data: ", ""))
-#                 if not result:
-#                     continue
-#                 assert "pic_path" in result
-#                 assert result['pic_path'] == pages[result['idx']].pic_path
+@inject
+async def test_save_pages(
+        db_session: AsyncSession,
+        crud_service: CRUDService,
+        chapter_url: str,
+        database: DatabaseService,
+        pic_path: str):
+    chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", chapter_url)
+    pages = [{"pic_path": pic_path, "idx": 0,
+              "total": 1, "chapter_id": chapter_id}]
+    await save_pages(pages, chapter_id, db_session)
+    async with database.new_session() as session:
+        async with session.begin():
+            db_page = await crud_service.get_item_by_attr(session, Page, "pic_path", "test.png")
+            assert db_page
+            assert db_page.chapter_id == chapter_id
+            assert db_page.total == 1
+            await session.execute(delete(Page).where(Page.id == db_page.id))
+            await session.commit()
 
 
-# async def test_get_manga_successful(
-#         manga_url: str,
-#         manga_path: str,
-#         db_session: AsyncSession,
-#         crud_service: CRUDService,
-#         client: AsyncClient):
-#     manga_id = await crud_service.get_id_by_attr(db_session, Manga, "url", manga_url)
-#     resp = await client.get(manga_path, params={
-#         "manga_id": manga_id
-#     })
-#     assert resp.json()
-#     manga_simple = MangaSimple(**resp.json())
-#     assert manga_simple.id == manga_id
-#     assert manga_simple.url == manga_url
+async def test_get_pages_from_db(
+    chapter_url: str, pages_path: str,
+    client: AsyncClient,
+    crud_service: CRUDService,
+    db_session: AsyncSession,
+):
+    chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", chapter_url)
+    assert chapter_id
+    pages = await crud_service.get_items_by_same_attr(db_session, Page, "chapter_id", chapter_id)
+    assert pages
+    pages = {page.idx: page for page in pages}
+    async with client.stream("GET", pages_path, params={"chapter_id": chapter_id}) as r:
+        assert r.headers['crawled'] == 'false'
+        async for line in r.aiter_lines():
+            if line.startswith("data"):
+                result = json.loads(line.replace("data: ", ""))
+                if not result:
+                    continue
+                assert "pic_path" in result
+                assert result['pic_path'] == pages[result['idx']].pic_path
 
 
-# async def test_get_manga_failed(
-#         manga_path: str,
-#         client: AsyncClient):
-#     resp = await client.get(manga_path, params={
-#         "manga_id": -1
-#     })
-#     assert resp.status_code == 406
+async def test_get_manga_successful(
+        manga_url: str,
+        manga_path: str,
+        db_session: AsyncSession,
+        crud_service: CRUDService,
+        client: AsyncClient):
+    manga_id = await crud_service.get_id_by_attr(db_session, Manga, "url", manga_url)
+    resp = await client.get(manga_path, params={
+        "manga_id": manga_id
+    })
+    assert resp.json()
+    manga_simple = MangaSimple(**resp.json())
+    assert manga_simple.id == manga_id
+    assert manga_simple.url == manga_url
+
+
+async def test_get_manga_failed(
+        manga_path: str,
+        client: AsyncClient):
+    resp = await client.get(manga_path, params={
+        "manga_id": -1
+    })
+    assert resp.status_code == 406

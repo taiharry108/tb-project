@@ -1,6 +1,8 @@
 from typing import Optional
 from pydantic import BaseModel
 
+from .episode import Episode
+
 
 class Anime(BaseModel):
     id: Optional[int]
@@ -16,3 +18,7 @@ class Anime(BaseModel):
 
 class AnimeBase(Anime):
     pass
+
+class AnimeSimple(AnimeBase):
+    latest_episode: Episode = None
+    last_read_episode: Episode = None

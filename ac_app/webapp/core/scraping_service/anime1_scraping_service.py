@@ -65,7 +65,9 @@ class Anime1ScrapingService(AnimeSiteScrapingService):
     async def get_video_url(self, ep: Episode) -> Optional[str]:
         """Get all the urls of a chaper, return a list of strings"""
         data = {'d': unquote(ep.data)}
+        logger.debug(f"{data=}")
         json_result = await self.download_service.post_json("https://v.anime1.me/api", data=data)
+        logger.debug(f"{json_result=}")
         if json_result:
             return 'https:' + json_result['s'][0]['src']
 

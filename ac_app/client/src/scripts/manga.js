@@ -50,7 +50,7 @@ $(function ($) {
         titleDiv.click((e) => {
             const chapIdx = $(e.target).attr("chap-idx");
             currentChapIdx = parseInt(chapIdx);
-            const chapId = getChapterFromIndices(currentTabIdx, chapIdx).id;
+            const chapId = getChapterFromIndices(currentTabIdx, currentChapIdx).id;
             fetchPages(chapId);            
         });
     }
@@ -154,6 +154,7 @@ $(function ($) {
     };
 
     const updateLastRead = () => {
+        const data = { manga_id: mangaId };
         $.ajax({
             type: 'GET',
             url: mangaEndpoint,

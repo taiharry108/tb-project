@@ -3,6 +3,17 @@ from sqlalchemy.orm import relationship
 
 from database import Base
 
+class AHistory(Base):
+    __tablename__ = 'a_history'
+    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
+    anime_id = Column(Integer, ForeignKey('animes.id'), primary_key=True)
+    episode_id = Column(Integer, ForeignKey('episodes.id'), nullable=True)
+    last_added = Column(DateTime)
+    anime = relationship("Anime", back_populates="users")
+    user = relationship("User", back_populates="history_animes")
+    episode = relationship("Episode")
+
+
 class History(Base):
     __tablename__ = 'history'
     user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
@@ -77,6 +88,7 @@ class Anime(Base):
     episodes = relationship("Episode", back_populates="anime")
     manga_site_id = Column(Integer, ForeignKey("manga_sites.id"))
     manga_site = relationship("MangaSite", back_populates="animes")
+    users = relationship("AHistory", back_populates="anime")
 
 
 class Episode(Base):
