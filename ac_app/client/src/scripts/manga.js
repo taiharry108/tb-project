@@ -10,12 +10,13 @@ $(function ($) {
     let currentChapIdx = null;
     let evtSource = null;
 
+    let readyToFetch = true;
+
     const staticFilesEndpoint = "http://tai-server.local:60080/static";
 
-    const getChapterFromIndices = (tabIdx, chapIdx) => {        
+    const getChapterFromIndices = (tabIdx, chapIdx) => {
         if (chapterDict) {
             const noChaps = chapterDict[tabs[tabIdx]].length;
-            console.log(noChaps, chapIdx)
             if ((chapIdx < noChaps) && (chapIdx >= 0))
                 return chapterDict[tabs[tabIdx]][chapIdx];
         }
@@ -23,13 +24,13 @@ $(function ($) {
     }
 
     const updateHistory = (chapId) => {
-        const data = { manga_id: mangaId , chapter_id: chapId};
+        const data = { manga_id: mangaId, chapter_id: chapId };
         $.ajax({
             type: 'PUT',
             url: historyEndpoint,
             data: data,
             success: (response) => {
-                console.log(response);
+                updateLastRead();
             }
         });
     }
@@ -51,7 +52,7 @@ $(function ($) {
             const chapIdx = $(e.target).attr("chap-idx");
             currentChapIdx = parseInt(chapIdx);
             const chapId = getChapterFromIndices(currentTabIdx, currentChapIdx).id;
-            fetchPages(chapId);            
+            fetchPages(chapId);
         });
     }
 
@@ -62,7 +63,7 @@ $(function ($) {
         metaDiv.find('.manga-title').text(mangaName)
         const dateStr = (new Date(metaDict.last_update)).toISOString().substring(0, 10);
         metaDiv.find('.manga-last-update').text(dateStr);
-        metaDiv.find('.latest-chapter-title').text(metaDict.latest_chapter.title);        
+        metaDiv.find('.latest-chapter-title').text(metaDict.latest_chapter.title);
     }
 
     let activeTab = 0;
@@ -94,19 +95,24 @@ $(function ($) {
             chapTable.find(`div[tab-index=${activeTabIdx}]`).addClass("hidden");
             chapTable.find(`div[tab-index=${newActiveTabIdx}]`).removeClass("hidden");
 
-            currentTabIdx = newActiveTabIdx;            
+            currentTabIdx = newActiveTabIdx;
         });
     }
 
-    const fetchPages = (chapId) => {
+    const fetchPages = (chapId, callback=null) => {
+        readyToFetch = false;
         const modalContainer = $("div.modal-content-container");
         modalContainer.find("div").remove();
         let added = false;
         evtSource = new EventSource(`${pagesEndpoint}?chapter_id=${chapId}`);
         evtSource.onmessage = (e) => {
             const data = JSON.parse(e.data);
-            if (e.data === '{}')
+            if (e.data === '{}') {
                 evtSource.close();
+                readyToFetch = true;
+                if (callback !== null)
+                    callback();
+            }
             else {
                 if (!added) {
                     for (let index = 0; index < data.total; index++)
@@ -118,7 +124,6 @@ $(function ($) {
             }
         }
         updateHistory(chapId);
-        updateLastRead();
     }
 
     const fetchManga = () => {
@@ -149,7 +154,7 @@ $(function ($) {
                     });
                 }
             });
-           updateLastRead();
+            updateLastRead();
         }
     };
 
@@ -179,24 +184,33 @@ $(function ($) {
             fetchPrevChap();
     });
 
-    
+    $(".modal-content").on("dblclick", (e) => {
+        const width = e.target.offsetWidth;
+        if (e.offsetX > width * 2 / 3)
+            fetchNextChap();
+        else if (e.offsetX < width * 1 / 3)
+            fetchPrevChap();
+    });
+
+
 
     const fetchNextChap = () => {
-        console.log(currentChapIdx);
+        if (!readyToFetch) return;
         const chap = getChapterFromIndices(currentTabIdx, currentChapIdx + 1);
-        console.log(chap);
         if (chap) {
-            currentChapIdx++;
-            fetchPages(chap.id);
+            fetchPages(chap.id, () => {
+                currentChapIdx++;
+            });
         }
     }
 
     const fetchPrevChap = () => {
+        if (!readyToFetch) return;
         const chap = getChapterFromIndices(currentTabIdx, currentChapIdx - 1);
-        console.log(chap);
         if (chap) {
-            currentChapIdx--;
-            fetchPages(chap.id);
+            fetchPages(chap.id, () => {
+                currentChapIdx--;
+            });
         }
     }
 

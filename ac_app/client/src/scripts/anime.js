@@ -1,10 +1,13 @@
 $(function ($) {
+    const aHistoryEndpoint = '/ac/user/a_history';
+    const animeEndpoint = '/ac/api/anime';
     const episodesEndpoint = '/ac/api/episodes';
     const episodeEndpoint = '/ac/api/episode';
 
     const staticFilesEndpoint = "http://tai-server.local:60080/static";
 
     let episodeList = null;
+
 
     const getEpFromIdx = (epIdx) => episodeList[epIdx];
 
@@ -34,6 +37,18 @@ $(function ($) {
         });
     }
 
+    const updateHistory = (epId) => {
+        const data = { anime_id: animeId , episode_id: epId};
+        $.ajax({
+            type: 'PUT',
+            url: aHistoryEndpoint,
+            data: data,
+            success: (response) => {
+                console.log(response);
+            }
+        });
+    }
+
     const fetchEpisode = (epId) => {
         const modalContainer = $("div.modal-content-container");
         modalContainer.find("div").remove();
@@ -48,9 +63,22 @@ $(function ($) {
                 const vidPath = response.vid_path.replace("/downloaded", staticFilesEndpoint);
                 modalContainer.find(".vid-player").attr("src", vidPath);
                 $("div.modal-content").attr("style", "margin-top: 33%");
+                updateHistory(epId);
             }
         });
     };
+
+    const updateLastWatched = () => {
+        const data = { anime_id: animeId };
+        $.ajax({
+            type: 'GET',
+            url: animeEndpoint,
+            data: data,
+            success: (response) => {
+                $(".last-read-chapter-title").text(response.last_read_episode.title);
+            }
+        });
+    }
 
     const fetchAnime = () => {
         if (animeId) {
@@ -65,6 +93,15 @@ $(function ($) {
                     $("div.manga-title").text(animeName);
                 }
             });
+            $.ajax({
+                type: 'POST',
+                url: aHistoryEndpoint,
+                data: data,
+                success: (response) => {
+                    console.log(response);
+                }
+            });
+            updateLastWatched();
         }
     };
     addTabs();

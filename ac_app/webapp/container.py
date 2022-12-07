@@ -88,7 +88,7 @@ class Container(containers.DeclarativeContainer):
     session_backend = providers.Singleton(
         RedisBackend[UUID, SessionData],
         redis=redis,
-        identifier="encryption_app"
+        identifier="ac_app"
     )
 
     auth_http_exception = providers.Singleton(

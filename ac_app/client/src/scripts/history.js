@@ -1,5 +1,6 @@
 $(function ($) {
     const historyEndpoint = '/ac/user/history';
+    const aHistoryEndpoint = '/ac/user/a_history';
     const staticFilesEndpoint = "http://tai-server.local:60080/static"
    
     const addHistory = (history) => {
@@ -11,7 +12,7 @@ $(function ($) {
             histTemplate.find(".last-update-txt").text(dateStr);
             histTemplate.find(".status-txt").text(manga.finished ? "Finished" : "Ongoing");
 
-            histTemplate.find(".histor-card").click(() => {
+            histTemplate.find(".history-card").click(() => {
                 window.location.href = `manga?manga_id=${manga.id}`;
             });
             if (manga.is_fav) {
@@ -25,12 +26,35 @@ $(function ($) {
         });
     }
 
+    const addAHistory = (history) => {
+        history.forEach(anime => {
+            let histTemplate = $($("#anime-history-card-template").html());
+            histTemplate.find(".title").text(anime.name);
+
+            histTemplate.find(".history-card").click(() => {
+                window.location.href = `anime?anime_id=${anime.id}`;
+            });
+            $("div.history-container").append(histTemplate);
+        });
+    }
+
     const fetchHistory = () => {
         $.ajax({
             type: 'GET',
             url: historyEndpoint,
             success: (response) => {
+                console.log(response);
                 addHistory(response);
+            },
+            complete: () => {
+            }
+        });
+        $.ajax({
+            type: 'GET',
+            url: aHistoryEndpoint,
+            success: (response) => {
+                console.log(response);
+                addAHistory(response);
             },
             complete: () => {
             }

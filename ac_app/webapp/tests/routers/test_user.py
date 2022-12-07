@@ -241,10 +241,7 @@ async def test_update_a_history(a_history_path: str,
 async def test_update_a_history_fail(a_history_path: str,
                                      client: AsyncClient,
                                      anime_id: int,
-                                     user_id: int,
                                      episode_id: int,
-                                     crud_service: CRUDService,
-                                     db_session: AsyncSession,
                                      ):
     data = {"anime_id": anime_id, "episode_id": episode_id + 1}
     resp = await client.put(a_history_path, data=data)

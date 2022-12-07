@@ -12,7 +12,7 @@ from typing import Dict, List, Iterable, Union
 from async_service.async_service import AsyncService
 from container import Container
 from core.models.chapter import Chapter
-from core.models.anime import AnimeBase
+from core.models.anime import AnimeBase, AnimeSimple
 from core.models.episode import Episode
 from core.models.manga import MangaBase, MangaSimple
 from core.models.manga_index_type_enum import MangaIndexTypeEnum, m_types
@@ -22,7 +22,7 @@ from core.scraping_service.anime_site_scraping_service import AnimeSiteScrapingS
 from core.scraping_service.anime1_scraping_service import Anime1ScrapingService
 from core.scraping_service.manga_site_scraping_service import MangaSiteScrapingService as MSSService
 from database.crud_service import CRUDService
-from database.models import MangaSite, Manga, Chapter as DBChapter, Page, History, Anime, Episode as DBEpisode
+from database.models import MangaSite, Manga, Chapter as DBChapter, Page, History, Anime, Episode as DBEpisode, AHistory
 from download_service.download_service import DownloadService
 from routers.user import get_user_id_from_session_data
 from routers.utils import get_db_session
@@ -161,6 +161,7 @@ async def _get_episode_from_id(
         )
     return db_episode
 
+
 @inject
 async def _get_manga_from_chapter_id(db_chapter: DBChapter = Depends(_get_chapter_from_id),
                                      session: AsyncSession = Depends(get_db_session),) -> Manga:
@@ -184,10 +185,9 @@ async def _get_scraping_service_from_chapter(
 @inject
 async def _get_scraping_service_from_episode(
         db_anime: Anime = Depends(_get_anime_from_episode_id),
-        session: AsyncSession = Depends(get_db_session),) -> MSSService:        
+        session: AsyncSession = Depends(get_db_session),) -> MSSService:
     manga_site_name = await _get_manga_site_from_anime(session, db_anime)
     return _get_scraping_service_from_manga(manga_site_name)
-
 
 
 @inject
@@ -252,6 +252,25 @@ async def get_manga(
     except NoResultFound:
         logger.warning("no history is found")
     return manga
+
+
+@router.get('/anime', response_model=AnimeSimple)
+@inject
+async def get_anime(
+        user_id: int = Depends(get_user_id_from_session_data),
+        crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+        db_session: AsyncSession = Depends(get_db_session),
+        db_anime: Manga = Depends(_get_db_anime_from_id),):
+    anime = AnimeSimple.from_orm(db_anime)
+    q = select(AHistory).where(AHistory.anime_id ==
+                               db_anime.id).where(AHistory.user_id == user_id)
+    try:
+        history = (await db_session.execute(q)).one()[0]
+        db_episode = await crud_service.get_item_by_id(db_session, DBEpisode, history.episode_id)
+        anime.last_read_episode = Episode.from_orm(db_episode)
+    except NoResultFound:
+        logger.warning("no history is found")
+    return anime
 
 
 @router.get('/episodes', response_model=List[Episode])
@@ -383,14 +402,15 @@ async def get_episode(
         download_path: str = Depends(Provide[Container.config.api.download_path])):
 
     download_path = Path(download_path) / \
-            scraping_service.site.name / db_anime.name / db_anime.season
-        
+        scraping_service.site.name / db_anime.name / db_anime.season
+
     vid_url = await scraping_service.get_video_url(db_episode)
-    
+
     download_service: DownloadService = scraping_service.download_service
     logger.info(f"{download_service.client.cookies=}")
     result = await download_service.download_vid(url=vid_url, download_path=download_path, filename=db_episode.title)
     return result
+
 
 @router.get("/pages")
 @inject

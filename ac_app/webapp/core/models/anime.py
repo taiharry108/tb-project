@@ -1,5 +1,6 @@
-from typing import Optional
+from datetime import datetime
 from pydantic import BaseModel
+from typing import Optional
 
 from .episode import Episode
 
@@ -22,3 +23,4 @@ class AnimeBase(Anime):
 class AnimeSimple(AnimeBase):
     latest_episode: Episode = None
     last_read_episode: Episode = None
+    last_added: datetime = None

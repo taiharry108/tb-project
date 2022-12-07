@@ -11,6 +11,10 @@ from redis import Redis
 
 from session.session_verifier import SessionData
 
+from logging import getLogger
+
+logger = getLogger(__name__)
+
 class RedisBackend(Generic[ID, SessionModel], SessionBackend[ID, SessionModel]):
     """Stores session data in a redis."""
 
@@ -20,7 +24,7 @@ class RedisBackend(Generic[ID, SessionModel], SessionBackend[ID, SessionModel]):
         self.identifier = identifier
 
     async def create(self, session_id: ID, data: SessionModel):
-        """Create a new session entry."""        
+        """Create a new session entry."""
         if self.redis.hget(self.identifier, str(session_id)):
             raise BackendError("create can't overwrite an existing session")
         

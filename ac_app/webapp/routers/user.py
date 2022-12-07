@@ -53,9 +53,10 @@ async def get_a_history(
     anime_ids = [item.anime_id for item in history]
     episodes = await crud_service.get_items_by_ids(db_session, DBEpisode, [h.episode_id for h in history])
     simple_animes = {anime.id: AnimeSimple.from_orm(anime) for anime in animes}
-    for episode in episodes:
+    for episode, hist in zip(episodes, history):
         anime_id = episode.anime_id
         simple_animes[anime_id].last_read_episode = Episode.from_orm(episode)
+        simple_animes[anime_id].last_added = hist.last_added
 
     return [simple_animes[anime_id] for anime_id in anime_ids]
 
@@ -79,9 +80,10 @@ async def get_history(
     manga_ids = [item.manga_id for item in history]
     chapters = await crud_service.get_items_by_ids(db_session, DBChapter, [h.chapter_id for h in history])
     simple_mangas = {manga.id: MangaSimple.from_orm(manga) for manga in mangas}
-    for chapter in chapters:
+    for chapter, hist in zip(chapters, history):
         manga_id = chapter.manga_id
         simple_mangas[manga_id].last_read_chapter = Chapter.from_orm(chapter)
+        simple_mangas[manga_id].last_added = hist.last_added
 
     return [simple_mangas[manga_id] for manga_id in manga_ids]
 

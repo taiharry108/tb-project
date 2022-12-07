@@ -1,8 +1,9 @@
-from .chapter import Chapter
-from typing import Dict, List, Optional
-from .manga_index_type_enum import MangaIndexTypeEnum
-from pydantic import BaseModel, HttpUrl
 from datetime import datetime
+from pydantic import BaseModel, HttpUrl
+from typing import Dict, List, Optional
+
+from .chapter import Chapter
+from .manga_index_type_enum import MangaIndexTypeEnum
 
 
 class MangaBase(BaseModel):
@@ -49,4 +50,5 @@ class Manga(MangaWithMeta):
 class MangaSimple(MangaWithMeta):
     latest_chapter: Chapter = None
     last_read_chapter: Chapter = None
+    last_added: datetime = None
     is_fav: bool = False
