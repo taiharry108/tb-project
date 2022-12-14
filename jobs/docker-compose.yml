@@ -19,6 +19,7 @@ services:
       - ./encryption/src:/src
       - ../encryption_project/webapp/uploaded/:/uploaded
       - ../encryption_project/webapp/encrypted/:/encrypted
+      - ./.vscode-server:/root/.vscode-server
     environment:
       - PYTHONPATH=/core
     networks:

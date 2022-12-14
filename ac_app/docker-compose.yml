@@ -22,6 +22,7 @@ services:
       - -c
       - |
         source ./init_env.sh 
+        crond -f -l 2 &
         uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
     container_name: ac_app
     volumes:

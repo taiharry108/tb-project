@@ -1,6 +1,7 @@
 from dependency_injector.wiring import Provide, inject
 from fastapi import APIRouter, Depends, HTTPException, status, Form
 from fastapi.responses import RedirectResponse
+from logging import getLogger
 from typing import List
 
 from container import Container
@@ -19,6 +20,8 @@ from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
+
+logger = getLogger(__name__)
 
 
 @inject
@@ -84,6 +87,8 @@ async def get_history(
         manga_id = chapter.manga_id
         simple_mangas[manga_id].last_read_chapter = Chapter.from_orm(chapter)
         simple_mangas[manga_id].last_added = hist.last_added
+    
+    logger.info("going to return")
 
     return [simple_mangas[manga_id] for manga_id in manga_ids]
 

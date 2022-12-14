@@ -19,3 +19,5 @@ RUN pip install --no-cache-dir --upgrade -r requirements.txt
 
 # add app
 COPY ./webapp /webapp
+
+RUN crontab -l | { cat; echo "0 0 * * * cd /webapp && python update_chapter_meta.py"; } | crontab -

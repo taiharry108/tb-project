@@ -1,7 +1,7 @@
-from encrypt_message import EncryptMessage
 
 from store_service.store_service import StoreService
 from queue_service.queue_listener import QueueListener
+from queue_service.messages import EncryptMessage
 
 
 class OutQueueListener(QueueListener):

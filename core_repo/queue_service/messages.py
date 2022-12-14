@@ -50,3 +50,4 @@ class EncryptMessage(Message[MessageType]):
     filename: str = ""
     username: str = ""
     encryption_success: bool = False
+    is_encrypt: bool = True

@@ -14,7 +14,8 @@ from database.crud_service import CRUDService
 from database.database_service import DatabaseService
 from database.models import MangaSite, Manga, Chapter, Page, Episode, Anime
 
-from routers.api import _get_manga_site_id, save_pages
+from routers.api import save_pages
+from routers.db_utils import get_manga_site_id
 
 logger = getLogger(__name__)
 
@@ -120,7 +121,7 @@ async def test_get_manga_site_id(
     result = await db_session.execute(select(MangaSite).where(MangaSite.name == manga_site.value))
     db_manga_site: MangaSite = result.one()[0]
 
-    site_id = await _get_manga_site_id(manga_site, session=db_session)
+    site_id = await get_manga_site_id(manga_site, session=db_session)
     assert db_manga_site.id == site_id
 
 

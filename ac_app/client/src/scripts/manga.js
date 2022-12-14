@@ -12,7 +12,7 @@ $(function ($) {
 
     let readyToFetch = true;
 
-    const staticFilesEndpoint = "http://tai-server.local:60080/static";
+    const staticFilesEndpoint = "/static";
 
     const getChapterFromIndices = (tabIdx, chapIdx) => {
         if (chapterDict) {

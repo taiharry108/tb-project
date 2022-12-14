@@ -1,7 +1,7 @@
 $(function ($) {
     const historyEndpoint = '/ac/user/history';
     const aHistoryEndpoint = '/ac/user/a_history';
-    const staticFilesEndpoint = "http://tai-server.local:60080/static"
+    const staticFilesEndpoint = "/static"
    
     const addHistory = (history) => {
         history.forEach(manga => {

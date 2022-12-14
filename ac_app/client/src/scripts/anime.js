@@ -4,7 +4,7 @@ $(function ($) {
     const episodesEndpoint = '/ac/api/episodes';
     const episodeEndpoint = '/ac/api/episode';
 
-    const staticFilesEndpoint = "http://tai-server.local:60080/static";
+    const staticFilesEndpoint = "/static";
 
     let episodeList = null;
 
