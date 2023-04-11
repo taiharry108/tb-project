@@ -2,7 +2,7 @@ $(function ($) {
     const historyEndpoint = '/ac/user/history';
     const aHistoryEndpoint = '/ac/user/a_history';
     const staticFilesEndpoint = "/static"
-   
+
     const addHistory = (history) => {
         history.forEach(manga => {
             let histTemplate = $($("#history-card-template").html());
@@ -22,6 +22,11 @@ $(function ($) {
             if (manga.last_read_chapter) {
                 histTemplate.find(".last-read-txt").text(manga.last_read_chapter.title);
             }
+
+            histTemplate.find(".close-btn ").click((e) => {
+                e.stopPropagation();
+                deleteHist(manga.id, true);
+            })
             $("div.history-container").append(histTemplate);
         });
     }
@@ -34,7 +39,29 @@ $(function ($) {
             histTemplate.find(".history-card").click(() => {
                 window.location.href = `anime?anime_id=${anime.id}`;
             });
+
+            histTemplate.find(".close-btn ").click((e) => {
+                e.stopPropagation();
+                deleteHist(anime.id, false);
+            })
             $("div.history-container").append(histTemplate);
+        });
+    }
+
+    const deleteHist = (id, isManga) => {
+        const data = isManga ? { manga_id: id } : { anime_id: id };
+        $.ajax({
+            type: 'DELETE',
+            url: historyEndpoint,
+            data: data,
+            success: (response) => {
+                if (response.success) {
+                    clearHistoryContainer();
+                    fetchHistory();
+                }
+            },
+            complete: () => {
+            }
         });
     }
 
@@ -62,6 +89,10 @@ $(function ($) {
     };
 
     fetchHistory();
+
+    const clearHistoryContainer = () => {
+        $("div.history-container").empty();
+    }
 
 })
 
