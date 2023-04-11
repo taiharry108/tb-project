@@ -1,14 +1,14 @@
 from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends, HTTPException, Request, status, Response
 from fastapi.responses import RedirectResponse
-from fastapi_sessions.frontends.implementations.cookie import SessionCookie, SessionFrontend
+from fastapi_sessions.frontends.implementations.cookie import SessionFrontend
 from fastapi_sessions.backends.session_backend import SessionBackend
 from jose import JWTError
 from uuid import uuid4
 
 from container import Container
 from security_service.security_service import SecurityService
-from session.session_verifier import BasicVerifier, SessionData
+from session.session_verifier import SessionData
 
 router = APIRouter()
 
@@ -24,29 +24,6 @@ async def create_session(username: str, response: Response,
     await backend.create(session, data)
     cookie.attach_to_response(response, session)
     return session
-
-
-async def _check_session(request: Request, cookie: SessionCookie,
-                         verifier: BasicVerifier):
-    cookie(request)
-    return await verifier(request)
-
-
-@inject
-async def check_session(request: Request, cookie: SessionCookie = Depends(Provide[Container.cookie]),
-                        verifier: BasicVerifier = Depends(Provide[Container.verifier])):
-    return await _check_session(request, cookie, verifier)
-
-
-@inject
-async def get_session_data(request: Request, cookie: SessionCookie = Depends(Provide[Container.cookie]),
-                           verifier: BasicVerifier = Depends(Provide[Container.verifier])):
-    try:
-        session_data = await _check_session(request, cookie, verifier)
-    except HTTPException as ex:
-        print(ex.detail)
-        return None
-    return session_data
 
 
 @router.post("/logout")

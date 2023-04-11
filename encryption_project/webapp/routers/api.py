@@ -10,14 +10,12 @@ from container import Container
 from core.models import File
 
 from database.crud_service import CRUDService
-from database.database_service import DatabaseService
 from database.models import User, File as DBFile
 from queue_service.messages import EncryptMessage
 from queue_service.redis_queue_service import RedisQueueService
-from routers.utils import get_db_session
+from routers.utils import get_db_session, get_user_id, get_session_data, get_user_name
 from store_service.store_service import StoreService
 from session.session_verifier import SessionData
-from .auth import get_session_data
 
 
 router = APIRouter()
@@ -35,7 +33,8 @@ def add_file_to_queue(redis_queue_service: RedisQueueService, username: str, fil
 async def post_file(file: UploadFile,
                     store_service: StoreService = Depends(
                         Provide[Container.store_service]),
-                    session_data: SessionData = Depends(get_session_data),
+                    username: str = Depends(get_user_name),
+                    user_id: str = Depends(get_user_id),
                     crud_service: CRUDService = Depends(
                         Provide[Container.crud_service]),
                     redis_queue_service: RedisQueueService = Depends(
@@ -48,12 +47,8 @@ async def post_file(file: UploadFile,
         while data:
             yield data
             data = await file.read(4 * 1024 * 1024)
-    username = session_data.username
 
     await store_service.persist_file(f"uploaded/{username}/{file.filename}", byte_gen())
-
-    user_id = await crud_service.get_id_by_attr(session, User, "email", username)
-
     db_file = await crud_service.get_item_by_attrs(session, DBFile, user_id=user_id, filename=file.filename)
 
     if not db_file:
@@ -70,12 +65,11 @@ async def post_file(file: UploadFile,
 @router.get("/file/{file_id}", response_model=File)
 @inject
 async def get_file(file_id: int,
-                   session_data: SessionData = Depends(get_session_data),
+                   user_id: int = Depends(get_user_id),
                    crud_service: CRUDService = Depends(
                        Provide[Container.crud_service]),
                    session: AsyncSession = Depends(get_db_session)):
 
-    user_id = await crud_service.get_id_by_attr(session, User, "email", session_data.username)
     db_file = await crud_service.get_item_by_id(session, DBFile, file_id)
     if not db_file or db_file.user_id != user_id:
         raise HTTPException(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -87,12 +81,11 @@ async def get_file(file_id: int,
 @router.delete("/file/{file_id}")
 @inject
 async def delete_file(file_id: int,
-                      session_data: SessionData = Depends(get_session_data),
+                      user_id: int = Depends(get_user_id),
                       crud_service: CRUDService = Depends(
                           Provide[Container.crud_service]),
                       session: AsyncSession = Depends(get_db_session)):
 
-    user_id = await crud_service.get_id_by_attr(session, User, "email", session_data.username)
     db_user = await crud_service.remove_item_from_obj(session, User, DBFile, user_id, file_id, "files")
     if db_user:
         return {"success": True}
@@ -103,11 +96,10 @@ async def delete_file(file_id: int,
 
 @router.get("/files", response_model=List[File])
 @inject
-async def get_files(session_data: SessionData = Depends(get_session_data),
+async def get_files(user_id: int = Depends(get_user_id),
                     crud_service: CRUDService = Depends(
                         Provide[Container.crud_service]),
                     session: AsyncSession = Depends(get_db_session)):
-    user_id = await crud_service.get_id_by_attr(session, User, "email", session_data.username)
     files = await crud_service.get_items_of_obj(session, User, user_id, "files")
 
     return files
@@ -115,11 +107,8 @@ async def get_files(session_data: SessionData = Depends(get_session_data),
 
 @router.delete("/files")
 @inject
-async def delete_files(session_data: SessionData = Depends(get_session_data),
-                       crud_service: CRUDService = Depends(
-                           Provide[Container.crud_service]),
+async def delete_files(user_id: int = Depends(get_user_id),
                        session: AsyncSession = Depends(get_db_session)):
-    user_id = await crud_service.get_id_by_attr(session, User, "email", session_data.username)
     q = delete(DBFile).where(DBFile.user_id == user_id)
     await session.execute(q)
 

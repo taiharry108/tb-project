@@ -25,7 +25,9 @@ def event_loop(request):
 @pytest.fixture(autouse=True, scope="module")
 @inject
 async def container() -> Container:
-    return Container()
+    container = Container()
+    container.config.redis.encryption_job_in_queue.override('test_queue')
+    return container
 
 
 @pytest.fixture(autouse=True, scope="module")

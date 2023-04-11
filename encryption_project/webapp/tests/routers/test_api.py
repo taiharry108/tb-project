@@ -1,16 +1,17 @@
 from dependency_injector.wiring import inject
 from httpx import AsyncClient
 import pytest
-from sqlalchemy import delete
 from pathlib import Path
+from redis import Redis
+from sqlalchemy import delete
 
-from store_service.store_service import StoreService
+from container import Container
 from database.database_service import DatabaseService
 from database.crud_service import CRUDService
-
 from database.models import User, File, PrivateKey
-from routers.auth import get_session_data
+from routers.utils import get_session_data
 from session.session_verifier import SessionData
+from store_service.store_service import StoreService
 
 
 @pytest.fixture(scope="module")
@@ -44,7 +45,7 @@ async def test_file(database: DatabaseService, crud_service: CRUDService, userna
 
 
 @pytest.fixture(autouse=True, scope="module")
-async def run_before_and_after_tests(database: DatabaseService, username: str):
+async def run_before_and_after_tests(database: DatabaseService, username: str, container: Container):
     import main
 
     async def get_fake_session_data() -> SessionData:
@@ -59,6 +60,8 @@ async def run_before_and_after_tests(database: DatabaseService, username: str):
             session.add(db_user)
             await session.commit()
     yield
+    r: Redis = container.redis()
+    r.delete(container.config.redis.encryption_job_in_queue())
     main.app.dependency_overrides = {}
 
 

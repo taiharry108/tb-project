@@ -123,7 +123,7 @@ class DownloadService:
         file_path /= f'{filename}.{content_type.split("/")[-1]}'
 
         return file_path
-    
+
     async def _store_content_from_resp(self, resp: Response, file_path: str, path_key: str, **kwargs) -> Dict:
         result_path = await self.store_service.persist_file(file_path, resp.aiter_bytes())
         result = {path_key: result_path}

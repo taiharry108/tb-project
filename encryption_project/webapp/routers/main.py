@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from dependency_injector.wiring import inject, Provide
 
 from container import Container
-from routers.auth import get_session_data
+from routers.utils import get_session_data
 from session.session_verifier import SessionData
 
 router = APIRouter()

@@ -47,7 +47,7 @@ async def test_search_manga(scraping_service: MangaSiteScrapingService, search_t
 
 
 @pytest.mark.parametrize("m_data", [
-    {"name": "火影忍者", "url": "https://copymanga.net/comic/huoyingrenzhe"}
+    {"name": "火影忍者", "url": "https://copymanga.site/comic/huoyingrenzhe"}
 ])
 async def test_get_chapters(scraping_service: MangaSiteScrapingService, manga: Manga):
     chapters = await scraping_service.get_chapters(manga.url)
@@ -60,20 +60,20 @@ async def test_get_chapters(scraping_service: MangaSiteScrapingService, manga: M
 
 
 @pytest.mark.parametrize("m_data", [
-    {"name": "火影忍者", "url": "https://copymanga.net/comic/huoyingrenzhe"}
+    {"name": "火影忍者", "url": "https://copymanga.site/comic/huoyingrenzhe"}
 ])
 async def test_get_meta(scraping_service: MangaSiteScrapingService, manga: Manga):
     meta_data = await scraping_service.get_meta(manga.url)
 
     assert meta_data.last_update == datetime(2018, 10, 6)
     assert meta_data.finished == True
-    assert meta_data.thum_img == 'https://cdn.1he7c.com/huoyingrenzhe/cover/1651423126.jpg.328x422.jpg'
+    assert meta_data.thum_img.endswith('/huoyingrenzhe/cover/1651423126.jpg.328x422.jpg')
     assert meta_data.latest_chapter == Chapter(
-        title="外传：满月照耀下的路", page_url="https://copymanga.net/comic/huoyingrenzhe/chapter/7d915f53-c94d-11e8-88b8-024352452ce0")
+        title="外传：满月照耀下的路", page_url="https://copymanga.site/comic/huoyingrenzhe/chapter/7d915f53-c94d-11e8-88b8-024352452ce0")
 
 
 @pytest.mark.parametrize("c_data", [
-    {"title": "第701话", "page_url": 'https://copymanga.net/comic/huoyingrenzhe/chapter/1089aa80-c955-11e8-88c0-024352452ce0'}
+    {"title": "第701话", "page_url": 'https://copymanga.site/comic/huoyingrenzhe/chapter/1089aa80-c955-11e8-88c0-024352452ce0'}
 ])
 async def test_get_page_urls(scraping_service: MangaSiteScrapingService, chapter: Chapter):
     img_urls = await scraping_service.get_page_urls(chapter.page_url)
@@ -84,8 +84,8 @@ async def test_get_page_urls(scraping_service: MangaSiteScrapingService, chapter
 
 
 # @pytest.mark.parametrize("m_data,c_data", [
-#     ({"name": "火影忍者", "url": "https://copymanga.net/comic/huoyingrenzhe"},
-#      {"title": "第701话", "page_url": 'https://copymanga.net/comic/huoyingrenzhe/chapter/1089aa80-c955-11e8-88c0-024352452ce0'})
+#     ({"name": "火影忍者", "url": "https://copymanga.site/comic/huoyingrenzhe"},
+#      {"title": "第701话", "page_url": 'https://copymanga.site/comic/huoyingrenzhe/chapter/1089aa80-c955-11e8-88c0-024352452ce0'})
 # ])
 # async def test_download_chapter(scraping_service: MangaSiteScrapingService, manga: Manga, chapter: Chapter):
 #     items = []

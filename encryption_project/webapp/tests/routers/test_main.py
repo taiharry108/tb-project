@@ -4,7 +4,7 @@ import pytest
 
 from database.models import User, File, PrivateKey
 from database.database_service import DatabaseService
-from routers.auth import get_session_data
+from routers.utils import get_session_data
 from session.session_verifier import SessionData
 
 
