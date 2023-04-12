@@ -7,24 +7,23 @@
     <link href="/ac/css/main.css" rel="stylesheet" />
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
     <title>AC App</title>
-    <script src="/ac/scripts/index.min.js"></script>
     <script src="https://kit.fontawesome.com/8ec5d7faa2.js" crossorigin="anonymous"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
     <script src="/ac/scripts/script.js" async></script>
 </head>
 
 <body class="h-full">
-    <div class="dark:bg-gray-900 min-h-full">
+    <div class="bg-gray-900 min-h-full">
 
-        <nav class="bg-white border-gray-200 px-2 sm:px-4 py-2.5 rounded dark:bg-gray-900">
+        <nav class="border-gray-200 px-2 sm:px-4 py-2.5 rounded bg-gray-900">
             <div class="container flex flex-wrap justify-between items-center mx-auto">
                 <a href="https://flowbite.com/" class="flex items-center">
                     <img src="https://flowbite.com/docs/images/logo.svg" class="mr-3 h-6 sm:h-9" alt="Flowbite Logo">
-                    <span class="self-center text-xl font-semibold whitespace-nowrap dark:text-white">Flowbite</span>
+                    <span class="self-center text-xl font-semibold whitespace-nowrap text-white">Flowbite</span>
                 </a>
                 <div class="w-full block w-auto" id="navbar-default">
                     <ul
-                        class="flex flex-row mt-0 text-sm font-medium border-0 bg-white dark:bg-gray-900">
+                        class="flex flex-row mt-0 text-sm font-medium border-0 bg-gray-900">
                         <li class="m-3">
                             <a href="./"
                                 class="block bg-transparent text-blue-700 hover:text-gray-200 p-0"
@@ -44,10 +43,11 @@
             </div>
         </nav>
 
-        <main class="container mx-auto dark:bg-gray-900">
+        <main class="container mx-auto bg-gray-900">
             {% block content %}{% endblock %}
         </main>
     </div>
+    <script src="/ac/scripts/flowbite.min.js"></script>
 </body>
 {% block post_body %}{% endblock %}
 

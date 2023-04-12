@@ -87,7 +87,7 @@ async def get_history(
         manga_id = chapter.manga_id
         simple_mangas[manga_id].last_read_chapter = Chapter.from_orm(chapter)
         simple_mangas[manga_id].last_added = hist.last_added
-    
+
     logger.info("going to return")
 
     return [simple_mangas[manga_id] for manga_id in manga_ids]
@@ -252,7 +252,7 @@ async def update_history(
 @router.delete("/a_history",)
 @inject
 async def del_a_history(
-        anime_id: int,
+        anime_id: int = Form(),
         user_id: int = Depends(get_user_id_from_session_data),
         auth_server_url: str = Depends(
             Provide[Container.config.auth_server.url]),
@@ -290,7 +290,7 @@ async def del_a_history(
 @router.delete("/history",)
 @inject
 async def del_history(
-        manga_id: int,
+        manga_id: int = Form(),
         user_id: int = Depends(get_user_id_from_session_data),
         auth_server_url: str = Depends(
             Provide[Container.config.auth_server.url]),

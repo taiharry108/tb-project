@@ -95,5 +95,6 @@ async def chapter_page(request: Request, chapter_id: int,
         return redirect_response
 
     chapter_title = await crud_service.get_attr_of_item_by_id(db_session, Chapter, chapter_id, "title")
+    manga_id = await crud_service.get_attr_of_item_by_id(db_session, Chapter, chapter_id, "manga_id")
 
-    return templates.TemplateResponse("chapter.html", {"request": request, "chapter_title": chapter_title})
+    return templates.TemplateResponse("chapter.html", {"request": request, "chapter_title": chapter_title, "manga_id": manga_id, "chapter_id": chapter_id})

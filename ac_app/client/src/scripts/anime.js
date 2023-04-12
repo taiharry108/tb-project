@@ -14,10 +14,10 @@ $(function ($) {
     const addEpisodes = (episodes) => {
         const chapTable = $("#chap-table");
         episodes.forEach((ep, idx) => {
-            let outerDivCls = "p-4 bg-white dark:bg-gray-800 dark:border-gray-700 ";
-            chapTable.append(`<div class="${outerDivCls}"><div class="py-4 hover:dark:bg-gray-600 rounded-lg title-div" ep-idx=${idx}>${ep.title}</div></div>`);
+            let outerDivCls = "p-4 bg-gray-800 border-gray-700 ";
+            chapTable.append(`<div class="${outerDivCls}"><div class="py-4 hover:bg-gray-600 rounded-lg title-div" ep-idx=${idx}>${ep.title}</div></div>`);
         });
-        
+
         const titleDiv = chapTable.find("div.title-div");
         titleDiv.attr({ "data-bs-toggle": "modal", "data-bs-target": "#view-modal" });
         titleDiv.click((e) => {
@@ -25,13 +25,13 @@ $(function ($) {
             fetchEpisode(getEpFromIdx(epIdx).id);
         });
     }
-    
+
     const tabs = ["Episodes"];
 
     const addTabs = () => {
         tabs.forEach((tabName) => {
-            let tabDivCls = "p-4 bg-white dark:bg-gray-800 dark:border-gray-700 ";
-            tabDivCls += "dark:bg-gray-600 active";
+            let tabDivCls = "p-4 bg-gray-800 border-gray-700 ";
+            tabDivCls += "bg-gray-600 active";
             $("#tabs").append(`<div class="${tabDivCls}">${tabName}</div>`);
 
         });

@@ -58,9 +58,9 @@ $(function ($) {
         });
     }
 
-    $("ul.dropdown-menu > li").click((e) => {
+    $("#dropdown > ul > li > a").click((e) => {
         setSite(e.target.text);
-        $("span.site-name").text(e.target.text);
+        $("#dropdownDefaultButton > span").text(e.target.text);
         console.log(site);
     });
 })

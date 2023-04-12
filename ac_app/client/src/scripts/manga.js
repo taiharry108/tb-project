@@ -39,11 +39,11 @@ $(function ($) {
         const chapTable = $("#chap-table");
         Object.keys(chaptersDict).forEach((chapType) => {
             chaptersDict[chapType].forEach((chap, idx) => {
-                let outerDivCls = "p-4 bg-white dark:bg-gray-800 dark:border-gray-700 ";
+                let outerDivCls = "p-4 bg-gray-800 border-gray-700 ";
                 const tabIdx = tabs.indexOf(chapType);
                 if (chapType != tabs[activeTab])
                     outerDivCls += "hidden";
-                chapTable.append(`<div tab-index=${tabIdx} class="${outerDivCls}"><div class="py-4 hover:dark:bg-gray-600 rounded-lg title-div" chap-idx=${idx}>${chap.title}</div></div>`);
+                chapTable.append(`<div tab-index=${tabIdx} class="${outerDivCls}"><div class="py-4 hover:bg-gray-600 rounded-lg title-div" chap-idx=${idx}>${chap.title}</div></div>`);
             })
         });
         const titleDiv = chapTable.find("div.title-div");
@@ -52,7 +52,7 @@ $(function ($) {
             const chapIdx = $(e.target).attr("chap-idx");
             currentChapIdx = parseInt(chapIdx);
             const chapId = getChapterFromIndices(currentTabIdx, currentChapIdx).id;
-            fetchPages(chapId);
+            window.location.href = `chapter?chapter_id=${chapId}`;
         });
     }
 
@@ -71,8 +71,8 @@ $(function ($) {
 
     const addTabs = () => {
         tabs.forEach((tabName, idx) => {
-            let tabDivCls = "p-4 bg-white dark:bg-gray-800 dark:border-gray-700 ";
-            tabDivCls += idx == activeTab ? "dark:bg-gray-600 active" : "hover:dark:bg-gray-600";
+            let tabDivCls = "p-4 bg-gray-800 border-gray-700 ";
+            tabDivCls += idx == activeTab ? "bg-gray-600 active" : "hover:bg-gray-600";
             $("#tabs").append(`<div class="${tabDivCls}">${tabName}</div>`);
 
             if (currentTabIdx === null)
@@ -82,12 +82,12 @@ $(function ($) {
         $("#tabs > div").click((e) => {
             const activeTab = $("#tabs > div.active");
             const activeTabIdx = tabs.indexOf(activeTab[0].textContent);
-            activeTab.addClass('hover:dark:bg-gray-600');
-            activeTab.removeClass('dark:bg-gray-600 active');
+            activeTab.addClass('hover:bg-gray-600');
+            activeTab.removeClass('bg-gray-600 active');
             const tabClicked = $(e.target);
             const newActiveTabIdx = tabs.indexOf(tabClicked[0].textContent);
-            tabClicked.removeClass('hover:dark:bg-gray-600');
-            tabClicked.addClass('dark:bg-gray-600 active');
+            tabClicked.removeClass('hover:bg-gray-600');
+            tabClicked.addClass('bg-gray-600 active');
 
 
             const chapTable = $("#chap-table");
@@ -213,6 +213,13 @@ $(function ($) {
             });
         }
     }
+
+    const autoFetchPages = () => {
+        if (isChap)
+            fetchPages(chapterId);
+    }
+
+    autoFetchPages();
 
 })
 

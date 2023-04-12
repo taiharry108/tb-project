@@ -94,5 +94,16 @@ $(function ($) {
         $("div.history-container").empty();
     }
 
+    const hideAnime = () => {
+        $('.a-history-card-container').hide();
+    }
+
+    const hideManga = () => {
+        $('.history-card-container').hide();
+    }
+
+    $('#anime-filter-btn').click(() => hideAnime());
+    $('#manga-filter-btn').click(() => hideManga());
+
 })
 
