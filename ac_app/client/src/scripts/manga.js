@@ -10,6 +10,9 @@ $(function ($) {
     let currentChapIdx = null;
     let evtSource = null;
 
+    let prevChapId = null;
+    let nextChapId = null;
+
     let readyToFetch = true;
 
     const staticFilesEndpoint = "/static";
@@ -32,6 +35,24 @@ $(function ($) {
             success: (response) => {
                 updateLastRead();
             }
+        });
+    }
+
+    const getChapNeigbhor = () => {
+        if (!chapterId)
+            return;
+        
+        Object.keys(chapterDict).forEach((key) => {
+            const index = chapterDict[key].findIndex(item => item.id == chapterId);
+            if (index == -1)
+                return 
+
+            prevChapId = chapterDict[key][Math.max(index - 1, 0)].id
+            nextChapId = chapterDict[key][Math.min(index + 1, chapterDict[key].length - 1)].id
+
+            console.log(prevChapId, nextChapId)
+            $("#next-chap-btn").click(fetchNextChap);
+            $("#prev-chap-btn").click(fetchPrevChap);
         });
     }
 
@@ -99,7 +120,7 @@ $(function ($) {
         });
     }
 
-    const fetchPages = (chapId, callback=null) => {
+    const fetchPages = (chapId) => {
         readyToFetch = false;
         const modalContainer = $("div.modal-content-container");
         modalContainer.find("div").remove();
@@ -110,8 +131,6 @@ $(function ($) {
             if (e.data === '{}') {
                 evtSource.close();
                 readyToFetch = true;
-                if (callback !== null)
-                    callback();
             }
             else {
                 if (!added) {
@@ -123,10 +142,11 @@ $(function ($) {
                 modalContainer.find(`div[page-idx=${data.idx}]`).append(`<img class="mx-auto" src="${picPath}"></img>`)
             }
         }
+        getChapNeigbhor();
         updateHistory(chapId);
     }
 
-    const fetchManga = () => {
+    const fetchManga = (callback=null, arg=null) => {
         if (mangaId) {
             const data = { manga_id: mangaId };
             $.ajax({
@@ -136,6 +156,8 @@ $(function ($) {
                 success: (response) => {
                     chapterDict = response
                     addChapters(chapterDict);
+                    if (callback)
+                        callback(arg);
                 }
             });
             $.ajax({
@@ -170,14 +192,13 @@ $(function ($) {
         });
     }
 
-    addTabs();
-    fetchManga();
-
+    
     $("#view-modal").on("hidden.bs.modal", () => {
         evtSource.close();
     });
 
-    $("#view-modal").on("keydown", (e) => {
+    $(document).on('keydown', (e) => {
+        evtSource.close();
         if (e.key == "ArrowRight")
             fetchNextChap();
         else if (e.key == "ArrowLeft")
@@ -195,31 +216,26 @@ $(function ($) {
 
 
     const fetchNextChap = () => {
-        if (!readyToFetch) return;
-        const chap = getChapterFromIndices(currentTabIdx, currentChapIdx + 1);
-        if (chap) {
-            fetchPages(chap.id, () => {
-                currentChapIdx++;
-            });
-        }
+        if (!nextChapId)
+            return;
+        window.location.href = `chapter?chapter_id=${nextChapId}`;
     }
 
     const fetchPrevChap = () => {
-        if (!readyToFetch) return;
-        const chap = getChapterFromIndices(currentTabIdx, currentChapIdx - 1);
-        if (chap) {
-            fetchPages(chap.id, () => {
-                currentChapIdx--;
-            });
+        if (!prevChapId)
+            return;
+        window.location.href = `chapter?chapter_id=${prevChapId}`;
+    }
+
+    const autoFetch = () => {
+        if (isChap)
+            fetchManga(fetchPages, chapterId)
+        else {
+            addTabs();
+            fetchManga();
         }
     }
-
-    const autoFetchPages = () => {
-        if (isChap)
-            fetchPages(chapterId);
-    }
-
-    autoFetchPages();
+    autoFetch();
 
 })
 
