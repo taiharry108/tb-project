@@ -85,6 +85,7 @@ $(function ($) {
         const dateStr = (new Date(metaDict.last_update)).toISOString().substring(0, 10);
         metaDiv.find('.manga-last-update').text(dateStr);
         metaDiv.find('.latest-chapter-title').text(metaDict.latest_chapter.title);
+        // metaDiv.find('.last-read-chapter-title').attr("href", `chapter?chapter_id=${response.last_read_chapter.id}`);
     }
 
     let activeTab = 0;
@@ -188,6 +189,7 @@ $(function ($) {
             data: data,
             success: (response) => {
                 $(".last-read-chapter-title").text(response.last_read_chapter.title);
+                $(".last-read-chapter-title").attr("href", `chapter?chapter_id=${response.last_read_chapter.id}`)
             }
         });
     }
