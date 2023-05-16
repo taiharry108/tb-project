@@ -36,7 +36,7 @@ class FSStoreService(StoreService):
             f.write(data)
         return str(path)
 
-    async def persist_file(self, path: str, async_iter: AsyncIterator[bytes] = None, meta: Dict = None) -> str:
+    async def persist_file(self, path: str, async_iter: AsyncIterator[bytes] = None, is_large: bool = False, meta: Dict = None) -> str:
         """Save a file to store return path"""
         absolute_path = Path(path)
         absolute_path.parent.mkdir(exist_ok=True, parents=True)

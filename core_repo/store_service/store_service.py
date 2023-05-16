@@ -3,7 +3,7 @@ from typing import AsyncIterator, Dict, Protocol
 
 class StoreService(Protocol):
 
-    async def persist_file(self, path: str, async_iter: AsyncIterator[bytes] = None, meta: Dict = None) -> str:
+    async def persist_file(self, path: str, async_iter: AsyncIterator[bytes] = None, is_large: bool = False, meta: Dict = None) -> str:
         """Save a file to store return path"""
 
     def persist_file_sync(self, path: str, data: bytes = None, meta: Dict = None) -> str:
