@@ -1,4 +1,4 @@
-FROM python:3.9-alpine
+FROM python:3.11-alpine
 
 # set working directory
 WORKDIR /src
@@ -16,6 +16,3 @@ RUN apk --update add gcc make g++ zlib-dev libffi-dev
 RUN pip install --upgrade pip
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade -r requirements.txt
-
-# add app
-COPY ./src/alembic.ini /src/alembic.ini

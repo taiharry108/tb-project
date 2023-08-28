@@ -31,7 +31,8 @@ services:
       - ./async_service:/src/async_service
       - ./tests:/src/tests
       - ./.vscode-server:/root/.vscode-server
-    command: tail -F anything
+      - ./src/alembic.ini:/src/alembic.ini
+      - ./src/Makefile:/src/Makefile
     networks:
       - core_default
   db:
