@@ -5,6 +5,7 @@ from redis import Redis
 
 from database_service import DatabaseService
 from encrypt_service.fernet_encrypt_service import FernetEncryptService
+from store_service.b2_store_service import B2StoreService
 from store_service.fs_store_service import FSStoreService
 
 from in_queue_listener import InQueueListener
@@ -40,7 +41,7 @@ def in_queue_listen(config: dict, in_queue_name: str, out_queue_name: str):
 
 def out_queue_listen(config: dict, in_queue_name: str):
     redis_instance = Redis(config[REDIS_URL])
-    fs_store_service = FSStoreService()
+    fs_store_service = B2StoreService('tb-project-app', config['application_key_id'], config['application_key'])
     queue_service = RedisQueueService[EncryptMessage](
         redis=redis_instance, message_cls=EncryptMessage, timeout=0)
 
@@ -53,6 +54,7 @@ def out_queue_listen(config: dict, in_queue_name: str):
 
 
 def main():
+    print('staring app')
     config = dotenv_values(".env")
     in_queue_name = config[IN_QUEUE_NAME]
     out_queue_name = config[OUT_QUEUE_NAME]

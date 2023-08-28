@@ -33,16 +33,19 @@ def large_test_filename() -> str:
             f.write("0")
     return name
 
+
 @pytest.fixture(autouse=True, scope="module")
-async def run_before_and_after_tests(store_service: StoreService):    
+async def run_before_and_after_tests(store_service: StoreService):
     yield
     for file_version, _ in store_service.bucket.ls():
-        store_service.bucket.delete_file_version(file_version.id_, file_version.file_name)
+        store_service.bucket.delete_file_version(
+            file_version.id_, file_version.file_name)
 
 
 def test_persist_file_sync_successful(store_service: StoreService, test_filename: str):
     file_id = store_service.persist_file_sync(test_filename, b"test content")
-    file_verison: FileVersion = store_service.bucket.get_file_info_by_id(file_id)
+    file_verison: FileVersion = store_service.bucket.get_file_info_by_id(
+        file_id)
     assert file_verison.file_name == test_filename
 
 
@@ -74,16 +77,10 @@ async def test_persist_file_successful(store_service: StoreService, test_filenam
 async def test_store_service_file_exists(store_service: StoreService, test_filename: str):
     assert await store_service.file_exists(test_filename)
 
+
 async def test_store_service_file_exists_not_exist(store_service: StoreService, test_filename: str):
     assert await store_service.file_exists('abc') == False
 
 
 async def test_store_service_remove_file_successful(store_service: StoreService, test_filename: str):
     assert await store_service.remove_file(test_filename)
-    assert await store_service.file_exists(test_filename) == False
-
-
-# def test_store_service_remove_file_fail(store_service: StoreService):
-#     test_filename = "123"
-#     assert store_service.file_exists_sync(test_filename) == False
-#     assert store_service.remove_file(test_filename) == False

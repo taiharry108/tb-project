@@ -1,6 +1,6 @@
 import asyncio
 from aiob2 import Client, File
-from b2sdk.v2 import B2Api, Bucket, InMemoryAccountInfo, FileVersion, DownloadVersion
+from b2sdk.v2 import B2Api, Bucket, InMemoryAccountInfo, FileVersion, DownloadVersion, DownloadedFile
 from b2sdk.exception import FileNotPresent
 from pathlib import Path
 from typing import AsyncIterator, Dict
@@ -84,3 +84,11 @@ class B2StoreService(StoreService):
         file = await self._get_file_info(path, loop)
         file_id_n_name = await loop.run_in_executor(None, self.bucket.delete_file_version, file.id_, file.file_name)
         return True
+
+    async def read(self, path: str, size: int = -1) -> bytes:
+        """Read a file from the source"""
+        loop = asyncio.get_running_loop()
+
+        range_ = None if size == -1 else (0, size - 1)
+        downloaded_file: DownloadedFile = await loop.run_in_executor(None, self.bucket.download_file_by_name, path, None, range_)
+        return downloaded_file.response.content

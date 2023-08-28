@@ -1,5 +1,7 @@
+aiob2
 alembic==1.8.1
 asyncpg==0.26.0
+b2sdk
 beautifulsoup4==4.11.1
 httpx[socks]==0.22.0
 psycopg2-binary==2.9.3

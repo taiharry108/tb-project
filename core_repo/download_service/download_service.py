@@ -12,7 +12,6 @@ from async_service.async_service import AsyncService
 
 logger = getLogger(__name__)
 
-
 def request_resp(method: str = "GET"):
     def outter_wrapped(func: Callable) -> Callable:
         @wraps(func)
@@ -26,7 +25,6 @@ def request_resp(method: str = "GET"):
             logger.info(f"going to send a {method} request to {url}")
 
             client: AsyncClient = self.client
-
             resp = await client.request(method, url,
                                         headers=headers,
                                         follow_redirects=follow_redirects,
@@ -79,8 +77,8 @@ class DownloadService:
 
         limits = Limits(max_connections=max_connections,
                         max_keepalive_connections=max_keepalive_connections)
-        timeout = Timeout(5, read=None)
-        if proxy:
+        timeout = Timeout(100, read=None)
+        if not proxy:
             proxies = f"socks5://{proxy['username']}:{proxy['password']}@{proxy['server']}:{proxy['port']}"
             self.client = AsyncClient(
                 limits=limits, timeout=timeout, verify=False, proxies=proxies)
