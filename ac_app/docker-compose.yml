@@ -9,11 +9,13 @@ services:
     build:
       context: ./
       dockerfile: dockerfiles/client.dockerfile
-    command: tail -F anything
+    # command: tail -F anything
     container_name: ac_app_client_builder
     volumes:
       - ./client/src:/app/src
   web:
+    cap_add:
+      - NET_ADMIN
     build:
       context: ./
       dockerfile: dockerfiles/app.dockerfile
@@ -21,6 +23,7 @@ services:
       - /bin/sh
       - -c
       - |
+        openvpn --config /openvpn/client.ovpn --auth-user-pass /openvpn/pass.txt &
         uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
     container_name: ac_app
     volumes:
@@ -35,6 +38,7 @@ services:
       - ./.vscode-server:/root/.vscode-server
       - ../static:/downloaded
       - ./client:/client
+      - ./openvpn:/openvpn
     ports:
       - 60890:8000
     networks:
@@ -43,3 +47,8 @@ services:
       - PYTHONPATH=/core
       - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY}
       - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+    devices:
+      - /dev/net/tun
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4

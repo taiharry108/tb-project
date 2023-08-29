@@ -10,7 +10,7 @@ ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
 # install system dependencies
-RUN apk --update add gcc make g++ zlib-dev libffi-dev
+RUN apk --update --no-cache add gcc make g++ zlib-dev libffi-dev openvpn
 
 # install python dependencies
 RUN pip install --upgrade pip
