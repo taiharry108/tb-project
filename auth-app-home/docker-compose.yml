@@ -2,15 +2,14 @@ version: '3.7'
 
 networks:
   core_default:
-    external:
-      name: core_virtual_network
+    external: true
+    name: core_virtual_network
 
 services:
   frontend:
     build:
       context: ./
       dockerfile: dockerfiles/client.dockerfile
-    command: tail -F anything
     container_name: client_builder
     volumes:
       - ./client/src:/app/src
@@ -22,7 +21,6 @@ services:
       - /bin/sh
       - -c
       - |
-        source ./init_env.sh
         uvicorn main:app --reload --workers 1 --host auth_app --port 8000 --forwarded-allow-ips "*"
     container_name: auth_app
     volumes:
@@ -34,3 +32,5 @@ services:
       - core_default
     environment:
       - PYTHONPATH=/core
+      - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY}
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
