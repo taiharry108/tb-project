@@ -12,14 +12,14 @@ class MangaBase(BaseModel):
     url: HttpUrl
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class MangaWithMeta(MangaBase):
     last_update: Optional[datetime]
     finished: Optional[bool]
     thum_img: Optional[str]
-    idx_retrieved: Optional[bool]
+    idx_retrieved: Optional[bool] = False
 
     def retreived_idx_page(self):
         self.idx_retrieved = True
@@ -32,7 +32,7 @@ class MangaWithMeta(MangaBase):
             self.thum_img = self.thum_img.replace('static/', '')
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 
 class Manga(MangaWithMeta):

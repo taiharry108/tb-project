@@ -89,7 +89,7 @@ class ManhuarenScrapingService(MangaSiteScrapingService):
 
     @property
     def url(self):
-        return self.site.url
+        return str(self.site.url)
 
     def _parse_datetime(self, dt_str) -> datetime:
         print(dt_str)        

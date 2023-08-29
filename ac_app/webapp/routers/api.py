@@ -171,10 +171,10 @@ async def get_chapters(
     chapters_to_insert = []
 
     for m_type, chap_list in chapters.items():
-        for chap in chap_list:
+        for chap in chap_list:            
             chapters_to_insert.append({
                 "title": chap.title,
-                "page_url": chap.page_url,
+                "page_url": str(chap.page_url),
                 "manga_id": db_manga.id,
                 "type": m_types.index(m_type)
             })
@@ -204,7 +204,7 @@ async def get_meta(
     download_path = Path(download_path) / \
         scraping_service.site.name / db_manga.name
 
-    download_result = await download_service.download_img(url=meta.thum_img, download_path=download_path, filename="thum_img")
+    download_result = await download_service.download_img(url=str(meta.thum_img), download_path=download_path, filename="thum_img")
     meta.thum_img = download_result['pic_path']
 
     await crud_service.update_object(

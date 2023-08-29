@@ -27,7 +27,7 @@ async def get_redirect_response(auth_server_url: str = Depends(
 @inject
 def main_page(request: Request,
               session_data: SessionData = Depends(get_session_data),
-              redirect_response: RedirectResponse = Depends(get_redirect_response),):
+              redirect_response = Depends(get_redirect_response),):
     if not session_data:
         return redirect_response
     return templates.TemplateResponse("index.html", {"request": request})
@@ -37,7 +37,7 @@ def main_page(request: Request,
 @inject
 async def manga_page(request: Request, manga_id: int,
                      session_data: SessionData = Depends(get_session_data),
-                     redirect_response: RedirectResponse = Depends(
+                     redirect_response = Depends(
                          get_redirect_response),
                      crud_service: CRUDService = Depends(
                          Provide[Container.crud_service]),
@@ -55,7 +55,7 @@ async def manga_page(request: Request, manga_id: int,
 @inject
 async def history_page(request: Request,
                        session_data: SessionData = Depends(get_session_data),
-                       redirect_response: RedirectResponse = Depends(
+                       redirect_response = Depends(
                            get_redirect_response),
                        ):
     if not session_data:
@@ -67,7 +67,7 @@ async def history_page(request: Request,
 @inject
 async def anime_page(request: Request, anime_id: int,
                      session_data: SessionData = Depends(get_session_data),
-                     redirect_response: RedirectResponse = Depends(
+                     redirect_response = Depends(
                          get_redirect_response),
                      crud_service: CRUDService = Depends(
                          Provide[Container.crud_service]),
@@ -85,7 +85,7 @@ async def anime_page(request: Request, anime_id: int,
 @inject
 async def chapter_page(request: Request, chapter_id: int,
                         session_data: SessionData = Depends(get_session_data),
-                     redirect_response: RedirectResponse = Depends(
+                     redirect_response = Depends(
                          get_redirect_response),
                      crud_service: CRUDService = Depends(
                          Provide[Container.crud_service]),

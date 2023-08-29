@@ -82,7 +82,7 @@ async def get_history(
     mangas = await crud_service.get_items_by_ids(db_session, Manga, [h.manga_id for h in history])
     manga_ids = [item.manga_id for item in history]
     chapters = await crud_service.get_items_by_ids(db_session, DBChapter, [h.chapter_id for h in history])
-    simple_mangas = {manga.id: MangaSimple.from_orm(manga) for manga in mangas}
+    simple_mangas = {manga.id: MangaSimple.model_validate(manga) for manga in mangas}
     for chapter, hist in zip(chapters, history):
         manga_id = chapter.manga_id
         simple_mangas[manga_id].last_read_chapter = Chapter.from_orm(chapter)

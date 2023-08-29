@@ -9,4 +9,4 @@ class Episode(BaseModel):
     last_update: datetime
     data: str
     class Config:
-        orm_mode = True
+        from_attributes = True

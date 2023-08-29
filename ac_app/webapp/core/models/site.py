@@ -6,4 +6,4 @@ class Site(BaseModel):
     url: HttpUrl
 
     class Config:
-        orm_mode = True
+        from_attributes = True
