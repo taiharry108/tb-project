@@ -7,7 +7,7 @@ from .manga_index_type_enum import MangaIndexTypeEnum
 
 
 class MangaBase(BaseModel):
-    id: Optional[int]
+    id: Optional[int] = None
     name: str
     url: HttpUrl
 
@@ -16,9 +16,9 @@ class MangaBase(BaseModel):
 
 
 class MangaWithMeta(MangaBase):
-    last_update: Optional[datetime]
-    finished: Optional[bool]
-    thum_img: Optional[str]
+    last_update: Optional[datetime] = None
+    finished: Optional[bool] = None
+    thum_img: Optional[str] = None
     idx_retrieved: Optional[bool] = False
 
     def retreived_idx_page(self):
