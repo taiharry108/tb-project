@@ -37,7 +37,7 @@ services:
       - core_default
   db:
     container_name: core_db
-    image: postgres
+    image: postgres:alpine
     restart: always
     ports:
       - 65432:5432
@@ -51,7 +51,7 @@ services:
       - core_default
   test_db:
     container_name: core_test_db
-    image: postgres
+    image: postgres:alpine
     restart: always
     ports:
       - 65433:5432
@@ -63,6 +63,6 @@ services:
       - core_default
   redis:
     container_name: default_redis
-    image: redis
+    image: redis:alpine
     networks:
       - core_default
