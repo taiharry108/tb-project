@@ -21,7 +21,8 @@ services:
     build:
       context: ./
       dockerfile: dockerfiles/app.dockerfile
-    container_name: core_container
+    image: core_python:1.0
+    container_name: core_python
     volumes:
       - ./database:/src/database
       - ./src/alembic:/src/alembic
