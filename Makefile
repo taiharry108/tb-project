@@ -16,3 +16,10 @@ run:
 	@export JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY} && \
 		export JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY} && \
 		docker compose -f ${COMPOSE_FILE} up
+
+build-client:
+	@docker compose -f ${COMPOSE_FILE} run --rm frontend npm run start
+
+migrate-db:
+	@docker compose -f ${COMPOSE_FILE} run --rm core alembic revision --autogenerate -m ${MIGRATION_MESSAGE} && \
+		docker compose -f ${COMPOSE_FILE} run --rm core alembic upgrade head
