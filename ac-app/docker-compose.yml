@@ -2,39 +2,43 @@ version: '3.7'
 
 networks:
   core_default:
-    external:
-      name: core_virtual_network
+    external: true
+    name: core-vn
 services:
   frontend:
     build:
       context: ./
       dockerfile: dockerfiles/client.dockerfile
     # command: tail -F anything
-    container_name: ac_app_client_builder
+    image: ac-app-client-builder:1.0
+    container_name: ac-app-client-builder
     volumes:
       - ./client/src:/app/src
+    deploy:
+      replicas: 0
   web:
     cap_add:
       - NET_ADMIN
     build:
       context: ./
       dockerfile: dockerfiles/app.dockerfile
+    image: ac-app:1.0
     command:
       - /bin/sh
       - -c
       - |
         openvpn --config /openvpn/client.ovpn --auth-user-pass /openvpn/pass.txt &
         uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
-    container_name: ac_app
+    container_name: ac-app
     volumes:
       - ./webapp:/webapp
-      - ../core_repo/async_service/:/core/async_service
-      - ../core_repo/database/:/core/database
-      - ../core_repo/download_service/:/core/download_service
-      - ../core_repo/queue_service/:/core/queue_service
-      - ../core_repo/security_service/:/core/security_service
-      - ../core_repo/session/:/core/session
-      - ../core_repo/store_service/:/core/store_service
+      - ../core-repo/async_service/:/core/async_service
+      - ../core-repo/database/:/core/database
+      - ../core-repo/download_service/:/core/download_service
+      - ../core-repo/queue_service/:/core/queue_service
+      - ../core-repo/security_service/:/core/security_service
+      - ../core-repo/session/:/core/session
+      - ../core-repo/store_service/:/core/store_service
       - ./.vscode-server:/root/.vscode-server
       - ../static:/downloaded
       - ./client:/client

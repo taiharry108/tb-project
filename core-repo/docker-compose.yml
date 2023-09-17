@@ -2,8 +2,8 @@ version: '3.7'
 
 networks:
   core_default:
-    external:
-      name: core_virtual_network
+    external: true
+    name: core-vn
 
 services:
   web:
@@ -12,17 +12,17 @@ services:
       - ../static:/static:ro
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/cache:/data/nginx/cache
-    container_name: core_nginx
+    container_name: core-nginx
     ports:
-      - 60080:80
+      - 80:80
     networks:
       - core_default
   core:
     build:
       context: ./
       dockerfile: dockerfiles/app.dockerfile
-    image: core_python:1.0
-    container_name: core_python
+    image: core-python:1.0
+    container_name: core-python
     volumes:
       - ./database:/src/database
       - ./src/alembic:/src/alembic
@@ -36,8 +36,10 @@ services:
       - ./src/Makefile:/src/Makefile
     networks:
       - core_default
+    deploy:
+      replicas: 0
   db:
-    container_name: core_db
+    container_name: core-db
     image: postgres:alpine
     restart: always
     ports:
@@ -51,7 +53,7 @@ services:
     networks:
       - core_default
   test_db:
-    container_name: core_test_db
+    container_name: core-test-db
     image: postgres:alpine
     restart: always
     ports:
@@ -63,7 +65,7 @@ services:
     networks:
       - core_default
   redis:
-    container_name: default_redis
+    container_name: default-redis
     image: redis:alpine
     networks:
       - core_default

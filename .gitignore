@@ -156,3 +156,7 @@ config.yml
 .vscode-server
 downloaded
 static
+**/templates/*.html
+*.ovpn
+*.key
+*.pub

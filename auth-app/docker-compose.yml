@@ -3,30 +3,30 @@ version: '3.7'
 networks:
   core_default:
     external: true
-    name: core_virtual_network
+    name: core-vn
 
 services:
   frontend:
     build:
       context: ./
       dockerfile: dockerfiles/client.dockerfile
-    container_name: client_builder
+    image: auth-app-client-builder:1.0
+    container_name: auth-app-client-builder
     volumes:
       - ./client/src:/app/src
+    deploy:
+      replicas: 0
   web:
     build:
       context: ./
-      dockerfile: dockerfiles/app.dockerfile    
-    command:
-      - /bin/sh
-      - -c
-      - |
-        uvicorn main:app --reload --workers 1 --host auth_app --port 8000 --forwarded-allow-ips "*"
-    container_name: auth_app
+      dockerfile: dockerfiles/app.dockerfile
+    image: auth-app:1.0
+    container_name: auth-app
+    command: uvicorn main:app --reload --workers 1 --host auth-app --port 8000 --forwarded-allow-ips "*"
     volumes:
       - ./webapp:/webapp
-      - ../core_repo/database/:/core/database
-      - ../core_repo/session/:/core/session
+      - ../core-repo/database/:/core/database
+      - ../core-repo/session/:/core/session
       - ./client:/client
     networks:
       - core_default

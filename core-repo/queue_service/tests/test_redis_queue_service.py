@@ -22,7 +22,7 @@ def message() -> Message:
 
 @pytest.fixture(scope="module")
 def redis_instance() -> Redis:
-    return Redis("default_redis")
+    return Redis("default-redis")
 
 
 @pytest.fixture(autouse=True, scope="module")

@@ -3,7 +3,7 @@ version: '3.7'
 networks:
   core_default:
     external:
-      name: core_virtual_network
+      name: core-vn
 services:
   frontend:
     image: auth-app-home_frontend
