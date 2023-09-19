@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html class="h-full">
+
+<head>
+    <meta charset="UTF-8" />    
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>PH App</title>
+    <script src="https://kit.fontawesome.com/8ec5d7faa2.js" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.1/jquery.min.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.css" rel="stylesheet" />
+</head>
+
+<body class="h-full dark:bg-gray-900 antialiased">
+    <form>
+        <label for="default-search"
+            class="mb-2 text-sm font-medium text-gray-900 sr-only dark:text-white">Search</label>
+        <div class="relative m-8">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-500 dark:text-gray-400" aria-hidden="true"
+                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z" />
+                </svg>
+            </div>
+            <input type="search" id="default-search"
+                class="block w-full p-4 pl-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                placeholder="Search Mockups, Logos..." required>
+            <button type="submit"
+                class="text-white absolute right-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Search</button>
+        </div>
+    </form>
+    <div id="search-result" class="m-8 grid xl:grid-cols-4 md:grid-cols-3 grid-cols-1 xl:gap-4 gap-2">
+    </div>
+    <div class="container py-10 px-10 mx-0 min-w-full flex flex-col items-center">
+        <button type="button"
+            class="more-btn text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 hidden">More</button>
+    </div>
+    <template id="result-card">
+        <div
+            class="bg-white border border-gray-200 rounded-lg shadow dark:bg-gray-800 dark:border-gray-700 w-full">
+            <a href="#" class="">
+                <div
+                    class="vid-thumbnail w-full aspect-video rounded-t-lg bg-cover bg-center">
+                    <div class="w-full h-full flex justify-center items-end">
+                            <span class="text-white text-xl w-full mb-2 mr-2 text-end duration-text"></span>
+                    </div>
+                </div>
+            </a>
+            <div class="p-5">
+                <a href="#">
+                    <h5 class="vid-title mb-2 text-md font-bold tracking-tight text-gray-900 dark:text-white truncate">
+                    </h5>
+                    <p class="mb-3 username font-normal text-gray-500 dark:text-gray-400"></p>
+                    <p class="mb-3 upload-date font-normal text-gray-400 dark:text-gray-300"></p>
+                </a>
+            </div>
+        </div>
+    </template>
+    <template id="recommend-vid">
+        <li class="mb-3 xl:ml-3 xl:block flex">
+            <img class="vid-thumbnail">
+            <div class="description xl:ml-0 ml-2">
+                <h5 class="vid-title mb-1 text-md font-bold tracking-tight text-gray-900 dark:text-white truncate">
+                </h5>
+                <p class="mb-1 username font-normal text-gray-400 dark:text-gray-300"></p>
+                <p class="upload-date font-normal text-gray-400 dark:text-gray-300"></p>
+            </div>
+        </li>
+    </template>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.8.1/flowbite.min.js"></script>
+    <div id="loadingModal" tabindex="-1" aria-hidden="true"
+        class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full dark:bg-gray-900/75">
+        <div role="status" class="absolute top-1/2 left-1/2 -ml-12 -mt-12">
+            <svg aria-hidden="true"
+                class="inline w-24 h-24 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600"
+                viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path
+                    d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z"
+                    fill="currentColor" />
+                <path
+                    d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z"
+                    fill="currentFill" />
+            </svg>
+            <span class="sr-only">Loading...</span>
+        </div>
+    </div>
+    <div id="vidModal" tabindex="-1" aria-hidden="true"
+        class="fixed top-0 left-0 right-0 z-50 hidden w-full p-4 overflow-x-hidden overflow-y-auto md:inset-0 h-[calc(100%-1rem)] max-h-full dark:bg-gray-900/75">
+        <div class="container w-3/4 m-auto p-8 dark:bg-gray-700 overflow-y-auto h-128 rounded-md h-full xl:flex">
+            <div class="left-container">
+                <div class="vid-container">
+                    <video class="w-full h-fit" controls>
+                        <source src="/static/ph/vid/648b134eabd05.mp4" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                </div>
+                <div id="vid-description">
+                    <h5 class="vid-title mt-3 mb-1 text-2xl font-bold tracking-tight text-gray-900 dark:text-white truncate">
+                    </h5>
+                    <p class="mt-3 mb-1 username font-normal text-md text-gray-400 dark:text-gray-300"></p>
+                    <p class="upload-date font-normal text-md text-gray-400 dark:text-gray-300"></p>
+                </div>
+            </div>
+            <div class="recommendation xl:w-1/4 xl:mt-0 mt-2">
+                <ul id="recom-vid-list"></ul>
+            </div>
+        </div>
+
+    </div>
+</body>
+<script>
+    var nextPage = 1;
+    const loadVid = async (vidId) => {
+        let result = await fetch(`/ph/api/vid?vid_id=${vidId}`);
+        let resultObj = await result.json()
+        let vidUrl = resultObj["filepath"].replace("downloaded", "static");
+
+        let vidModal = $("#vidModal")
+        vidModal.find("source").attr("src", vidUrl);
+        let vidDescription = vidModal.find("#vid-description");
+        vidDescription.find(".vid-title").text(resultObj["vid"]["title"])
+        vidDescription.find(".username").text(resultObj["vid"]["username"])
+        vidDescription.find(".upload-date").text(resultObj["vid"]["upload_date"])
+        $("#recom-vid-list").empty();
+        resultObj["vids"].forEach((vid) => {
+            let recomVidTemp = $($("#recommend-vid").html());
+            // recomVidTemp.find(".vid-thumbnail").attr("src", vid["thumbnail_path"].replace("downloaded", "static"));
+            recomVidTemp.find(".vid-thumbnail").attr("src", "/static/test.jpg");
+            recomVidTemp.find(".vid-thumbnail").attr("data-attr", vid["vid_id"]);
+            recomVidTemp.find(".vid-title").text(vid["title"]);
+            recomVidTemp.find(".username").text(vid["username"]);
+            recomVidTemp.find(".upload-date").text(vid["upload_date"]);
+            recomVidTemp.click(() => loadVid(vid["vid_id"]))
+            $("#recom-vid-list").append(recomVidTemp);
+        });
+        $("#vidModal video")[0].load();
+    }
+    const searchVids = async (keyword, page) => {
+        toggleModal("#loadingModal");
+        let resp = await fetch(`/ph/api/search?keyword=${keyword}&page=${page}`);
+        let result = await resp.json();
+        if (page == 1)
+            $("#search-result").empty();
+        nextPage = result['next_page'];
+        result['vids'].forEach((vid) => {
+            let resultTemp = $($("#result-card").html());
+            resultTemp.find(".vid-thumbnail").attr("src", vid["thumbnail_path"].replace("downloaded", "static"));
+            // resultTemp.find(".vid-thumbnail").addClass(`bg-[url('${vid["thumbnail_path"].replace("downloaded", "static")}')]`);
+            resultTemp.find(".vid-thumbnail").addClass(`bg-[url(/static/test.jpg)]`);
+            resultTemp.find("a").attr("data-attr", vid["vid_id"]);
+            resultTemp.find(".duration-text").text(vid["duration"]);
+            resultTemp.find(".vid-title").text(vid["title"]);
+            resultTemp.find(".username").text(vid["username"]);
+            resultTemp.find(".upload-date").text(vid["upload_date"]);
+            resultTemp.find("a").on("click", async (event) => {
+                toggleModal("#vidModal");
+                await loadVid(vid["vid_id"]);
+            });
+
+            $("#search-result").append(resultTemp);
+        });
+        $(".more-btn").removeClass("hidden");
+        toggleModal("#loadingModal");
+    };
+    $("form").submit(async (event) => {
+        event.preventDefault();
+        let keyword = $("#default-search").val();
+        searchVids(keyword, 1);
+    });
+
+
+    let modalDict = { "#loadingModal": false, "#vidModal": false }
+
+    const closeVid = (e) => {
+        const vidEl = $("#vidModal video")[0];
+        vidEl.pause();
+        $("#vidModal video source")[0].removeAttribute('src'); // empty source
+        vidEl.load();
+        toggleModal('#vidModal');
+    }
+
+    const toggleModal = (modalId) => {
+        if (modalDict[modalId])
+            $(modalId).addClass("hidden");
+        else
+            $(modalId).removeClass("hidden");
+        modalDict[modalId] = !modalDict[modalId];
+    }
+
+    $(".more-btn").click(() => {
+        $(".more-btn").addClass("hidden");
+        let keyword = $("#default-search").val();
+        searchVids(keyword, nextPage);
+    });
+    // toggleModal("#vidModal");
+    $("#vidModal").click((event) => closeVid(event));
+    $("#vidModal .container").click((event) => event.stopPropagation());
+</script>
+
+</html>
