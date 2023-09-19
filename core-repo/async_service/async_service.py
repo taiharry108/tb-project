@@ -48,8 +48,7 @@ class AsyncService:
     async def work(self, items: Iterable, async_func: AsyncFunctionDef, **kwargs):
         prod_queue = asyncio.Queue()
         con_queue = asyncio.Queue()
-
-        for item in items:
+        for item in items:            
             await prod_queue.put(item)
 
         await prod_queue.put(None)
