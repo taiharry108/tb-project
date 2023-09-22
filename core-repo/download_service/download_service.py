@@ -47,7 +47,6 @@ def stream_resp(method: str = "GET"):
                 "follow_redirects") if "follow_redirects" in kwargs else False
             data = kwargs.pop("data") if "data" in kwargs else {}
             if "headers" in kwargs:
-                logger.info("headers exists")
                 headers.update(kwargs.pop("headers"))
 
             logger.info(f"going to send a {method} request to {url}")
@@ -78,13 +77,13 @@ class DownloadService:
         limits = Limits(max_connections=max_connections,
                         max_keepalive_connections=max_keepalive_connections)
         timeout = Timeout(100, read=None)
-        if not proxy:
-            proxies = f"socks5://{proxy['username']}:{proxy['password']}@{proxy['server']}:{proxy['port']}"
-            self.client = AsyncClient(
-                limits=limits, timeout=timeout, verify=False, proxies=proxies)
-        else:
-            self.client = AsyncClient(
-                limits=limits, timeout=timeout, verify=False)
+        # if not proxy:
+        #     proxies = f"socks5://{proxy['username']}:{proxy['password']}@{proxy['server']}:{proxy['port']}"
+        #     self.client = AsyncClient(
+        #         limits=limits, timeout=timeout, verify=False, proxies=proxies)
+        # else:
+        self.client = AsyncClient(
+            limits=limits, timeout=timeout, verify=False)
 
         self.headers = headers
         self.store_service = store_service
@@ -136,7 +135,7 @@ class DownloadService:
 
         file_path = self.generate_file_path(
             content_type, download_path, filename)
-
+        
         return await self._store_content_from_resp(resp, str(file_path), "pic_path", **kwargs)
 
     @stream_resp("GET")
@@ -160,7 +159,7 @@ class DownloadService:
 
         return await self._download_vid(resp.url, file_path=str(file_path), **kwargs)
 
-    async def download_imgs(self, async_service: AsyncService, download_path: Path, img_list: List[Dict[str, str]], headers: Dict[str, str]):
+    async def download_imgs(self, async_service: AsyncService, download_path: Path, img_list: List[Dict[str, int | str| None]], headers: Dict[str, str]):
         """Download multiple images simultaneously"""
         async for item in async_service.work(img_list, self.download_img,
                                              headers=headers, download_path=download_path):

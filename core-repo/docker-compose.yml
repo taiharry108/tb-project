@@ -41,7 +41,7 @@ services:
   db:
     container_name: core-db
     image: postgres:alpine
-    restart: always
+    # restart: always
     ports:
       - 65432:5432
     volumes:
@@ -55,7 +55,7 @@ services:
   test_db:
     container_name: core-test-db
     image: postgres:alpine
-    restart: always
+    # restart: always
     ports:
       - 65433:5432
     environment:

@@ -43,8 +43,6 @@ services:
       - ../static:/downloaded
       - ./client:/client
       - ./openvpn:/openvpn
-    ports:
-      - 60890:8000
     networks:
       - core_default
     environment:
