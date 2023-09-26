@@ -63,5 +63,8 @@ $(function ($) {
         $("#dropdownDefaultButton > span").text(e.target.text);
         console.log(site);
     });
+
+    setSite("ManHuaRen")
+    $("#dropdownDefaultButton > span").text("ManHuaRen");
 })
 
