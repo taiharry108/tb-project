@@ -23,3 +23,7 @@ build-client:
 migrate-db:
 	@docker compose -f ${COMPOSE_FILE} run --rm core alembic revision --autogenerate -m ${MIGRATION_MESSAGE} && \
 		docker compose -f ${COMPOSE_FILE} run --rm core alembic upgrade head
+
+update-db:
+	@docker compose -f ./ac-app/docker-compose.yml run --rm web /bin/sh -c "openvpn \
+		--config /openvpn/client.ovpn --auth-user-pass /openvpn/pass.txt & python update_chapter_meta.py"
