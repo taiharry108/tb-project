@@ -10,7 +10,15 @@ from core.models.chapter import Chapter
 from core.models.episode import Episode
 from core.models.manga import MangaSimple
 from database.crud_service import CRUDService
-from database.models import User, Manga, History, Chapter as DBChapter, AHistory, Anime, Episode as DBEpisode
+from database.models import (
+    User,
+    Manga,
+    History,
+    Chapter as DBChapter,
+    AHistory,
+    Anime,
+    Episode as DBEpisode,
+)
 from datetime import datetime
 from routers.auth import get_session_data
 from routers.utils import get_db_session
@@ -28,10 +36,12 @@ logger = getLogger(__name__)
 async def get_user_id_from_session_data(
     session_data: SessionData = Depends(get_session_data),
     crud_service: CRUDService = Depends(Provide[Container.crud_service]),
-    db_session: AsyncSession = Depends(get_db_session)
+    db_session: AsyncSession = Depends(get_db_session),
 ):
     try:
-        user_id = await crud_service.get_id_by_attr(db_session, User, "email", session_data.username)
+        user_id = await crud_service.get_id_by_attr(
+            db_session, User, "email", session_data.username
+        )
     except AttributeError:
         user_id = None
     return user_id
@@ -40,21 +50,28 @@ async def get_user_id_from_session_data(
 @router.get("/a_history", response_model=List[AnimeSimple])
 @inject
 async def get_a_history(
-        user_id: int = Depends(get_user_id_from_session_data),
-        auth_server_url: str = Depends(
-            Provide[Container.config.auth_server.url]),
-        redirect_url: str = Depends(
-            Provide[Container.config.auth_server.redirect_url]),
-        db_session: AsyncSession = Depends(get_db_session),
-        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    user_id: int = Depends(get_user_id_from_session_data),
+    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+    redirect_url: str = Depends(Provide[Container.config.auth_server.redirect_url]),
+    db_session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+):
     if not user_id:
-        return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")
-    history = await crud_service.get_attr_of_item_by_id(db_session, User, user_id, "history_animes", "history_animes")
+        return RedirectResponse(
+            f"{auth_server_url}/user/auth?redirect_url={redirect_url}"
+        )
+    history = await crud_service.get_attr_of_item_by_id(
+        db_session, User, user_id, "history_animes", "history_animes"
+    )
     history = sorted(history, key=lambda item: item.last_added, reverse=True)
 
-    animes = await crud_service.get_items_by_ids(db_session, Anime, [h.anime_id for h in history])
+    animes = await crud_service.get_items_by_ids(
+        db_session, Anime, [h.anime_id for h in history]
+    )
     anime_ids = [item.anime_id for item in history]
-    episodes = await crud_service.get_items_by_ids(db_session, DBEpisode, [h.episode_id for h in history])
+    episodes = await crud_service.get_items_by_ids(
+        db_session, DBEpisode, [h.episode_id for h in history]
+    )
     simple_animes = {anime.id: AnimeSimple.from_orm(anime) for anime in animes}
     for episode, hist in zip(episodes, history):
         anime_id = episode.anime_id
@@ -67,21 +84,28 @@ async def get_a_history(
 @router.get("/history", response_model=List[MangaSimple])
 @inject
 async def get_history(
-        user_id: int = Depends(get_user_id_from_session_data),
-        auth_server_url: str = Depends(
-            Provide[Container.config.auth_server.url]),
-        redirect_url: str = Depends(
-            Provide[Container.config.auth_server.redirect_url]),
-        db_session: AsyncSession = Depends(get_db_session),
-        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    user_id: int = Depends(get_user_id_from_session_data),
+    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+    redirect_url: str = Depends(Provide[Container.config.auth_server.redirect_url]),
+    db_session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+):
     if not user_id:
-        return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")
-    history = await crud_service.get_attr_of_item_by_id(db_session, User, user_id, "history_mangas", "history_mangas")
+        return RedirectResponse(
+            f"{auth_server_url}/user/auth?redirect_url={redirect_url}"
+        )
+    history = await crud_service.get_attr_of_item_by_id(
+        db_session, User, user_id, "history_mangas", "history_mangas"
+    )
     history = sorted(history, key=lambda item: item.last_added, reverse=True)
 
-    mangas = await crud_service.get_items_by_ids(db_session, Manga, [h.manga_id for h in history])
+    mangas = await crud_service.get_items_by_ids(
+        db_session, Manga, [h.manga_id for h in history]
+    )
     manga_ids = [item.manga_id for item in history]
-    chapters = await crud_service.get_items_by_ids(db_session, DBChapter, [h.chapter_id for h in history])
+    chapters = await crud_service.get_items_by_ids(
+        db_session, DBChapter, [h.chapter_id for h in history]
+    )
     simple_mangas = {manga.id: MangaSimple.model_validate(manga) for manga in mangas}
     for chapter, hist in zip(chapters, history):
         manga_id = chapter.manga_id
@@ -93,106 +117,124 @@ async def get_history(
     return [simple_mangas[manga_id] for manga_id in manga_ids]
 
 
-@router.post("/a_history",)
+@router.post(
+    "/a_history",
+)
 @inject
 async def add_a_history(
-        anime_id: int = Form(),
-        user_id: int = Depends(get_user_id_from_session_data),
-        auth_server_url: str = Depends(
-            Provide[Container.config.auth_server.url]),
-        redirect_url: str = Depends(
-            Provide[Container.config.auth_server.redirect_url]),
-        db_session: AsyncSession = Depends(get_db_session),
-        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    anime_id: int = Form(),
+    user_id: int = Depends(get_user_id_from_session_data),
+    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+    redirect_url: str = Depends(Provide[Container.config.auth_server.redirect_url]),
+    db_session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+):
     if not user_id:
-        return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")
+        return RedirectResponse(
+            f"{auth_server_url}/user/auth?redirect_url={redirect_url}"
+        )
 
     async def work(session, db_user, db_anime):
-        q = select(AHistory).where(AHistory.anime_id ==
-                                   anime_id).where(AHistory.user_id == user_id)
+        q = (
+            select(AHistory)
+            .where(AHistory.anime_id == anime_id)
+            .where(AHistory.user_id == user_id)
+        )
         db_hist = await session.execute(q)
         try:
             db_hist = db_hist.one()[0]
         except NoResultFound:
             db_hist = None
         if db_hist is None:
-            db_hist = AHistory(last_added=datetime.now(),
-                               user=db_user, anime=db_anime)
+            db_hist = AHistory(last_added=datetime.now(), user=db_user, anime=db_anime)
             session.add(db_hist)
         else:
             db_hist.last_added = datetime.now()
         await session.commit()
         return db_hist
 
-    history = await crud_service.item_obj_iteraction(db_session, User, Anime, user_id, anime_id, work)
+    history = await crud_service.item_obj_iteraction(
+        db_session, User, Anime, user_id, anime_id, work
+    )
     if history:
         return {"user_id": user_id, "anime_id": anime_id}
 
     raise HTTPException(
-        status_code=status.HTTP_406_NOT_ACCEPTABLE,
-        detail="Anime does not exist"
+        status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Anime does not exist"
     )
 
 
-@router.post("/history",)
+@router.post(
+    "/history",
+)
 @inject
 async def add_history(
-        manga_id: int = Form(),
-        user_id: int = Depends(get_user_id_from_session_data),
-        auth_server_url: str = Depends(
-            Provide[Container.config.auth_server.url]),
-        redirect_url: str = Depends(
-            Provide[Container.config.auth_server.redirect_url]),
-        db_session: AsyncSession = Depends(get_db_session),
-        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    manga_id: int = Form(),
+    user_id: int = Depends(get_user_id_from_session_data),
+    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+    redirect_url: str = Depends(Provide[Container.config.auth_server.redirect_url]),
+    db_session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+):
     if not user_id:
-        return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")
+        return RedirectResponse(
+            f"{auth_server_url}/user/auth?redirect_url={redirect_url}"
+        )
 
     async def work(session, db_user, db_manga):
-        q = select(History).where(History.manga_id ==
-                                  manga_id).where(History.user_id == user_id)
+        q = (
+            select(History)
+            .where(History.manga_id == manga_id)
+            .where(History.user_id == user_id)
+        )
         db_hist = await session.execute(q)
         try:
             db_hist = db_hist.one()[0]
         except NoResultFound:
             db_hist = None
         if db_hist is None:
-            db_hist = History(last_added=datetime.now(),
-                              user=db_user, manga=db_manga)
+            db_hist = History(last_added=datetime.now(), user=db_user, manga=db_manga)
             session.add(db_hist)
         else:
             db_hist.last_added = datetime.now()
         await session.commit()
         return db_hist
 
-    history = await crud_service.item_obj_iteraction(db_session, User, Manga, user_id, manga_id, work)
+    history = await crud_service.item_obj_iteraction(
+        db_session, User, Manga, user_id, manga_id, work
+    )
     if history:
         return {"user_id": user_id, "manga_id": manga_id}
 
     raise HTTPException(
-        status_code=status.HTTP_406_NOT_ACCEPTABLE,
-        detail="Manga does not exist"
+        status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Manga does not exist"
     )
 
 
-@router.put("/a_history",)
+@router.put(
+    "/a_history",
+)
 @inject
 async def update_a_history(
-        anime_id: int = Form(),
-        episode_id: int = Form(),
-        user_id: int = Depends(get_user_id_from_session_data),
-        auth_server_url: str = Depends(
-            Provide[Container.config.auth_server.url]),
-        redirect_url: str = Depends(
-            Provide[Container.config.auth_server.redirect_url]),
-        db_session: AsyncSession = Depends(get_db_session),
-        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    anime_id: int = Form(),
+    episode_id: int = Form(),
+    user_id: int = Depends(get_user_id_from_session_data),
+    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+    redirect_url: str = Depends(Provide[Container.config.auth_server.redirect_url]),
+    db_session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+):
     if not user_id:
-        return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")
+        return RedirectResponse(
+            f"{auth_server_url}/user/auth?redirect_url={redirect_url}"
+        )
 
     async def work(session, db_user, db_anime):
-        q = select(AHistory).where(AHistory.anime_id ==
-                                   anime_id).where(AHistory.user_id == user_id)
+        q = (
+            select(AHistory)
+            .where(AHistory.anime_id == anime_id)
+            .where(AHistory.user_id == user_id)
+        )
         db_hist = await session.execute(q)
         try:
             db_hist = db_hist.one()[0]
@@ -203,34 +245,41 @@ async def update_a_history(
 
         return db_hist
 
-    history = await crud_service.item_obj_iteraction(db_session, User, Anime, user_id, anime_id, work)
+    history = await crud_service.item_obj_iteraction(
+        db_session, User, Anime, user_id, anime_id, work
+    )
     if history:
         return {"user_id": user_id, "anime_id": anime_id, "episode_id": episode_id}
 
     raise HTTPException(
-        status_code=status.HTTP_406_NOT_ACCEPTABLE,
-        detail="Anime does not exist"
+        status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Anime does not exist"
     )
 
 
-@router.put("/history",)
+@router.put(
+    "/history",
+)
 @inject
 async def update_history(
-        manga_id: int = Form(),
-        chapter_id: int = Form(),
-        user_id: int = Depends(get_user_id_from_session_data),
-        auth_server_url: str = Depends(
-            Provide[Container.config.auth_server.url]),
-        redirect_url: str = Depends(
-            Provide[Container.config.auth_server.redirect_url]),
-        db_session: AsyncSession = Depends(get_db_session),
-        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    manga_id: int = Form(),
+    chapter_id: int = Form(),
+    user_id: int = Depends(get_user_id_from_session_data),
+    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+    redirect_url: str = Depends(Provide[Container.config.auth_server.redirect_url]),
+    db_session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+):
     if not user_id:
-        return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")
+        return RedirectResponse(
+            f"{auth_server_url}/user/auth?redirect_url={redirect_url}"
+        )
 
     async def work(session, db_user, db_manga):
-        q = select(History).where(History.manga_id ==
-                                  manga_id).where(History.user_id == user_id)
+        q = (
+            select(History)
+            .where(History.manga_id == manga_id)
+            .where(History.user_id == user_id)
+        )
         db_hist = await session.execute(q)
         try:
             db_hist = db_hist.one()[0]
@@ -240,32 +289,40 @@ async def update_history(
             db_hist = None
         return db_hist
 
-    history = await crud_service.item_obj_iteraction(db_session, User, Manga, user_id, manga_id, work)
+    history = await crud_service.item_obj_iteraction(
+        db_session, User, Manga, user_id, manga_id, work
+    )
     if history:
         return {"user_id": user_id, "manga_id": manga_id, "chapter_id": chapter_id}
 
     raise HTTPException(
-        status_code=status.HTTP_406_NOT_ACCEPTABLE,
-        detail="Manga does not exist"
+        status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Manga does not exist"
     )
 
-@router.delete("/a_history",)
+
+@router.delete(
+    "/a_history",
+)
 @inject
 async def del_a_history(
-        anime_id: int = Form(),
-        user_id: int = Depends(get_user_id_from_session_data),
-        auth_server_url: str = Depends(
-            Provide[Container.config.auth_server.url]),
-        redirect_url: str = Depends(
-            Provide[Container.config.auth_server.redirect_url]),
-        db_session: AsyncSession = Depends(get_db_session),
-        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    anime_id: int = Form(),
+    user_id: int = Depends(get_user_id_from_session_data),
+    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+    redirect_url: str = Depends(Provide[Container.config.auth_server.redirect_url]),
+    db_session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+):
     if not user_id:
-        return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")
+        return RedirectResponse(
+            f"{auth_server_url}/user/auth?redirect_url={redirect_url}"
+        )
 
     async def work(session, db_user, db_anime):
-        q = select(AHistory).where(AHistory.anime_id ==
-                                  anime_id).where(AHistory.user_id == user_id)
+        q = (
+            select(AHistory)
+            .where(AHistory.anime_id == anime_id)
+            .where(AHistory.user_id == user_id)
+        )
         db_hist = await session.execute(q)
         try:
             db_hist = db_hist.one()[0]
@@ -278,32 +335,40 @@ async def del_a_history(
         else:
             return False
 
-    result = await crud_service.item_obj_iteraction(db_session, User, Anime, user_id, anime_id, work)
+    result = await crud_service.item_obj_iteraction(
+        db_session, User, Anime, user_id, anime_id, work
+    )
     if result:
         return {"success": True}
 
     raise HTTPException(
-        status_code=status.HTTP_406_NOT_ACCEPTABLE,
-        detail="Anime does not exist"
+        status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Anime does not exist"
     )
 
-@router.delete("/history",)
+
+@router.delete(
+    "/history",
+)
 @inject
 async def del_history(
-        manga_id: int = Form(),
-        user_id: int = Depends(get_user_id_from_session_data),
-        auth_server_url: str = Depends(
-            Provide[Container.config.auth_server.url]),
-        redirect_url: str = Depends(
-            Provide[Container.config.auth_server.redirect_url]),
-        db_session: AsyncSession = Depends(get_db_session),
-        crud_service: CRUDService = Depends(Provide[Container.crud_service]),):
+    manga_id: int = Form(),
+    user_id: int = Depends(get_user_id_from_session_data),
+    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+    redirect_url: str = Depends(Provide[Container.config.auth_server.redirect_url]),
+    db_session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+):
     if not user_id:
-        return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")
+        return RedirectResponse(
+            f"{auth_server_url}/user/auth?redirect_url={redirect_url}"
+        )
 
     async def work(session, db_user, db_manga):
-        q = select(History).where(History.manga_id ==
-                                  manga_id).where(History.user_id == user_id)
+        q = (
+            select(History)
+            .where(History.manga_id == manga_id)
+            .where(History.user_id == user_id)
+        )
         db_hist = await session.execute(q)
         try:
             db_hist = db_hist.one()[0]
@@ -316,11 +381,12 @@ async def del_history(
         else:
             return False
 
-    result = await crud_service.item_obj_iteraction(db_session, User, Manga, user_id, manga_id, work)
+    result = await crud_service.item_obj_iteraction(
+        db_session, User, Manga, user_id, manga_id, work
+    )
     if result:
         return {"success": True}
 
     raise HTTPException(
-        status_code=status.HTTP_406_NOT_ACCEPTABLE,
-        detail="Manga does not exist"
+        status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Manga does not exist"
     )

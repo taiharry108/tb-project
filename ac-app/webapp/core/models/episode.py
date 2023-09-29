@@ -8,5 +8,6 @@ class Episode(BaseModel):
     title: str
     last_update: datetime
     data: str
+
     class Config:
         from_attributes = True

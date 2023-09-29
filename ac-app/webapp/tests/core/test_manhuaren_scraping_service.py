@@ -16,7 +16,11 @@ logger = getLogger(__name__)
 
 @pytest.fixture
 @inject
-def scraping_service(scraping_service_factory: providers.Factory[MangaSiteScrapingService] = Provider[Container.scraping_service_factory]):
+def scraping_service(
+    scraping_service_factory: providers.Factory[MangaSiteScrapingService] = Provider[
+        Container.scraping_service_factory
+    ],
+):
     return scraping_service_factory("manhuaren")
 
 
@@ -30,16 +34,23 @@ def chapter(c_data) -> Chapter:
     return Chapter(title=c_data["title"], page_url=c_data["page_url"])
 
 
-@pytest.mark.parametrize("search_txt,name,url_ending", [
-    ("火影", "火影忍者", "manhua-huoyingrenzhe-naruto/"),
-    ("stone", "Dr.STONE", "manhua-dr-stone/")
-])
-async def test_search_manga(scraping_service: MangaSiteScrapingService, search_txt: str, name: str, url_ending: str):
+@pytest.mark.parametrize(
+    "search_txt,name,url_ending",
+    [
+        ("火影", "火影忍者", "manhua-huoyingrenzhe-naruto/"),
+        ("stone", "Dr.STONE", "manhua-dr-stone/"),
+    ],
+)
+async def test_search_manga(
+    scraping_service: MangaSiteScrapingService,
+    search_txt: str,
+    name: str,
+    url_ending: str,
+):
     manga_list = await scraping_service.search_manga(search_txt)
     assert len(manga_list) != 0
 
-    filtered_list = list(
-        filter(lambda manga: manga.name == name, manga_list))
+    filtered_list = list(filter(lambda manga: manga.name == name, manga_list))
     assert len(filtered_list) != 0
 
     for manga in manga_list:
@@ -47,9 +58,10 @@ async def test_search_manga(scraping_service: MangaSiteScrapingService, search_t
             assert manga.url.endswith(url_ending)
 
 
-@pytest.mark.parametrize("m_data", [
-    {"name": "火影忍者", "url": "https://www.manhuaren.com/manhua-huoyingrenzhe-naruto/"}
-])
+@pytest.mark.parametrize(
+    "m_data",
+    [{"name": "火影忍者", "url": "https://www.manhuaren.com/manhua-huoyingrenzhe-naruto/"}],
+)
 async def test_get_chapters(scraping_service: MangaSiteScrapingService, manga: Manga):
     chapters = await scraping_service.get_chapters(manga.url)
     assert len(chapters[MangaIndexTypeEnum.CHAPTER]) == 533
@@ -57,26 +69,33 @@ async def test_get_chapters(scraping_service: MangaSiteScrapingService, manga: M
 
     chap = chapters[MangaIndexTypeEnum.CHAPTER][0]
     assert chap.page_url.endswith("m5196/")
-    assert chap.title == '第1卷'
+    assert chap.title == "第1卷"
 
 
-@pytest.mark.parametrize("m_data", [
-    {"name": "火影忍者", "url": "https://www.manhuaren.com/manhua-huoyingrenzhe-naruto/"}
-])
+@pytest.mark.parametrize(
+    "m_data",
+    [{"name": "火影忍者", "url": "https://www.manhuaren.com/manhua-huoyingrenzhe-naruto/"}],
+)
 async def test_get_meta(scraping_service: MangaSiteScrapingService, manga: Manga):
     meta_data = await scraping_service.get_meta(manga.url)
 
     assert meta_data.last_update == datetime(2016, 4, 23)
     assert meta_data.finished == True
-    assert meta_data.thum_img == 'https://mhfm6us.cdndm5.com/1/444/20181129142416_180x240_30.jpg'
+    assert (
+        meta_data.thum_img
+        == "https://mhfm6us.cdndm5.com/1/444/20181129142416_180x240_30.jpg"
+    )
     assert meta_data.latest_chapter == Chapter(
-        title="外传：20", page_url="https://www.manhuaren.com/m249654/")
+        title="外传：20", page_url="https://www.manhuaren.com/m249654/"
+    )
 
 
-@pytest.mark.parametrize("c_data", [
-    {"title": "第187话", "page_url": 'https://www.manhuaren.com/m1199828/'}
-])
-async def test_get_page_urls(scraping_service: MangaSiteScrapingService, chapter: Chapter):
+@pytest.mark.parametrize(
+    "c_data", [{"title": "第187话", "page_url": "https://www.manhuaren.com/m1199828/"}]
+)
+async def test_get_page_urls(
+    scraping_service: MangaSiteScrapingService, chapter: Chapter
+):
     img_urls = await scraping_service.get_page_urls(chapter.page_url)
     assert len(img_urls) == 18
 

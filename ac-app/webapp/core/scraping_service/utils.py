@@ -4,7 +4,10 @@ from core.models.chapter import Chapter
 from core.models.manga import Manga
 from core.models.site import Site
 
-def create_img_name(site: Site, manga: Manga, chapter: Chapter = None, idx: int = None) -> str:
+
+def create_img_name(
+    site: Site, manga: Manga, chapter: Chapter = None, idx: int = None
+) -> str:
     name = site.name + manga.name
     if chapter:
         name += chapter.title

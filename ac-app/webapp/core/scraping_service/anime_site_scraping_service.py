@@ -12,7 +12,6 @@ logger = getLogger(__name__)
 
 
 class AnimeSiteScrapingService(Protocol):
-
     async def search_anime(self, keyword: str) -> List[Anime]:
         """Search manga with keyword, return a list of manga"""
 
@@ -21,7 +20,7 @@ class AnimeSiteScrapingService(Protocol):
 
     async def get_video_url(self, ep: Episode) -> str:
         """Get all the urls of a chaper, return a list of strings"""
-    
+
     @property
     def download_service(self) -> DownloadService:
         return self._download_service

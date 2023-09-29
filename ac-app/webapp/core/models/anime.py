@@ -17,8 +17,10 @@ class Anime(BaseModel):
     class Config:
         from_attributes = True
 
+
 class AnimeBase(Anime):
     pass
+
 
 class AnimeSimple(AnimeBase):
     latest_episode: Episode = None

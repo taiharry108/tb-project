@@ -25,20 +25,22 @@ class MangaWithMeta(MangaBase):
         self.idx_retrieved = True
 
     def set_meta_data(self, meta_data: dict, create_last_update=True):
-        self.last_update = datetime.now() if create_last_update else meta_data.get('last_update')
-        self.finished = meta_data.get('finished')
-        self.thum_img = meta_data.get('thum_img')
+        self.last_update = (
+            datetime.now() if create_last_update else meta_data.get("last_update")
+        )
+        self.finished = meta_data.get("finished")
+        self.thum_img = meta_data.get("thum_img")
         if self.thum_img is not None:
-            self.thum_img = self.thum_img.replace('static/', '')
+            self.thum_img = self.thum_img.replace("static/", "")
 
     class Config:
         from_attributes = True
 
 
 class Manga(MangaWithMeta):
-
     chapters: Dict[MangaIndexTypeEnum, List[Chapter]] = {
-        m_type: [] for m_type in list(MangaIndexTypeEnum)}
+        m_type: [] for m_type in list(MangaIndexTypeEnum)
+    }
 
     def add_chapter(self, m_type: MangaIndexTypeEnum, title: str, page_url: str):
         self.chapters[m_type].append(Chapter(title=title, page_url=page_url))

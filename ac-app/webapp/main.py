@@ -25,7 +25,7 @@ def create_app() -> FastAPI:
     app.mount("/css", StaticFiles(directory="/client/src/css/"), name="css")
     app.mount("/scripts", StaticFiles(directory="/client/src/scripts/"), name="css")
 
-    setattr(app, 'container', container)
+    setattr(app, "container", container)
     app.include_router(api.router, prefix="/api")
     app.include_router(auth.router, prefix="/auth")
     app.include_router(user.router, prefix="/user")

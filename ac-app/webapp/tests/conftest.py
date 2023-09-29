@@ -28,10 +28,11 @@ async def container() -> Container:
 @pytest.fixture(autouse=True, scope="module")
 @inject
 async def database(container: Container) -> DatabaseService:
-    container.db_engine.override(providers.Singleton(
-        create_async_engine, container.config.db.test_url,
-        echo=False
-    ))
+    container.db_engine.override(
+        providers.Singleton(
+            create_async_engine, container.config.db.test_url, echo=False
+        )
+    )
     db = container.db_service()
     await db.create_database()
     return db
@@ -39,7 +40,7 @@ async def database(container: Container) -> DatabaseService:
 
 @pytest.fixture(scope="module")
 @inject
-async def crud_service(crud_service = Provide[Container.crud_service]) -> CRUDService:
+async def crud_service(crud_service=Provide[Container.crud_service]) -> CRUDService:
     return crud_service
 
 

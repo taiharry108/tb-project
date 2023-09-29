@@ -11,22 +11,27 @@ from core.scraping_service.anime_site_scraping_service import AnimeSiteScrapingS
 from core.scraping_service.anime1_scraping_service import Anime1ScrapingService
 
 from download_service.download_service import DownloadService
+
 logger = getLogger(__name__)
 
 
 @pytest.fixture
 @inject
-def scraping_service(scraping_service_factory=Provider[Container.scraping_service_factory]) -> AnimeSiteScrapingService:
+def scraping_service(
+    scraping_service_factory=Provider[Container.scraping_service_factory],
+) -> AnimeSiteScrapingService:
     return scraping_service_factory("anime1")
 
 
-@pytest.mark.parametrize("search_text,name,url_ending", [
-    ("東方", "ORIENT 東方少年", "cat=978")
-])
-async def test_search_anime(scraping_service: Anime1ScrapingService,
-                            search_text: str,
-                            name: str,
-                            url_ending: str):
+@pytest.mark.parametrize(
+    "search_text,name,url_ending", [("東方", "ORIENT 東方少年", "cat=978")]
+)
+async def test_search_anime(
+    scraping_service: Anime1ScrapingService,
+    search_text: str,
+    name: str,
+    url_ending: str,
+):
     anime_list = await scraping_service.search_anime(search_text)
     assert len(anime_list) != 0
 
@@ -47,16 +52,19 @@ async def test_get_index_page(scraping_service: Anime1ScrapingService):
 
 
 async def test_get_video_url(scraping_service: Anime1ScrapingService):
-    data = '%7B%22c%22%3A%221125%22%2C%22e%22%3A%226b%22%2C%22t%22%3A1668107495%2C%22p%22%3A0%2C%22s%22%3A%2234cef61dea41e751e22101db8ae87edf%22%7D'
+    data = "%7B%22c%22%3A%221125%22%2C%22e%22%3A%226b%22%2C%22t%22%3A1668107495%2C%22p%22%3A0%2C%22s%22%3A%2234cef61dea41e751e22101db8ae87edf%22%7D"
     episode = Episode(title="", last_update=datetime.now(), data=data)
     video_url = await scraping_service.get_video_url(episode)
     assert video_url.endswith("mp4")
     assert video_url.startswith("https://")
 
-async def test_download_episode(scraping_service: Anime1ScrapingService,        
-        ):
-    anime = Anime(name="", eps="", year="",
-                      season="", sub="", url="?cat=975")
+
+async def test_download_episode(
+    scraping_service: Anime1ScrapingService,
+):
+    anime = Anime(name="", eps="", year="", season="", sub="", url="?cat=975")
     eps = await scraping_service.get_index_page(anime)
     video_url = await scraping_service.get_video_url(eps[0])
-    await scraping_service.download_service.download_vid(url=video_url, download_path=Path("./downloaded"))
+    await scraping_service.download_service.download_vid(
+        url=video_url, download_path=Path("./downloaded")
+    )
