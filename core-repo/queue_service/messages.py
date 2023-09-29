@@ -4,7 +4,7 @@ import uuid
 from time import time
 from typing import Any, Generic, Optional, TypeVar, Union, Type
 
-MessageType = TypeVar('MessageType', bound='Message')
+MessageType = TypeVar("MessageType", bound="Message")
 
 
 @dataclass
@@ -16,6 +16,7 @@ class Error:
         retry    Whether or not the broker should retry sending this message back to the worker the error came from.
         surface  Whether or not the broker should surface the error message.
     """
+
     message: str
     retry: bool = False
     surface: bool = False
@@ -32,6 +33,7 @@ class Message(Generic[MessageType], DataClassJsonMixin):
         message_id   An id unique to every message.
         retry_count  The number of times the message has been retried by the same worker.
     """
+
     start: Optional[time] = None
     stop: Optional[time] = None
     # Union with Any until workers are on board with error format.

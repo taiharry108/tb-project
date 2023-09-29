@@ -6,15 +6,18 @@ from container import Container
 
 
 @pytest.fixture(scope="module")
-async def wrong_token(): return "123"
+async def wrong_token():
+    return "123"
 
 
 @pytest.fixture(scope="module")
-async def correct_token(): return "abc"
+async def correct_token():
+    return "abc"
 
 
 @pytest.fixture(scope="module")
-async def username(): return "test_user"
+async def username():
+    return "test_user"
 
 
 @pytest.fixture(autouse=True, scope="module")

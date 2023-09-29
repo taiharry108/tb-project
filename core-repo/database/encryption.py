@@ -23,5 +23,5 @@ class PrivateKey(Base):
     id = Column(Integer, primary_key=True, index=True)
     key = Column(String, nullable=False)
 
-    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="private_keys")

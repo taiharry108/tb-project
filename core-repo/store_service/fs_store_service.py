@@ -27,8 +27,9 @@ def md5sum(file):
 
 
 class FSStoreService(StoreService):
-
-    def persist_file_sync(self, path: str, data: bytes = None, meta: Dict = None) -> str:
+    def persist_file_sync(
+        self, path: str, data: bytes = None, meta: Dict = None
+    ) -> str:
         """Save a file to store return path"""
         absolute_path = Path(path)
         absolute_path.parent.mkdir(exist_ok=True, parents=True)
@@ -36,7 +37,13 @@ class FSStoreService(StoreService):
             f.write(data)
         return str(path)
 
-    async def persist_file(self, path: str, async_iter: AsyncIterator[bytes] = None, is_large: bool = False, meta: Dict = None) -> str:
+    async def persist_file(
+        self,
+        path: str,
+        async_iter: AsyncIterator[bytes] = None,
+        is_large: bool = False,
+        meta: Dict = None,
+    ) -> str:
         """Save a file to store return path"""
         absolute_path = Path(path)
         absolute_path.parent.mkdir(exist_ok=True, parents=True)
@@ -55,20 +62,20 @@ class FSStoreService(StoreService):
             logger.error(ex)
             return {}
 
-        with open(absolute_path, 'rb') as f:
+        with open(absolute_path, "rb") as f:
             checksum = md5sum(f)
 
-        return {'last_modified': last_modified, 'checksum': checksum}
+        return {"last_modified": last_modified, "checksum": checksum}
 
     async def file_exists(self, path: str) -> bool:
         """Return True if a file with a given path exists"""
         return self.file_exists_sync(path)
-    
+
     def file_exists_sync(self, path: str) -> bool:
         """Return True if a file with a given path exists"""
         absolute_path = Path(path)
         return absolute_path.exists()
-    
+
     def remove_file(self, path: str) -> bool:
         absolute_path = Path(path)
         try:

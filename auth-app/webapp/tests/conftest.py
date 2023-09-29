@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import create_async_engine
 from container import Container
 import main
 
+
 @pytest.fixture(scope="module")
 def event_loop(request):
     """Create an instance of the default event loop for each test case."""
@@ -18,14 +19,16 @@ def event_loop(request):
     yield loop
     loop.close()
 
+
 @pytest.fixture(autouse=True, scope="module")
 @inject
 async def database():
     container = Container()
-    container.db_engine.override(providers.Singleton(
-        create_async_engine, container.config.db.test_url,
-        echo=False
-    ))    
+    container.db_engine.override(
+        providers.Singleton(
+            create_async_engine, container.config.db.test_url, echo=False
+        )
+    )
     db = container.db_service()
     await db.create_database()
     return db

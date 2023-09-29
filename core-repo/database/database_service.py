@@ -12,9 +12,7 @@ from database.models import Base
 logger = logging.getLogger(__name__)
 
 
-
 class DatabaseService:
-
     def __init__(self, engine: AsyncEngine, session_factory: orm.sessionmaker) -> None:
         self._engine = engine
         self._session_factory = session_factory
@@ -34,6 +32,6 @@ class DatabaseService:
             raise
         finally:
             await session.close()
-    
+
     def new_session(self):
         return self._session_factory()

@@ -2,6 +2,7 @@ JWT_PRIVATE_KEY := `cat jwt.key`
 JWT_PUBLIC_KEY := `cat jwt.key.pub`
 
 COMPOSE_FILE := ./auth-app-home/docker-compose.yml
+SRC_DIR := ./ac-app/webapp
 
 gen-key:
 	@ssh-keygen -q -t rsa -b 4096 -m PEM -f jwt.key -N ""
@@ -27,3 +28,9 @@ migrate-db:
 update-db:
 	@docker compose -f ./ac-app/docker-compose.yml run --rm web /bin/sh -c "openvpn \
 		--config /openvpn/client.ovpn --auth-user-pass /openvpn/pass.txt & python update_chapter_meta.py"
+
+run-lint:
+	@docker compose run --rm tool black .
+
+export-history:
+	@docker compose -f ./ac-app/docker-compose.yml run --rm web python export_history.py

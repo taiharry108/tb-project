@@ -26,17 +26,18 @@ def event_loop(request):
 @inject
 async def container() -> Container:
     container = Container()
-    container.config.redis.encryption_job_in_queue.override('test_queue')
+    container.config.redis.encryption_job_in_queue.override("test_queue")
     return container
 
 
 @pytest.fixture(autouse=True, scope="module")
 @inject
 async def database(container: Container) -> DatabaseService:
-    container.db_engine.override(providers.Singleton(
-        create_async_engine, container.config.db.test_url,
-        echo=False
-    ))
+    container.db_engine.override(
+        providers.Singleton(
+            create_async_engine, container.config.db.test_url, echo=False
+        )
+    )
     db = container.db_service()
     await db.create_database()
     return db
@@ -45,9 +46,7 @@ async def database(container: Container) -> DatabaseService:
 @pytest.fixture(autouse=True, scope="module")
 @inject
 async def crud_service(container: Container, database: DatabaseService):
-    container.crud_service.override(providers.Singleton(
-        CRUDService, database
-    ))    
+    container.crud_service.override(providers.Singleton(CRUDService, database))
     return container.crud_service()
 
 

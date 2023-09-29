@@ -9,7 +9,8 @@ from session.session_verifier import SessionData
 
 
 @pytest.fixture(scope="module")
-async def username(): return "test_user"
+async def username():
+    return "test_user"
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -33,11 +34,7 @@ async def test_root_without_session_data(client: AsyncClient):
 
 @pytest.mark.anyio
 async def test_root_with_wrong_session_data(client: AsyncClient):
-    client.cookies.set(
-        name="e_session_id",
-        value="123",
-        domain="localhost.local"
-    )
+    client.cookies.set(name="e_session_id", value="123", domain="localhost.local")
     resp = await client.get("/")
     assert resp.status_code == 307
 

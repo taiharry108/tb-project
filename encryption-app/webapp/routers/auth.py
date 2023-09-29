@@ -14,10 +14,9 @@ router = APIRouter()
 
 
 @inject
-async def create_session(username: str, response: Response,
-                         backend: SessionBackend,
-                         cookie: SessionFrontend):
-
+async def create_session(
+    username: str, response: Response, backend: SessionBackend, cookie: SessionFrontend
+):
     session = uuid4()
     data = SessionData(username=username)
 
@@ -28,11 +27,13 @@ async def create_session(username: str, response: Response,
 
 @router.post("/logout")
 @inject
-async def logout(response: RedirectResponse,
-                 request: Request,
-                 cookie: SessionFrontend = Depends(Provide[Container.cookie]),
-                 backend: SessionBackend = Depends(Provide[Container.session_backend]),
-                 auth_server_url: str = Depends(Provide[Container.config.auth_server.url])):
+async def logout(
+    response: RedirectResponse,
+    request: Request,
+    cookie: SessionFrontend = Depends(Provide[Container.cookie]),
+    backend: SessionBackend = Depends(Provide[Container.session_backend]),
+    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+):
     session_id = cookie(request)
     await backend.delete(session_id)
 
@@ -42,22 +43,20 @@ async def logout(response: RedirectResponse,
 
 @router.get("")
 @inject
-async def auth(token: str,
-               response: Response,
-               security_service: SecurityService = Depends(
-                   Provide[Container.security_service]),
-               backend: SessionBackend = Depends(
-                   Provide[Container.session_backend]),
-               cookie: SessionFrontend = Depends(Provide[Container.cookie])):
-
+async def auth(
+    token: str,
+    response: Response,
+    security_service: SecurityService = Depends(Provide[Container.security_service]),
+    backend: SessionBackend = Depends(Provide[Container.session_backend]),
+    cookie: SessionFrontend = Depends(Provide[Container.cookie]),
+):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
     try:
-        payload = security_service.decode_access_token(
-            token)
+        payload = security_service.decode_access_token(token)
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception

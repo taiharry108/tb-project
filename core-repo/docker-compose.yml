@@ -52,7 +52,7 @@ services:
       POSTGRES_DB: mydb
     networks:
       - core_default
-  test_db:
+  test-db:
     container_name: core-test-db
     image: postgres:alpine
     # restart: always

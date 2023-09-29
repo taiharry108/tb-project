@@ -26,5 +26,6 @@ class RedisQueueService(IRedisQueueService, Generic[MessageType]):
     def delete_message_from_queue(self, queue_name: str, message: MessageType) -> int:
         """Delete a message from queue"""
         no_of_ele_removed = self.redis.lrem(
-            queue_name, count=1, value=message.to_json())
+            queue_name, count=1, value=message.to_json()
+        )
         return no_of_ele_removed

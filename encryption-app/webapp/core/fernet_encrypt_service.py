@@ -7,16 +7,16 @@ from cryptography.fernet import Fernet
 
 
 class FernetEncryptService(EncryptService):
-
     def __init__(self, store_service: StoreService):
         self.store_service = store_service
 
-    async def __process_file(self, src_file: Path, dest_file: Path, process_func: Callable) -> bool:
+    async def __process_file(
+        self, src_file: Path, dest_file: Path, process_func: Callable
+    ) -> bool:
         """"""
         try:
-
             # opening the original file to encrypt
-            with open(src_file, 'rb') as file:
+            with open(src_file, "rb") as file:
                 original = file.read()
 
             # encrypting the file
@@ -26,6 +26,7 @@ class FernetEncryptService(EncryptService):
             # writing the encrypted data
             async def byte_iter():
                 yield encrypted
+
             await self.store_service.persist_file(dest_file, byte_iter())
 
             return True
@@ -33,12 +34,13 @@ class FernetEncryptService(EncryptService):
             print(ex)
             return False
 
-    def __process_file_sync(self, src_file: Path, dest_file: Path, process_func: Callable) -> bool:
+    def __process_file_sync(
+        self, src_file: Path, dest_file: Path, process_func: Callable
+    ) -> bool:
         """"""
         try:
-
             # opening the original file to encrypt
-            with open(src_file, 'rb') as file:
+            with open(src_file, "rb") as file:
                 original = file.read()
 
             # encrypting the file
@@ -80,6 +82,8 @@ class FernetEncryptService(EncryptService):
 
     async def save_key(self, key: bytes, key_file: Path) -> bool:
         """"""
+
         async def key_iter():
             yield key
+
         await self.store_service.persist_file(str(key_file), key_iter())

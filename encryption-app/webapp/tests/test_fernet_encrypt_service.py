@@ -3,10 +3,11 @@ import pytest
 from core.fernet_encrypt_service import FernetEncryptService
 from store_service.fs_store_service import FSStoreService
 
+
 @pytest.fixture
 def test_file() -> str:
     filename = "./tmp/test.txt"
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         f.write("this is a test file\n")
 
     return filename
@@ -43,7 +44,7 @@ async def test_encrypt_file(test_file: str):
 async def test_decrypt_file(test_file: str):
     src_file = Path(test_file)
     encrypted_file = Path("./tmp/test_encrypted.txt")
-    decryptd_file= Path("./tmp/test_decrypted.txt")
+    decryptd_file = Path("./tmp/test_decrypted.txt")
     store_service = FSStoreService()
     encrypter = FernetEncryptService(store_service)
     key = encrypter.generate_key()
@@ -51,10 +52,8 @@ async def test_decrypt_file(test_file: str):
     assert await encrypter.decrypt_file(key, encrypted_file, decryptd_file)
     with open(src_file) as f:
         src_str = f.read()
-    
+
     with open(decryptd_file) as f:
         decrypted_str = f.read()
 
     assert src_str == decrypted_str
-
-

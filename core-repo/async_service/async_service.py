@@ -12,7 +12,13 @@ class AsyncService:
         self.num_workers = num_workers
         self.delay = delay
 
-    async def _producer(self, in_q: asyncio.Queue, out_q: asyncio.Queue, async_func: AsyncFunctionDef, **kwargs):
+    async def _producer(
+        self,
+        in_q: asyncio.Queue,
+        out_q: asyncio.Queue,
+        async_func: AsyncFunctionDef,
+        **kwargs
+    ):
         while True:
             item = await in_q.get()
 
@@ -48,13 +54,17 @@ class AsyncService:
     async def work(self, items: Iterable, async_func: AsyncFunctionDef, **kwargs):
         prod_queue = asyncio.Queue()
         con_queue = asyncio.Queue()
-        for item in items:            
+        for item in items:
             await prod_queue.put(item)
 
         await prod_queue.put(None)
 
-        [asyncio.create_task(
-            self._producer(prod_queue, con_queue, async_func, **kwargs)) for _ in range(self.num_workers)]
+        [
+            asyncio.create_task(
+                self._producer(prod_queue, con_queue, async_func, **kwargs)
+            )
+            for _ in range(self.num_workers)
+        ]
 
         async for item in self._consumer(con_queue):
             yield item

@@ -1,6 +1,7 @@
 from typing import Protocol
 from queue_service.messages import Message
 
+
 class IRedisQueueService(Protocol):
     def add_message_to_queue(self, queue_name: str, message: Message) -> int:
         """Add a message to queue"""

@@ -9,7 +9,7 @@ from container import Container
 from routers import main
 
 
-config.fileConfig('logging.conf', disable_existing_loggers=False)
+config.fileConfig("logging.conf", disable_existing_loggers=False)
 
 
 def create_app() -> FastAPI:
@@ -28,7 +28,7 @@ def create_app() -> FastAPI:
     )
     app.mount("/css", StaticFiles(directory="/client/src/css/"), name="css")
 
-    setattr(app, 'container', container)
+    setattr(app, "container", container)
 
     app.include_router(main.router, prefix="/user")
 

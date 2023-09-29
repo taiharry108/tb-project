@@ -22,7 +22,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    setattr(app, 'container', container)
+    setattr(app, "container", container)
     container.init_resources()
 
     app.mount("/static", StaticFiles(directory="/client/src/scripts"), name="static")

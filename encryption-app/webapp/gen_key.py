@@ -3,6 +3,7 @@ from pathlib import Path
 from core.fernet_encrypt_service import FernetEncryptService
 from store_service.fs_store_service import FSStoreService
 
+
 async def main():
     fs_store_service = FSStoreService()
     encrypt_service = FernetEncryptService(fs_store_service)

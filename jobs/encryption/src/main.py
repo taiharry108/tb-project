@@ -27,7 +27,8 @@ def in_queue_listen(config: dict, in_queue_name: str, out_queue_name: str):
     fs_store_service = FSStoreService()
     fes = FernetEncryptService(fs_store_service)
     queue_service = RedisQueueService[EncryptMessage](
-        redis=redis_instance, message_cls=EncryptMessage, timeout=0)
+        redis=redis_instance, message_cls=EncryptMessage, timeout=0
+    )
 
     queue_listener = InQueueListener(
         database_service=database_service,
@@ -35,33 +36,39 @@ def in_queue_listen(config: dict, in_queue_name: str, out_queue_name: str):
         config=config,
         queue_service=queue_service,
         queue_name=in_queue_name,
-        out_queue_name=out_queue_name)
+        out_queue_name=out_queue_name,
+    )
     queue_listener.listen()
 
 
 def out_queue_listen(config: dict, in_queue_name: str):
     redis_instance = Redis(config[REDIS_URL])
-    fs_store_service = B2StoreService('tb-project-app', config['application_key_id'], config['application_key'])
+    fs_store_service = B2StoreService(
+        "tb-project-app", config["application_key_id"], config["application_key"]
+    )
     queue_service = RedisQueueService[EncryptMessage](
-        redis=redis_instance, message_cls=EncryptMessage, timeout=0)
+        redis=redis_instance, message_cls=EncryptMessage, timeout=0
+    )
 
     queue_listener = OutQueueListener(
         store_service=fs_store_service,
         config=config,
         queue_service=queue_service,
-        queue_name=in_queue_name)
+        queue_name=in_queue_name,
+    )
     queue_listener.listen()
 
 
 def main():
-    print('staring app')
+    print("staring app")
     config = dotenv_values(".env")
     in_queue_name = config[IN_QUEUE_NAME]
     out_queue_name = config[OUT_QUEUE_NAME]
 
     with ProcessPoolExecutor(2) as executor:
-        in_future = executor.submit(in_queue_listen, config, in_queue_name,
-                        out_queue_name)
+        in_future = executor.submit(
+            in_queue_listen, config, in_queue_name, out_queue_name
+        )
         out_future = executor.submit(out_queue_listen, config, out_queue_name)
 
         out_future.result()

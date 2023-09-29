@@ -10,7 +10,7 @@ class DatabaseService:
             query_str = f"SELECT id FROM users WHERE users.email = '{username}'"
             result = conn.execute(query_str).all()
             if not result:
-                print('nothing')
+                print("nothing")
                 return None
             else:
                 return result[0][0]
@@ -18,7 +18,9 @@ class DatabaseService:
     def get_private_key_from_username(self, username: str) -> str:
         user_id = self._get_user_id_from_username(username)
         with self.engine.begin() as conn:
-            query_str = f"SELECT * FROM private_keys WHERE private_keys.user_id = {user_id}"
+            query_str = (
+                f"SELECT * FROM private_keys WHERE private_keys.user_id = {user_id}"
+            )
             result = conn.execute(query_str).all()
             if not result:
                 return None

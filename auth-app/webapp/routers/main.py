@@ -29,9 +29,9 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="user/token")
 templates = Jinja2Templates(directory="templates")
 
 
-async def create_session(username: str, response: Response,
-                         backend: SessionBackend,
-                         cookie: SessionFrontend):
+async def create_session(
+    username: str, response: Response, backend: SessionBackend, cookie: SessionFrontend
+):
     session = uuid4()
     data = SessionData(username=username)
 
@@ -41,8 +41,11 @@ async def create_session(username: str, response: Response,
 
 
 @inject
-async def get_session_data(request: Request, cookie: SessionCookie = Depends(Provide[Container.cookie]),
-                           verifier: BasicVerifier = Depends(Provide[Container.verifier])):
+async def get_session_data(
+    request: Request,
+    cookie: SessionCookie = Depends(Provide[Container.cookie]),
+    verifier: BasicVerifier = Depends(Provide[Container.verifier]),
+):
     try:
         cookie(request)
         session_data = await verifier(request)
@@ -53,7 +56,8 @@ async def get_session_data(request: Request, cookie: SessionCookie = Depends(Pro
 
 def create_access_token(sub: str, security_service: SecurityService) -> str:
     access_token_expires = timedelta(
-        minutes=security_service.access_token_expire_minutes)
+        minutes=security_service.access_token_expire_minutes
+    )
     access_token = security_service.create_access_token(
         data={"sub": sub}, expires_delta=access_token_expires
     )
@@ -61,29 +65,39 @@ def create_access_token(sub: str, security_service: SecurityService) -> str:
 
 
 @router.get("/", response_class=HTMLResponse)
-async def login_page(request: Request, session_data: SessionData = Depends(get_session_data), redirect_url: Union[str, None] = None):
+async def login_page(
+    request: Request,
+    session_data: SessionData = Depends(get_session_data),
+    redirect_url: Union[str, None] = None,
+):
     if not session_data:
-        return templates.TemplateResponse("login.html", {"request": request, "redirect_url": redirect_url})
+        return templates.TemplateResponse(
+            "login.html", {"request": request, "redirect_url": redirect_url}
+        )
     else:
         return RedirectResponse("whoami")
 
 
 @router.get("/signup", response_class=HTMLResponse)
 async def login_page(request: Request):
-    return templates.TemplateResponse("login.html", {"request": request, "signup": True})
+    return templates.TemplateResponse(
+        "login.html", {"request": request, "signup": True}
+    )
 
 
 @router.post("/signup")
 @inject
-async def signup(user_service: UserService = Depends(Provide[Container.user_service]),
-                 username: EmailStr = Form(...), password: str = Form(...),
-                 session: AsyncSession = Depends(get_db_session)):
+async def signup(
+    user_service: UserService = Depends(Provide[Container.user_service]),
+    username: EmailStr = Form(...),
+    password: str = Form(...),
+    session: AsyncSession = Depends(get_db_session),
+):
     db_user = None
     db_user = await user_service.create_user(session, username, password)
     if not db_user:
         raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail="User already exists"
+            status_code=status.HTTP_409_CONFLICT, detail="User already exists"
         )
 
     return User(email=username, is_active=db_user.is_active)
@@ -91,10 +105,12 @@ async def signup(user_service: UserService = Depends(Provide[Container.user_serv
 
 @router.post("/logout")
 @inject
-async def logout(response: Response,
-                 request: Request,
-                 cookie: SessionFrontend = Depends(Provide[Container.cookie]),
-                 backend: SessionBackend = Depends(Provide[Container.session_backend])):
+async def logout(
+    response: Response,
+    request: Request,
+    cookie: SessionFrontend = Depends(Provide[Container.cookie]),
+    backend: SessionBackend = Depends(Provide[Container.session_backend]),
+):
     session_id = cookie(request)
     await backend.delete(session_id)
 
@@ -106,16 +122,17 @@ async def logout(response: Response,
 @router.post("/login")
 @inject
 async def login_for_access_token(
-        response: Response,
-        username: str = Form(...), password: str = Form(...),
-        redirect_url: Union[str, None] = Form(default=None),
-        user_service: UserService = Depends(Provide[Container.user_service]),
-        security_service: SecurityService = Depends(
-            Provide[Container.security_service]),
-        backend: SessionBackend = Depends(Provide[Container.session_backend]),
-        cookie: SessionFrontend = Depends(Provide[Container.cookie]),
-        allowed_redirect: List[str] = Depends(Provide[Container.config.allowed_redirect]),
-        session: AsyncSession = Depends(get_db_session)):
+    response: Response,
+    username: str = Form(...),
+    password: str = Form(...),
+    redirect_url: Union[str, None] = Form(default=None),
+    user_service: UserService = Depends(Provide[Container.user_service]),
+    security_service: SecurityService = Depends(Provide[Container.security_service]),
+    backend: SessionBackend = Depends(Provide[Container.session_backend]),
+    cookie: SessionFrontend = Depends(Provide[Container.cookie]),
+    allowed_redirect: List[str] = Depends(Provide[Container.config.allowed_redirect]),
+    session: AsyncSession = Depends(get_db_session),
+):
     if redirect_url and redirect_url not in allowed_redirect:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
@@ -123,7 +140,7 @@ async def login_for_access_token(
     db_user = None
     db_user = await user_service.get_user(session, username)
 
-    if not db_user or not user_service.authenticate_user(db_user, password):        
+    if not db_user or not user_service.authenticate_user(db_user, password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
@@ -131,13 +148,13 @@ async def login_for_access_token(
         )
     if redirect_url:
         access_token = create_access_token(db_user.email, security_service)
-        response.headers['location'] = quote(
-            f"{redirect_url}?token={access_token}", safe=":/%#?=@[]!$&'()*+,;")
+        response.headers["location"] = quote(
+            f"{redirect_url}?token={access_token}", safe=":/%#?=@[]!$&'()*+,;"
+        )
     else:
-        response.headers['location'] = quote(
-            "whoami", safe=":/%#?=@[]!$&'()*+,;")
+        response.headers["location"] = quote("whoami", safe=":/%#?=@[]!$&'()*+,;")
     await create_session(username, response, backend, cookie)
-    response.status_code = status.HTTP_302_FOUND    
+    response.status_code = status.HTTP_302_FOUND
 
     return response
 
@@ -152,16 +169,17 @@ async def whoami(session_data: SessionData = Depends(get_session_data)):
 
 @router.get("/auth", response_class=RedirectResponse)
 @inject
-async def authenticate(redirect_url: str,
-                       session_data: SessionData = Depends(get_session_data),
-                       security_service: SecurityService = Depends(
-                           Provide[Container.security_service]),
-                       allowed_redirect: List[str] = Depends(Provide[Container.config.allowed_redirect])):
+async def authenticate(
+    redirect_url: str,
+    session_data: SessionData = Depends(get_session_data),
+    security_service: SecurityService = Depends(Provide[Container.security_service]),
+    allowed_redirect: List[str] = Depends(Provide[Container.config.allowed_redirect]),
+):
     if redirect_url not in allowed_redirect:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         )
     if session_data is None:
-        return f"./?redirect_url={redirect_url}"    
+        return f"./?redirect_url={redirect_url}"
     access_token = create_access_token(session_data.username, security_service)
     return f"{redirect_url}?token=" + access_token

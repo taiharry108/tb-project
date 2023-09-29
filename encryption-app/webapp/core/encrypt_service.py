@@ -11,6 +11,7 @@ class EncryptService(Protocol):
 
     def save_key(self, key: bytes, key_file: Path) -> bool:
         """"""
+
     async def decrypt_file(self, key: bytes, src_file: Path, dest_file: Path) -> bool:
         """"""
 

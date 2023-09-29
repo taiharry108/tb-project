@@ -17,16 +17,22 @@ logger = getLogger(__name__)
 
 
 @pytest.fixture(scope="module")
-def username() -> str: return "test_user1"
+def username() -> str:
+    return "test_user1"
 
 
 @pytest.fixture(scope="module")
-def password() -> str: return "123456"
+def password() -> str:
+    return "123456"
 
 
 @pytest.fixture(scope="module")
 @inject
-def security_service(security_service: providers.Singleton[SecurityService] = Provide[Container.security_service]) -> SecurityService:
+def security_service(
+    security_service: providers.Singleton[SecurityService] = Provide[
+        Container.security_service
+    ],
+) -> SecurityService:
     return security_service
 
 
@@ -34,6 +40,7 @@ def security_service(security_service: providers.Singleton[SecurityService] = Pr
 def public_key() -> str:
     with open("jwt_public.key") as f:
         return f.read()
+
 
 @pytest.fixture
 def algo() -> str:
@@ -58,23 +65,32 @@ async def test_verify_password_failed(security_service: SecurityService, passwor
     assert not security_service.verify_password(password, "12345")
 
 
-async def test_create_access_token(security_service: SecurityService, username: str, public_key: str):
+async def test_create_access_token(
+    security_service: SecurityService, username: str, public_key: str
+):
     data = {"sub": username}
     token = security_service.create_access_token(data)
-    decoded_data = jwt.decode(token, public_key, algorithms=[
-                              security_service.algorithm])
+    decoded_data = jwt.decode(
+        token, public_key, algorithms=[security_service.algorithm]
+    )
     assert decoded_data["sub"] == data["sub"]
 
 
-async def test_decode_access_token(security_service: SecurityService, username: str, public_key: str, algo: str):
+async def test_decode_access_token(
+    security_service: SecurityService, username: str, public_key: str, algo: str
+):
     data = {"sub": username}
     token = security_service.create_access_token(data)
     decoded_data = security_service.decode_jwt_token(token, public_key, algo)
     assert decoded_data["sub"] == data["sub"]
 
 
-async def test_decode_expired_access_token(security_service: SecurityService, username: str, public_key: str, algo: str):
+async def test_decode_expired_access_token(
+    security_service: SecurityService, username: str, public_key: str, algo: str
+):
     data = {"sub": username}
-    token = security_service.create_access_token(data, expires_delta=timedelta(seconds=-1))
+    token = security_service.create_access_token(
+        data, expires_delta=timedelta(seconds=-1)
+    )
     with pytest.raises(exceptions.ExpiredSignatureError):
         security_service.decode_jwt_token(token, public_key, algo)

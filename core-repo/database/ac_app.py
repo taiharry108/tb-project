@@ -1,13 +1,24 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Integer, String, DateTime, Enum, Table, UniqueConstraint
+from sqlalchemy import (
+    Boolean,
+    Column,
+    ForeignKey,
+    Integer,
+    String,
+    DateTime,
+    Enum,
+    Table,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 
 from database import Base
 
+
 class AHistory(Base):
-    __tablename__ = 'a_history'
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    anime_id = Column(Integer, ForeignKey('animes.id'), primary_key=True)
-    episode_id = Column(Integer, ForeignKey('episodes.id'), nullable=True)
+    __tablename__ = "a_history"
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    anime_id = Column(Integer, ForeignKey("animes.id"), primary_key=True)
+    episode_id = Column(Integer, ForeignKey("episodes.id"), nullable=True)
     last_added = Column(DateTime)
     anime = relationship("Anime", back_populates="users")
     user = relationship("User", back_populates="history_animes")
@@ -15,14 +26,15 @@ class AHistory(Base):
 
 
 class History(Base):
-    __tablename__ = 'history'
-    user_id = Column(Integer, ForeignKey('users.id'), primary_key=True)
-    manga_id = Column(Integer, ForeignKey('mangas.id'), primary_key=True)
-    chapter_id = Column(Integer, ForeignKey('chapters.id'), nullable=True)
+    __tablename__ = "history"
+    user_id = Column(Integer, ForeignKey("users.id"), primary_key=True)
+    manga_id = Column(Integer, ForeignKey("mangas.id"), primary_key=True)
+    chapter_id = Column(Integer, ForeignKey("chapters.id"), nullable=True)
     last_added = Column(DateTime)
     manga = relationship("Manga", back_populates="users")
     user = relationship("User", back_populates="history_mangas")
     chapter = relationship("Chapter")
+
 
 class MangaSite(Base):
     __tablename__ = "manga_sites"
@@ -95,7 +107,7 @@ class Episode(Base):
     __tablename__ = "episodes"
     __table_args__ = (
         # this can be db.PrimaryKeyConstraint if you want it to be a primary key
-        UniqueConstraint('title', 'anime_id'),
+        UniqueConstraint("title", "anime_id"),
     )
 
     id = Column(Integer, primary_key=True, index=True)
