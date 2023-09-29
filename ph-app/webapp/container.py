@@ -23,19 +23,16 @@ from store_service.fs_store_service import FSStoreService
 
 
 class Container(containers.DeclarativeContainer):
-
-    wiring_config = containers.WiringConfiguration(
-        packages=["routers", "tests"])
+    wiring_config = containers.WiringConfiguration(packages=["routers", "tests"])
     config = providers.Configuration(yaml_files=["config.yml"])
 
     store_service_factory = providers.FactoryAggregate(
-        fs=providers.Singleton(
-            FSStoreService
-        ),
+        fs=providers.Singleton(FSStoreService),
     )
 
     store_service = providers.Singleton(
-        store_service_factory, config.store_service.name)
+        store_service_factory, config.store_service.name
+    )
 
     config.jwt_public_key.from_env("JWT_PUBLIC_KEY")
 
@@ -46,13 +43,10 @@ class Container(containers.DeclarativeContainer):
     )
 
     logging = providers.Resource(
-        log_config.fileConfig,
-        'logging.conf',
-        disable_existing_loggers=False
+        log_config.fileConfig, "logging.conf", disable_existing_loggers=False
     )
 
-    db_engine = providers.Singleton(
-        create_async_engine, config.db.url, echo=False)
+    db_engine = providers.Singleton(create_async_engine, config.db.url, echo=False)
 
     db_session_maker = providers.Singleton(
         orm.sessionmaker,
@@ -60,38 +54,25 @@ class Container(containers.DeclarativeContainer):
         autoflush=False,
         bind=db_engine,
         expire_on_commit=False,
-        class_=AsyncSession
+        class_=AsyncSession,
     )
 
-    db_service = providers.Singleton(
-        DatabaseService, db_engine, db_session_maker)
+    db_service = providers.Singleton(DatabaseService, db_engine, db_session_maker)
 
-    crud_service = providers.Singleton(
-        CRUDService,
-        db_service
-    )
+    crud_service = providers.Singleton(CRUDService, db_service)
 
-    redis = providers.Singleton(Redis,
-                                host=config.redis.url
-                                )
+    redis = providers.Singleton(Redis, host=config.redis.url)
 
     redis_queue_service = providers.Singleton(
-        RedisQueueService,
-        redis,
-        EncryptMessage,
-        0
+        RedisQueueService, redis, EncryptMessage, 0
     )
 
     session_backend = providers.Singleton(
-        RedisBackend[UUID, SessionData],
-        redis=redis,
-        identifier="ac_app"
+        RedisBackend[UUID, SessionData], redis=redis, identifier="ac_app"
     )
 
     auth_http_exception = providers.Singleton(
-        HTTPException,
-        status_code=403,
-        detail="invalid session"
+        HTTPException, status_code=403, detail="invalid session"
     )
 
     # session
@@ -120,7 +101,7 @@ class Container(containers.DeclarativeContainer):
         max_keepalive_connections=config.download_service.max_keepalive_connections,
         headers=config.download_service.headers,
         store_service=store_service,
-        proxy=config.download_service.proxy
+        proxy=config.download_service.proxy,
     )
 
     async_service = providers.Singleton(

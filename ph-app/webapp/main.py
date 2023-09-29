@@ -24,7 +24,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    setattr(app, 'container', container)
+    setattr(app, "container", container)
     app.include_router(api.router, prefix="/api")
     app.include_router(main.router, prefix="")
     container.init_resources()

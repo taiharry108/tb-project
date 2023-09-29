@@ -18,8 +18,8 @@ FactoryAggregate = providers.FactoryAggregate
 @inject
 @cache(expire=3600)
 async def search(
-        keyword: str,
-        page: int = 1,
+    keyword: str,
+    page: int = 1,
 ) -> SearchResult:
     search_result = await search_ph(keyword.lower(), page)
     return search_result
@@ -27,5 +27,5 @@ async def search(
 
 @router.get("/vid")
 @inject
-async def get_vid(vid_id: str):    
+async def get_vid(vid_id: str):
     return await get_vid_result(vid_id)
