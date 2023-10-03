@@ -344,6 +344,8 @@ async def get_episode(
 
 
 def _check_pages_exist(pages: Page):
+    if not pages:
+        return False
     for db_page in pages:
         if not Path(db_page.pic_path).exists():
             return False
