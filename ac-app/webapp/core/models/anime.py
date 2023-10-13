@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 from .episode import Episode
@@ -13,9 +13,7 @@ class Anime(BaseModel):
     season: str
     sub: str
     url: Optional[str]
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class AnimeBase(Anime):

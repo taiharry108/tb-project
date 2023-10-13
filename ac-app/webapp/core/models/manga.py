@@ -1,5 +1,5 @@
 from datetime import datetime
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, ConfigDict
 from typing import Dict, List, Optional
 
 from .chapter import Chapter
@@ -10,9 +10,7 @@ class MangaBase(BaseModel):
     id: Optional[int] = None
     name: str
     url: HttpUrl
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 
 class MangaWithMeta(MangaBase):
@@ -20,6 +18,7 @@ class MangaWithMeta(MangaBase):
     finished: Optional[bool] = None
     thum_img: Optional[str] = None
     idx_retrieved: Optional[bool] = False
+    model_config = ConfigDict(from_attributes=True)
 
     def retreived_idx_page(self):
         self.idx_retrieved = True
@@ -32,9 +31,6 @@ class MangaWithMeta(MangaBase):
         self.thum_img = meta_data.get("thum_img")
         if self.thum_img is not None:
             self.thum_img = self.thum_img.replace("static/", "")
-
-    class Config:
-        from_attributes = True
 
 
 class Manga(MangaWithMeta):
@@ -54,3 +50,12 @@ class MangaSimple(MangaWithMeta):
     last_read_chapter: Chapter = None
     last_added: datetime = None
     is_fav: bool = False
+
+
+class MangaWithSite(BaseModel):
+    id: int
+    url: HttpUrl
+    manga_site_name: str
+    manga_name: str
+
+    model_config = ConfigDict(from_attributes=True)

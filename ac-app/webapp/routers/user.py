@@ -5,6 +5,7 @@ from logging import getLogger
 from typing import List
 
 from container import Container
+from core.admin_service import update_meta, get_all_mangas_in_history, update_chapters
 from core.models.anime import AnimeSimple
 from core.models.chapter import Chapter
 from core.models.episode import Episode
@@ -25,7 +26,7 @@ from routers.utils import get_db_session
 from session.session_verifier import SessionData
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound, IntegrityError
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine
 
 router = APIRouter()
 
@@ -45,6 +46,24 @@ async def get_user_id_from_session_data(
     except AttributeError:
         user_id = None
     return user_id
+
+
+@inject
+async def get_is_active_from_session_data(
+    session_data: SessionData = Depends(get_session_data),
+    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+    db_session: AsyncSession = Depends(get_db_session),
+):
+    try:
+        is_active = (
+            await crud_service.get_item_by_attrs(
+                db_session, User, email=session_data.username
+            )
+        ).is_active
+
+    except AttributeError:
+        is_active = None
+    return is_active
 
 
 @router.get("/a_history", response_model=List[AnimeSimple])
@@ -390,3 +409,24 @@ async def del_history(
     raise HTTPException(
         status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Manga does not exist"
     )
+
+
+@router.get(
+    "/admin-update",
+)
+@inject
+async def admin_update(
+    is_active: bool = Depends(get_is_active_from_session_data),
+    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+    redirect_url: str = Depends(Provide[Container.config.auth_server.redirect_url]),
+    db_engine: AsyncEngine = Depends(Provide[Container.db_engine]),
+):
+    if not is_active:
+        return RedirectResponse(
+            f"{auth_server_url}/user/auth?redirect_url={redirect_url}"
+        )
+
+    mangas = await get_all_mangas_in_history(db_engine)
+    metas = await update_meta(mangas)
+    chapters = await update_chapters(mangas)
+    return True
