@@ -1,8 +1,6 @@
-import json
-
 from asyncio import run
 from datetime import datetime
-from sqlalchemy import text, MetaData, Table, inspect, update, select
+from sqlalchemy import MetaData, Table, select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncConnection
 from sqlalchemy.dialects.postgresql import insert
 from typing import TypedDict
@@ -148,14 +146,16 @@ async def insert_history(container: Container, hist_import_list: list[HistoryImp
     async with engine.begin() as conn:
         history_table = await get_table("history", conn)
         stmt = insert(history_table).values(hist_import_list)
-        stmt = stmt.on_conflict_do_update(index_elements=("user_id", "manga_id"), set_=dict(chapter_id=stmt.excluded.chapter_id, last_added=datetime.now()))
+        stmt = stmt.on_conflict_do_update(
+            index_elements=("user_id", "manga_id"),
+            set_=dict(chapter_id=stmt.excluded.chapter_id, last_added=datetime.now()),
+        )
         await conn.execute(stmt)
 
 
 async def main():
     container = Container()
-    history_collection: list[History] = [
-    ]
+    history_collection: list[History] = []
     manga_dict = await work_mangas(container, history_collection)
     chap_dict = await work_chapters(container, history_collection, manga_dict)
 
@@ -164,7 +164,7 @@ async def main():
             "chapter_id": chap_dict[hist["chapter_url"]],
             "manga_id": manga_dict[hist["manga_url"]],
             "user_id": 1,
-            "last_added": datetime.now()
+            "last_added": datetime.now(),
         }
         for hist in history_collection
     ]

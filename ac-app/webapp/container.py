@@ -49,7 +49,7 @@ class Container(containers.DeclarativeContainer):
         log_config.fileConfig, "logging.conf", disable_existing_loggers=False
     )
 
-    db_engine = providers.Singleton(create_async_engine, config.db.url, echo=False)
+    db_engine = providers.Factory(create_async_engine, config.db.url, echo=False)
 
     db_session_maker = providers.Singleton(
         orm.sessionmaker,

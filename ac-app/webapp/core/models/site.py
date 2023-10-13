@@ -1,10 +1,8 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel, HttpUrl, ConfigDict
 
 
 class Site(BaseModel):
     id: int
     name: str
     url: HttpUrl
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -40,7 +40,9 @@ def request_resp(method: str = "GET"):
             if resp.status_code == 200:
                 return await func(self, resp, **kwargs)
             else:
-                raise RuntimeError(f"response status code: {resp.status_code}")
+                raise RuntimeError(
+                    f"response status code: {resp.status_code} for {url}"
+                )
 
         return wrapped
 

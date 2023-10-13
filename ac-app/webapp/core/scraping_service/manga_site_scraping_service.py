@@ -5,6 +5,7 @@ from core.models.chapter import Chapter
 from core.models.manga import Manga
 from core.models.meta import Meta
 from core.models.manga_index_type_enum import MangaIndexTypeEnum
+from download_service.download_service import DownloadService
 
 
 class MangaSiteScrapingService(Protocol):
@@ -19,19 +20,22 @@ class MangaSiteScrapingService(Protocol):
     async def get_page_urls(self, chapter_url: str) -> List[str]:
         """Get all the urls of a chaper, return a list of strings"""
 
-    async def extract_meta_from_soup(self, soup: BeautifulSoup) -> Meta:
+    async def extract_meta_from_soup(self, soup: BeautifulSoup, manga_url: str) -> Meta:
         """Get meta data for manga"""
 
-    async def _get_index_page(self, manga_url: str):
+    async def _get_index_page(self, manga_url: str) -> BeautifulSoup:
         assert isinstance(self._index_page_cache, dict)
+        self._index_page_cache: dict[str, BeautifulSoup]
+        self.download_service: DownloadService
+
         if manga_url not in self._index_page_cache:
-            soup = await self.download_service.get_soup(manga_url)
+            soup: BeautifulSoup = await self.download_service.get_soup(manga_url)
             self._index_page_cache[manga_url] = soup
-            return soup
         else:
-            return self._index_page_cache.pop(manga_url)
+            soup = self._index_page_cache.pop(manga_url)
+        return soup
 
     async def get_meta(self, manga_url: str) -> Meta:
         """Get meta data for manga"""
-        soup = await self._get_index_page(manga_url)
+        soup: BeautifulSoup = await self._get_index_page(manga_url)
         return await self.extract_meta_from_soup(soup, manga_url)

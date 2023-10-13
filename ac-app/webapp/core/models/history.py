@@ -3,9 +3,10 @@ from pydantic import BaseModel, ConfigDict
 from typing import Optional
 
 
-class Episode(BaseModel):
-    id: Optional[int]
-    title: str
-    last_update: datetime
-    data: str
+class History(BaseModel):
+    user_id: int
+    manga_id: int
+    chapter_id: Optional[int]
+    last_added: Optional[datetime]
+
     model_config = ConfigDict(from_attributes=True)
