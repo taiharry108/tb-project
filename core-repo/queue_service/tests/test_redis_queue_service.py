@@ -1,7 +1,7 @@
 import pytest
 from redis import Redis
 
-from queue_service.redis_queue_service import RedisQueueService
+from queue_service import RedisQueueService
 from queue_service.messages import Message, DefaultMessage
 
 

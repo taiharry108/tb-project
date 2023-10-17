@@ -9,7 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List, Iterable
 
-from async_service.async_service import AsyncService
+from async_service import AsyncService
 from container import Container
 from core.models.chapter import Chapter
 from core.models.anime import AnimeBase, AnimeSimple
@@ -24,7 +24,7 @@ from core.scraping_service.anime1_scraping_service import Anime1ScrapingService
 from core.scraping_service.manga_site_scraping_service import (
     MangaSiteScrapingService as MSSService,
 )
-from database.crud_service import CRUDService
+from database import CRUDService
 from database.models import (
     Manga,
     Chapter as DBChapter,
@@ -34,7 +34,7 @@ from database.models import (
     Episode as DBEpisode,
     AHistory,
 )
-from download_service.download_service import DownloadService
+from download_service import DownloadService
 from routers import db_utils
 from routers.user import get_user_id_from_session_data
 from routers.utils import get_db_session

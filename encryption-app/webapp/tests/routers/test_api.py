@@ -6,11 +6,11 @@ from redis import Redis
 from sqlalchemy import delete
 
 from container import Container
-from database.database_service import DatabaseService
-from database.crud_service import CRUDService
+from database import DatabaseService
+from database import CRUDService
 from database.models import User, File, PrivateKey
 from routers.utils import get_session_data
-from session.session_verifier import SessionData
+from session import SessionData
 from store_service.store_service import StoreService
 
 

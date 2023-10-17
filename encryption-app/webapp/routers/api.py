@@ -9,13 +9,13 @@ from typing import List
 from container import Container
 from core.models import File
 
-from database.crud_service import CRUDService
+from database import CRUDService
 from database.models import User, File as DBFile
 from queue_service.messages import EncryptMessage
-from queue_service.redis_queue_service import RedisQueueService
+from queue_service import RedisQueueService
 from routers.utils import get_db_session, get_user_id, get_session_data, get_user_name
 from store_service.store_service import StoreService
-from session.session_verifier import SessionData
+from session import SessionData
 
 
 router = APIRouter()

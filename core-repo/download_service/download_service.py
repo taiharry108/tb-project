@@ -8,7 +8,7 @@ from typing import Callable, Dict, Union, List
 import uuid
 
 from store_service.store_service import StoreService
-from async_service.async_service import AsyncService
+from async_service import AsyncService
 
 logger = getLogger(__name__)
 

@@ -3,8 +3,8 @@ from httpx import AsyncClient
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from database.crud_service import CRUDService
-from database.database_service import DatabaseService
+from database import CRUDService
+from database import DatabaseService
 from database.models import User, PrivateKey
 
 

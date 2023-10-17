@@ -10,8 +10,8 @@ from typing import Dict, List, Any
 from container import Container
 from core.models.manga_site_enum import MangaSiteEnum
 from core.models.manga import MangaSimple
-from database.crud_service import CRUDService
-from database.database_service import DatabaseService
+from database import CRUDService
+from database import DatabaseService
 from database.models import MangaSite, Manga, Chapter, Page, Episode, Anime
 
 from routers.api import save_pages

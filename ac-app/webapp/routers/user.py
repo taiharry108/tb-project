@@ -10,7 +10,7 @@ from core.models.anime import AnimeSimple
 from core.models.chapter import Chapter
 from core.models.episode import Episode
 from core.models.manga import MangaSimple
-from database.crud_service import CRUDService
+from database import CRUDService
 from database.models import (
     User,
     Manga,
@@ -23,7 +23,7 @@ from database.models import (
 from datetime import datetime
 from routers.auth import get_session_data
 from routers.utils import get_db_session
-from session.session_verifier import SessionData
+from session import SessionData
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound, IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession, AsyncEngine

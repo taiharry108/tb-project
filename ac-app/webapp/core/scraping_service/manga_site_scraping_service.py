@@ -5,7 +5,7 @@ from core.models.chapter import Chapter
 from core.models.manga import Manga
 from core.models.meta import Meta
 from core.models.manga_index_type_enum import MangaIndexTypeEnum
-from download_service.download_service import DownloadService
+from download_service import DownloadService
 
 
 class MangaSiteScrapingService(Protocol):

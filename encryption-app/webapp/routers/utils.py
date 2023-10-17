@@ -5,10 +5,10 @@ from logging import getLogger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from container import Container
-from database.crud_service import CRUDService
-from database.database_service import DatabaseService
+from database import CRUDService
+from database import DatabaseService
 from database.models import User
-from session.session_verifier import BasicVerifier, SessionData
+from session import BasicVerifier, SessionData
 
 logger = getLogger(__name__)
 

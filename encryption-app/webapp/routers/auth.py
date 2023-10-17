@@ -7,8 +7,8 @@ from jose import JWTError
 from uuid import uuid4
 
 from container import Container
-from security_service.security_service import SecurityService
-from session.session_verifier import SessionData
+from security_service import SecurityService
+from session import SessionData
 
 router = APIRouter()
 

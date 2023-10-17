@@ -12,7 +12,7 @@ from logging import config
 
 from core.security_service import SecurityService
 from core.user_service import UserService
-from database.database_service import DatabaseService
+from database import DatabaseService
 from database.models import User as DBUser, File, PrivateKey
 
 

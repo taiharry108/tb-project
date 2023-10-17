@@ -4,7 +4,7 @@ from logging import getLogger
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from container import Container
-from database.database_service import DatabaseService
+from database import DatabaseService
 
 logger = getLogger(__name__)
 

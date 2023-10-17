@@ -11,16 +11,16 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from uuid import UUID
 
 from core.fernet_encrypt_service import FernetEncryptService
-from security_service.security_service import SecurityService
+from security_service import SecurityService
 from core.key_management_service import KeyManagementService
-from database.database_service import DatabaseService
-from database.crud_service import CRUDService
+from database import DatabaseService
+from database import CRUDService
 
-from queue_service.redis_queue_service import RedisQueueService
+from queue_service import RedisQueueService
 from queue_service.messages import EncryptMessage
-from session.redis_backend import RedisBackend
-from session.session_verifier import BasicVerifier, SessionData
-from store_service.fs_store_service import FSStoreService
+from session import RedisBackend
+from session import BasicVerifier, SessionData
+from store_service import FSStoreService
 
 
 def init_process_pool(max_workers: int):

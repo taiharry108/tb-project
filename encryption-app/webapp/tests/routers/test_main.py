@@ -3,9 +3,9 @@ from sqlalchemy import delete
 import pytest
 
 from database.models import User, File, PrivateKey
-from database.database_service import DatabaseService
+from database import DatabaseService
 from routers.utils import get_session_data
-from session.session_verifier import SessionData
+from session import SessionData
 
 
 @pytest.fixture(scope="module")

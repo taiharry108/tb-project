@@ -1,7 +1,7 @@
 import pytest
 
-from database.database_service import DatabaseService
-from database.crud_service import CRUDService
+from database import DatabaseService
+from database import CRUDService
 from database.models import User
 
 

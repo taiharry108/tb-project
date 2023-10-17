@@ -5,7 +5,7 @@ from dependency_injector.wiring import inject, Provide
 
 from container import Container
 from routers.utils import get_session_data
-from session.session_verifier import SessionData
+from session import SessionData
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")

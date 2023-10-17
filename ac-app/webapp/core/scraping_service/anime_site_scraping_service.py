@@ -5,7 +5,7 @@ from typing import List, Protocol
 from core.models.anime import Anime
 from core.models.episode import Episode
 
-from download_service.download_service import DownloadService
+from download_service import DownloadService
 
 
 logger = getLogger(__name__)
