@@ -1,17 +1,15 @@
-from typing import Dict, Generic
-
 from fastapi_sessions.backends.session_backend import (
     BackendError,
     SessionBackend,
     SessionModel,
 )
 from fastapi_sessions.frontends.session_frontend import ID
-
+from logging import getLogger
 from redis import Redis
+from typing import Generic
 
 from session.session_verifier import SessionData
 
-from logging import getLogger
 
 logger = getLogger(__name__)
 

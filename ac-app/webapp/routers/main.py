@@ -4,11 +4,11 @@ from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 
 from container import Container
-from database.crud_service import CRUDService
+from database import CRUDService
 from database.models import Manga, Anime, Chapter
 from routers.auth import get_session_data
 from routers.utils import get_db_session
-from session.session_verifier import SessionData
+from session import SessionData
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()

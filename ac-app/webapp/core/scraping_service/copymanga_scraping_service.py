@@ -16,7 +16,7 @@ from core.models.meta import Meta
 from core.models.site import Site
 from core.scraping_service.manga_site_scraping_service import MangaSiteScrapingService
 
-from download_service.download_service import DownloadService
+from download_service import DownloadService
 
 
 logger = getLogger(__name__)

@@ -4,7 +4,7 @@ import pytest
 from sqlalchemy import delete
 
 from container import Container
-from database.database_service import DatabaseService
+from database import DatabaseService
 from database.models import User as DBUser
 
 

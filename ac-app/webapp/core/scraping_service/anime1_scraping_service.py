@@ -10,7 +10,7 @@ from core.models.anime import Anime
 from core.models.episode import Episode
 from core.scraping_service.anime_site_scraping_service import AnimeSiteScrapingService
 
-from download_service.download_service import DownloadService
+from download_service import DownloadService
 
 logger = getLogger(__name__)
 ANIME1_SEARCH_RESULT_KEYS = ["name", "eps", "year", "season", "sub"]

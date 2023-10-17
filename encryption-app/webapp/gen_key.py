@@ -1,7 +1,7 @@
 import asyncio
 from pathlib import Path
 from core.fernet_encrypt_service import FernetEncryptService
-from store_service.fs_store_service import FSStoreService
+from store_service import FSStoreService
 
 
 async def main():

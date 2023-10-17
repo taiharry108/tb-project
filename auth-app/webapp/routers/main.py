@@ -19,7 +19,7 @@ from core.user_service import UserService
 from core.security_service import SecurityService
 from core.models.user import User
 from routers.utils import get_db_session
-from session.session_verifier import BasicVerifier, SessionData
+from session import BasicVerifier, SessionData
 
 router = APIRouter()
 

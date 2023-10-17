@@ -7,8 +7,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.anime import AnimeSimple
 from core.models.manga import MangaSimple
-from database.crud_service import CRUDService
-from database.database_service import DatabaseService
+from database import CRUDService
+from database import DatabaseService
 from database.models import (
     MangaSite,
     Manga,
@@ -22,7 +22,7 @@ from database.models import (
 )
 
 from routers.auth import get_session_data
-from session.session_verifier import SessionData
+from session import SessionData
 
 
 logger = getLogger(__name__)

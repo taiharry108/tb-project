@@ -6,12 +6,12 @@ from redis import Redis
 from database_service import DatabaseService
 from encrypt_service.fernet_encrypt_service import FernetEncryptService
 from store_service.b2_store_service import B2StoreService
-from store_service.fs_store_service import FSStoreService
+from store_service import FSStoreService
 
 from in_queue_listener import InQueueListener
 from out_queue_listener import OutQueueListener
 from queue_service.messages import EncryptMessage
-from queue_service.redis_queue_service import RedisQueueService
+from queue_service import RedisQueueService
 
 
 IN_QUEUE_NAME = "in_queue_name"

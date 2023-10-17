@@ -2,9 +2,9 @@ from bs4 import BeautifulSoup
 from pathlib import Path
 import pytest
 
-from async_service.async_service import AsyncService
-from download_service.download_service import DownloadService
-from store_service.fs_store_service import FSStoreService
+from async_service import AsyncService
+from download_service import DownloadService
+from store_service import FSStoreService
 from logging import getLogger
 
 

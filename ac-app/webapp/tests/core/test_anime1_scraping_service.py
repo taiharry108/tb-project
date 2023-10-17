@@ -10,7 +10,7 @@ from core.models.episode import Episode
 from core.scraping_service.anime_site_scraping_service import AnimeSiteScrapingService
 from core.scraping_service.anime1_scraping_service import Anime1ScrapingService
 
-from download_service.download_service import DownloadService
+from download_service import DownloadService
 
 logger = getLogger(__name__)
 

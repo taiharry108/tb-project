@@ -12,7 +12,7 @@ from core.models.manga import MangaWithSite
 from core.models.manga_index_type_enum import MangaIndexTypeEnum, m_types
 from core.models.meta import Meta
 from core.scraping_service.manga_site_scraping_service import MangaSiteScrapingService
-from download_service.download_service import DownloadService
+from download_service import DownloadService
 
 
 async def gather_with_concurrency(n: int, *coros: Coroutine):

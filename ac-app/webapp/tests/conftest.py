@@ -6,8 +6,8 @@ import pytest
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 
 from container import Container
-from database.crud_service import CRUDService
-from database.database_service import DatabaseService
+from database import CRUDService
+from database import DatabaseService
 import main
 
 

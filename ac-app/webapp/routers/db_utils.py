@@ -13,7 +13,7 @@ from core.scraping_service.anime_site_scraping_service import (
 from core.scraping_service.manga_site_scraping_service import (
     MangaSiteScrapingService as MSSService,
 )
-from database.crud_service import CRUDService
+from database import CRUDService
 from database.models import MangaSite, Manga, Chapter, Anime, Episode
 from routers.utils import get_db_session
 

@@ -1,5 +1,5 @@
 import pytest
-from store_service.fs_store_service import FSStoreService as StoreService
+from store_service import FSStoreService as StoreService
 
 
 @pytest.fixture(scope="module")

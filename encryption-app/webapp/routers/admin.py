@@ -4,7 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from container import Container
 from core.encrypt_service import EncryptService
-from database.crud_service import CRUDService
+from database import CRUDService
 from database.models import PrivateKey, User
 
 from routers.utils import get_db_session

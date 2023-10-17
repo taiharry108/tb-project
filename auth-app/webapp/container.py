@@ -11,10 +11,10 @@ from core.some_service import SomeService
 from core.security_service import SecurityService
 from core.user_service import UserService
 
-from database.crud_service import CRUDService
-from database.database_service import DatabaseService
-from session.redis_backend import RedisBackend
-from session.session_verifier import BasicVerifier, SessionData
+from database import CRUDService
+from database import DatabaseService
+from session import RedisBackend
+from session import BasicVerifier, SessionData
 
 
 class Container(containers.DeclarativeContainer):

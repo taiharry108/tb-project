@@ -13,7 +13,7 @@ from core.models.site import Site
 from core.scraping_service.manga_site_scraping_service import MangaSiteScrapingService
 from core.scraping_service.utils import convert_url
 
-from download_service.download_service import DownloadService
+from download_service import DownloadService
 
 logger = getLogger(__name__)
 

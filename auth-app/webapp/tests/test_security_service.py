@@ -11,7 +11,7 @@ from logging import getLogger
 from container import Container
 from core.security_service import SecurityService
 
-from database.database_service import DatabaseService
+from database import DatabaseService
 
 logger = getLogger(__name__)
 
