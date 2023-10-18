@@ -57,7 +57,7 @@ $(function ($) {
             success: (response) => {
                 if (response.success) {
                     clearHistoryContainer();
-                    fetchHistory();
+                    fetchHistory(false);
                 }
             },
             complete: () => {
@@ -65,10 +65,11 @@ $(function ($) {
         });
     }
 
-    const fetchHistory = () => {
+    const fetchHistory = (timeSort) => {
         $.ajax({
             type: 'GET',
             url: historyEndpoint,
+            data: {time_sort: timeSort},
             success: (response) => {
                 console.log(response);
                 addHistory(response);
@@ -88,7 +89,7 @@ $(function ($) {
         });
     };
 
-    fetchHistory();
+    fetchHistory(false);
 
     const clearHistoryContainer = () => {
         $("div.history-container").empty();
@@ -104,6 +105,11 @@ $(function ($) {
 
     $('#anime-filter-btn').click(() => hideAnime());
     $('#manga-filter-btn').click(() => hideManga());
+
+    $('#sort-by-time-span').click(() => {
+        $("div.history-container").empty();
+        fetchHistory(true);
+    });
 
 })
 
