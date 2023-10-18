@@ -51,7 +51,7 @@ class Anime1ScrapingService(AnimeSiteScrapingService):
             return Episode(**{"title": title, "last_update": last_update, "data": data})
 
         eps = []
-        url = urljoin(self.site.url, anime.url)
+        url = urljoin(str(self.site.url), anime.url)
 
         while True:
             logger.info(f"going to donwload from {url}")

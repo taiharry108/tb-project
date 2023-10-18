@@ -4,7 +4,7 @@ from typing import Optional
 
 
 class Episode(BaseModel):
-    id: Optional[int]
+    id: Optional[int] = None
     title: str
     last_update: datetime
     data: str

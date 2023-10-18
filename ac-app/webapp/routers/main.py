@@ -1,30 +1,21 @@
-from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+from kink import di
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from container import Container
 from database import CRUDService
 from database.models import Manga, Anime, Chapter
 from routers.auth import get_session_data
-from routers.utils import get_db_session
+from routers.utils import get_db_session, get_redirect_response
 from session import SessionData
-from sqlalchemy.ext.asyncio import AsyncSession
+
 
 router = APIRouter()
 templates = Jinja2Templates(directory="templates")
 
 
-@inject
-async def get_redirect_response(
-    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
-    redirect_url: str = Depends(Provide[Container.config.auth_server.redirect_url]),
-):
-    return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")
-
-
 @router.get("/")
-@inject
 def main_page(
     request: Request,
     session_data: SessionData = Depends(get_session_data),
@@ -36,13 +27,12 @@ def main_page(
 
 
 @router.get("/manga")
-@inject
 async def manga_page(
     request: Request,
     manga_id: int,
     session_data: SessionData = Depends(get_session_data),
     redirect_response=Depends(get_redirect_response),
-    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
     db_session: AsyncSession = Depends(get_db_session),
 ):
     if not session_data:
@@ -59,7 +49,6 @@ async def manga_page(
 
 
 @router.get("/history")
-@inject
 async def history_page(
     request: Request,
     session_data: SessionData = Depends(get_session_data),
@@ -76,13 +65,12 @@ async def history_page(
 
 
 @router.get("/anime")
-@inject
 async def anime_page(
     request: Request,
     anime_id: int,
     session_data: SessionData = Depends(get_session_data),
     redirect_response=Depends(get_redirect_response),
-    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
     db_session: AsyncSession = Depends(get_db_session),
 ):
     if not session_data:
@@ -99,13 +87,12 @@ async def anime_page(
 
 
 @router.get("/chapter")
-@inject
 async def chapter_page(
     request: Request,
     chapter_id: int,
     session_data: SessionData = Depends(get_session_data),
     redirect_response=Depends(get_redirect_response),
-    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
     db_session: AsyncSession = Depends(get_db_session),
 ):
     if not session_data:

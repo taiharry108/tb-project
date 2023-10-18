@@ -1,12 +1,11 @@
-from dependency_injector.wiring import inject, Provide, Provider, providers
 from enum import Enum
 from fastapi import Depends, HTTPException, status
+from kink import di
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Union
 
-from container import Container
-
 from core.models.manga_site_enum import MangaSiteEnum
+from core.scraping_service import ScrapingServiceFactory
 from core.scraping_service.anime_site_scraping_service import (
     AnimeSiteScrapingService as ASSService,
 )
@@ -17,8 +16,6 @@ from database import CRUDService
 from database.models import MangaSite, Manga, Chapter, Anime, Episode
 from routers.utils import get_db_session
 
-FactoryAggregate = providers.FactoryAggregate
-
 
 class DBItemType(Enum):
     Anime = "Anime"
@@ -27,12 +24,11 @@ class DBItemType(Enum):
     Episode = "Episode"
 
 
-@inject
 async def _get_db_item_from_id(
     item_id: int,
     db_item_type: DBItemType,
     session: AsyncSession,
-    crud_service: CRUDService = Provide[Container.crud_service],
+    crud_service: CRUDService,
 ):
     if db_item_type == DBItemType.Anime:
         db_type = Anime
@@ -51,119 +47,122 @@ async def _get_db_item_from_id(
     return db_item
 
 
-@inject
 async def get_db_manga_from_id(
     manga_id: int,
     session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
 ):
-    return await _get_db_item_from_id(manga_id, DBItemType.Manga, session)
+    return await _get_db_item_from_id(manga_id, DBItemType.Manga, session, crud_service)
 
 
-@inject
 async def get_db_anime_from_id(
     anime_id: int,
     session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
 ):
-    return await _get_db_item_from_id(anime_id, DBItemType.Anime, session)
+    return await _get_db_item_from_id(anime_id, DBItemType.Anime, session, crud_service)
 
 
-@inject
 async def get_chapter_from_id(
     chapter_id: int,
     session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
 ):
-    return await _get_db_item_from_id(chapter_id, DBItemType.Chapter, session)
+    return await _get_db_item_from_id(
+        chapter_id, DBItemType.Chapter, session, crud_service
+    )
 
 
-@inject
 async def get_episode_from_id(
     episode_id: int,
     session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
 ):
-    return await _get_db_item_from_id(episode_id, DBItemType.Episode, session)
+    return await _get_db_item_from_id(
+        episode_id, DBItemType.Episode, session, crud_service
+    )
 
 
-@inject
 async def get_manga_site_from_manga(
     session: AsyncSession = Depends(get_db_session),
     db_manga: Manga = Depends(get_db_manga_from_id),
-    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
 ) -> str:
     return await crud_service.get_attr_of_item_by_id(
         session, MangaSite, db_manga.manga_site_id, "name"
     )
 
 
-@inject
 async def get_manga_site_from_anime(
     session: AsyncSession = Depends(get_db_session),
     db_anime: Anime = Depends(get_db_anime_from_id),
-    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
 ) -> str:
     return await crud_service.get_attr_of_item_by_id(
         session, MangaSite, db_anime.manga_site_id, "name"
     )
 
 
-@inject
 async def get_manga_site_id(
     site: MangaSiteEnum,
-    crud_service: CRUDService = Depends(Provide[Container.crud_service]),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
     session: AsyncSession = Depends(get_db_session),
 ):
     return await crud_service.get_id_by_attr(session, MangaSite, "name", site.value)
 
 
-@inject
 def get_scraping_service_from_site(
-    site: MangaSiteEnum, ss_factory=Provider[Container.scraping_service_factory]
+    site: MangaSiteEnum,
+    ss_factory: ScrapingServiceFactory = Depends(lambda: di[ScrapingServiceFactory]),
 ) -> Union[MSSService, ASSService]:
-    return ss_factory(site)
+    return ss_factory.get(site)
 
 
-@inject
 def get_scraping_service_from_manga(
     manga_site_name: str = Depends(get_manga_site_from_manga),
+    ss_factory: ScrapingServiceFactory = Depends(lambda: di[ScrapingServiceFactory]),
 ) -> MSSService:
-    return get_scraping_service_from_site(manga_site_name)
+    site = MangaSiteEnum(manga_site_name)
+    return get_scraping_service_from_site(site, ss_factory)
 
 
-@inject
 def get_scraping_service_from_anime(
     manga_site_name: str = Depends(get_manga_site_from_anime),
 ) -> ASSService:
     return get_scraping_service_from_site(manga_site_name)
 
 
-@inject
 async def get_manga_from_chapter_id(
     db_chapter: Chapter = Depends(get_chapter_from_id),
     session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
 ) -> Manga:
-    return await get_db_manga_from_id(db_chapter.manga_id, session)
+    return await get_db_manga_from_id(db_chapter.manga_id, session, crud_service)
 
 
-@inject
 async def get_anime_from_episode_id(
     db_episode: Episode = Depends(get_episode_from_id),
     session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
 ) -> Anime:
-    return await get_db_anime_from_id(db_episode.anime_id, session)
+    return await get_db_anime_from_id(db_episode.anime_id, session, crud_service)
 
 
-@inject
 async def get_scraping_service_from_chapter(
     db_manga: Manga = Depends(get_manga_from_chapter_id),
     session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
+    ss_factory: ScrapingServiceFactory = Depends(lambda: di[ScrapingServiceFactory]),
 ) -> MSSService:
-    manga_site_name = await get_manga_site_from_manga(session, db_manga)
-    return get_scraping_service_from_manga(manga_site_name)
+    manga_site_name = await get_manga_site_from_manga(session, db_manga, crud_service)
+    return get_scraping_service_from_manga(manga_site_name, ss_factory)
 
 
-@inject
 async def get_scraping_service_from_episode(
     db_anime: Anime = Depends(get_anime_from_episode_id),
     session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
+    ss_factory: ScrapingServiceFactory = Depends(lambda: di[ScrapingServiceFactory]),
 ) -> ASSService:
-    manga_site_name = await get_manga_site_from_anime(session, db_anime)
-    return get_scraping_service_from_anime(manga_site_name)
+    manga_site_name = await get_manga_site_from_anime(session, db_anime, crud_service)
+    return get_scraping_service_from_anime(manga_site_name, ss_factory)

@@ -1,6 +1,6 @@
-from ast import AsyncFunctionDef
 import asyncio
-import dataclasses
+
+from ast import AsyncFunctionDef
 from logging import getLogger
 from typing import Iterable
 

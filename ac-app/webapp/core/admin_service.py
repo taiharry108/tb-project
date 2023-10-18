@@ -1,16 +1,15 @@
 import asyncio
-from dependency_injector.wiring import inject, Provider, Provide
 from pathlib import Path
 from sqlalchemy import select, Table, MetaData, case
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncConnection
 from typing import Coroutine
 
-from container import Container
 from core.models.chapter import Chapter
 from core.models.manga import MangaWithSite
 from core.models.manga_index_type_enum import MangaIndexTypeEnum, m_types
 from core.models.meta import Meta
+from core.scraping_service import ScrapingServiceFactory
 from core.scraping_service.manga_site_scraping_service import MangaSiteScrapingService
 from download_service import DownloadService
 
@@ -28,8 +27,7 @@ async def gather_with_concurrency(n: int, *coros: Coroutine):
 async def get_table(table_name: str, conn: AsyncConnection) -> Table:
     metadata_obj = MetaData()
     table = await conn.run_sync(
-        lambda sync_conn: Table(table_name, metadata_obj,
-                                autoload_with=sync_conn)
+        lambda sync_conn: Table(table_name, metadata_obj, autoload_with=sync_conn)
     )
     return table
 
@@ -66,8 +64,7 @@ async def get_meta_for_manga(
 ) -> Meta:
     meta = await scraping_service.get_meta(manga_url)
 
-    download_path = Path(download_path) / \
-        scraping_service.site.name / manga_name
+    download_path = Path(download_path) / scraping_service.site.name / manga_name
 
     download_result = await download_service.download_img(
         url=str(meta.thum_img), download_path=download_path, filename="thum_img"
@@ -77,46 +74,28 @@ async def get_meta_for_manga(
 
 
 async def get_chapters_for_manga(
-        manga_url: str,
-        scraping_service: MangaSiteScrapingService
+    manga_url: str, scraping_service: MangaSiteScrapingService
 ):
     return await scraping_service.get_chapters(manga_url)
 
 
-async def get_meta_for_manga(
-    manga_url: str,
-    manga_name: str,
-    scraping_service: MangaSiteScrapingService,
-    download_service: DownloadService,
-    download_path: str,
-) -> Meta:
-    meta = await scraping_service.get_meta(manga_url)
-
-    download_path = Path(download_path) / \
-        scraping_service.site.name / manga_name
-
-    download_result = await download_service.download_img(
-        url=str(meta.thum_img), download_path=download_path, filename="thum_img"
-    )
-    meta.thum_img = download_result["pic_path"]
-    return meta
-
-
-@inject
 async def update_chapters(
     mangas: list[MangaWithSite],
-    ss_factory=Provider[Container.scraping_service_factory],
-    db_engine: AsyncEngine = Provide[Container.db_engine],
+    ss_factory: ScrapingServiceFactory,
+    db_engine: AsyncEngine,
 ) -> dict[int, dict[MangaIndexTypeEnum, list[Chapter]]]:
     """"""
-    tasks = [get_chapters_for_manga(str(manga.url), ss_factory(
-        manga.manga_site_name)) for manga in mangas]
+    tasks = [
+        get_chapters_for_manga(
+            str(manga.url), getattr(ss_factory, manga.manga_site_name)
+        )
+        for manga in mangas
+    ]
 
-    chap_result: list[dict[MangaIndexTypeEnum, list[Chapter]]] = await gather_with_concurrency(5, *tasks)
-    chapter_dict = {
-        manga.id: chap
-        for manga, chap in zip(mangas, chap_result)
-    }
+    chap_result: list[
+        dict[MangaIndexTypeEnum, list[Chapter]]
+    ] = await gather_with_concurrency(5, *tasks)
+    chapter_dict = {manga.id: chap for manga, chap in zip(mangas, chap_result)}
     chapter_list = []
     for manga_id, chapters in chapter_dict.items():
         for m_type, chap_list in chapters.items():
@@ -132,26 +111,29 @@ async def update_chapters(
 
     async with db_engine.begin() as conn:
         chapter_table = await get_table("chapters", conn)
-        stmt = insert(chapter_table).values(chapter_list).on_conflict_do_nothing(
-            index_elements=["page_url"]).returning(chapter_table.c.page_url)
+        stmt = (
+            insert(chapter_table)
+            .values(chapter_list)
+            .on_conflict_do_nothing(index_elements=["page_url"])
+            .returning(chapter_table.c.page_url)
+        )
         await conn.execute(stmt)
 
     return chapter_dict
 
 
-@inject
 async def update_meta(
     mangas: list[MangaWithSite],
-    ss_factory=Provider[Container.scraping_service_factory],
-    download_service: DownloadService = Provide[Container.download_service],
-    download_path: str = Provide[Container.config.api.download_path],
-    db_engine: AsyncEngine = Provide[Container.db_engine],
+    ss_factory: ScrapingServiceFactory,
+    download_service: DownloadService,
+    download_path: str,
+    db_engine: AsyncEngine,
 ) -> list[Meta]:
     tasks = [
         get_meta_for_manga(
             str(manga.url),
             manga.manga_name,
-            ss_factory(manga.manga_site_name),
+            getattr(ss_factory, manga.manga_site_name),
             download_service,
             download_path,
         )
@@ -164,10 +146,8 @@ async def update_meta(
         last_update_map = {
             manga.id: meta.last_update for manga, meta in zip(mangas, result)
         }
-        thum_img_map = {manga.id: meta.thum_img for manga,
-                        meta in zip(mangas, result)}
-        finished_map = {manga.id: meta.finished for manga,
-                        meta in zip(mangas, result)}
+        thum_img_map = {manga.id: meta.thum_img for manga, meta in zip(mangas, result)}
+        finished_map = {manga.id: meta.finished for manga, meta in zip(mangas, result)}
         manga_table = await get_table("mangas", conn)
         stmt = (
             manga_table.update()

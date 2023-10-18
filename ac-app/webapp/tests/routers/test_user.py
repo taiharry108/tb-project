@@ -50,12 +50,12 @@ async def chapter_title():
 
 @pytest.fixture(scope="module")
 async def chapter_url():
-    return "https://test_chap.com"
+    return "https://test_chap.com/"
 
 
 @pytest.fixture(scope="module")
 async def manga_url():
-    return "https://test_manga.com"
+    return "https://test_manga.com/"
 
 
 @pytest.fixture(scope="module")
@@ -353,9 +353,9 @@ async def test_get_history(
     resp = await client.get(history_path)
     manga = MangaSimple(**resp.json()[0])
     assert manga.name == manga_name
-    assert manga.url == manga_url
+    assert str(manga.url) == manga_url
     assert manga.last_read_chapter.title == chapter_title
-    assert manga.last_read_chapter.page_url == chapter_url
+    assert str(manga.last_read_chapter.page_url) == chapter_url
 
 
 async def test_add_history_fail(
@@ -381,7 +381,8 @@ async def test_del_a_history(
     assert len(history_animes) == 1
     assert history_animes[0].anime_id == anime_id
     assert history_animes[0].user_id == user_id
-    resp = await client.delete(a_history_path, params={"anime_id": anime_id})
+    
+    resp = await client.request("DELETE", a_history_path, data={"anime_id": anime_id})    
     assert resp.json() == {"success": True}
 
     history_animes = await crud_service.get_items_of_obj(
@@ -404,7 +405,7 @@ async def test_del_history(
     assert len(history_mangas) == 1
     assert history_mangas[0].manga_id == manga_id
     assert history_mangas[0].user_id == user_id
-    resp = await client.delete(history_path, params={"manga_id": manga_id})
+    resp = await client.request("DELETE", history_path, data={"manga_id": manga_id})
     assert resp.json() == {"success": True}
 
     history_mangas = await crud_service.get_items_of_obj(

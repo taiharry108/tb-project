@@ -1,10 +1,12 @@
+import re
+import string
+
 from bs4 import BeautifulSoup
 from datetime import datetime, timedelta
 from collections import defaultdict
 from logging import getLogger
-import re
-import string
 from typing import List, Dict
+
 from core.models.chapter import Chapter
 from core.models.manga import Manga
 from core.models.manga_index_type_enum import MangaIndexTypeEnum

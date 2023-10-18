@@ -1,4 +1,3 @@
-from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends, HTTPException, Request, status, Response
 from fastapi.responses import RedirectResponse
 from fastapi_sessions.frontends.implementations.cookie import (
@@ -7,16 +6,15 @@ from fastapi_sessions.frontends.implementations.cookie import (
 )
 from fastapi_sessions.backends.session_backend import SessionBackend
 from jose import JWTError
+from kink import di
 from uuid import uuid4
 
-from container import Container
 from security_service import SecurityService
 from session import BasicVerifier, SessionData
 
 router = APIRouter()
 
 
-@inject
 async def create_session(
     username: str, response: Response, backend: SessionBackend, cookie: SessionFrontend
 ):
@@ -35,20 +33,10 @@ async def _check_session(
     return await verifier(request)
 
 
-@inject
-async def check_session(
-    request: Request,
-    cookie: SessionCookie = Depends(Provide[Container.cookie]),
-    verifier: BasicVerifier = Depends(Provide[Container.verifier]),
-):
-    return await _check_session(request, cookie, verifier)
-
-
-@inject
 async def get_session_data(
     request: Request,
-    cookie: SessionCookie = Depends(Provide[Container.cookie]),
-    verifier: BasicVerifier = Depends(Provide[Container.verifier]),
+    cookie: SessionCookie = Depends(lambda: di["cookie"]),
+    verifier: BasicVerifier = Depends(lambda: di["verifier"]),
 ):
     try:
         session_data = await _check_session(request, cookie, verifier)
@@ -59,13 +47,12 @@ async def get_session_data(
 
 
 @router.post("/logout")
-@inject
 async def logout(
     response: RedirectResponse,
     request: Request,
-    cookie: SessionFrontend = Depends(Provide[Container.cookie]),
-    backend: SessionBackend = Depends(Provide[Container.session_backend]),
-    auth_server_url: str = Depends(Provide[Container.config.auth_server.url]),
+    cookie: SessionFrontend = Depends(lambda: di["cookie"]),
+    backend: SessionBackend = Depends(lambda: di["session_backend"]),
+    auth_server_url: str = Depends(lambda: di["auth_server"]["url"]),
 ):
     session_id = cookie(request)
     await backend.delete(session_id)
@@ -75,13 +62,12 @@ async def logout(
 
 
 @router.get("")
-@inject
 async def auth(
     token: str,
     response: Response,
-    security_service: SecurityService = Depends(Provide[Container.security_service]),
-    backend: SessionBackend = Depends(Provide[Container.session_backend]),
-    cookie: SessionFrontend = Depends(Provide[Container.cookie]),
+    security_service: SecurityService = Depends(lambda: di[SecurityService]),
+    backend: SessionBackend = Depends(lambda: di["session_backend"]),
+    cookie: SessionFrontend = Depends(lambda: di["cookie"]),
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

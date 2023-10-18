@@ -1,12 +1,11 @@
 from datetime import datetime
-from dependency_injector.wiring import inject, Provider
-from dependency_injector import providers
 import pytest
 
-from container import Container
 from core.models.chapter import Chapter
 from core.models.manga import Manga
+from core.models.manga_site_enum import MangaSiteEnum
 from core.models.manga_index_type_enum import MangaIndexTypeEnum
+from core.scraping_service import ScrapingServiceFactory
 from core.scraping_service.manga_site_scraping_service import MangaSiteScrapingService
 
 from logging import getLogger
@@ -15,13 +14,10 @@ logger = getLogger(__name__)
 
 
 @pytest.fixture
-@inject
 def scraping_service(
-    scraping_service_factory: providers.Factory[MangaSiteScrapingService] = Provider[
-        Container.scraping_service_factory
-    ],
+    scraping_service_factory: ScrapingServiceFactory
 ):
-    return scraping_service_factory("manhuaren")
+    return scraping_service_factory.get(MangaSiteEnum.ManHuaRen)
 
 
 @pytest.fixture
@@ -55,7 +51,7 @@ async def test_search_manga(
 
     for manga in manga_list:
         if manga.name == name:
-            assert manga.url.endswith(url_ending)
+            assert str(manga.url).endswith(url_ending)
 
 
 @pytest.mark.parametrize(
@@ -63,12 +59,12 @@ async def test_search_manga(
     [{"name": "火影忍者", "url": "https://www.manhuaren.com/manhua-huoyingrenzhe-naruto/"}],
 )
 async def test_get_chapters(scraping_service: MangaSiteScrapingService, manga: Manga):
-    chapters = await scraping_service.get_chapters(manga.url)
+    chapters = await scraping_service.get_chapters(str(manga.url))
     assert len(chapters[MangaIndexTypeEnum.CHAPTER]) == 533
     assert len(chapters[MangaIndexTypeEnum.MISC]) == 20
 
-    chap = chapters[MangaIndexTypeEnum.CHAPTER][0]
-    assert chap.page_url.endswith("m5196/")
+    chap = chapters[MangaIndexTypeEnum.CHAPTER][0]    
+    assert str(chap.page_url).endswith("m5196/")
     assert chap.title == "第1卷"
 
 
@@ -77,12 +73,12 @@ async def test_get_chapters(scraping_service: MangaSiteScrapingService, manga: M
     [{"name": "火影忍者", "url": "https://www.manhuaren.com/manhua-huoyingrenzhe-naruto/"}],
 )
 async def test_get_meta(scraping_service: MangaSiteScrapingService, manga: Manga):
-    meta_data = await scraping_service.get_meta(manga.url)
+    meta_data = await scraping_service.get_meta(str(manga.url))
 
     assert meta_data.last_update == datetime(2016, 4, 23)
     assert meta_data.finished == True
     assert (
-        meta_data.thum_img
+        str(meta_data.thum_img)
         == "https://mhfm6us.cdndm5.com/1/444/20181129142416_180x240_30.jpg"
     )
     assert meta_data.latest_chapter == Chapter(
@@ -96,7 +92,7 @@ async def test_get_meta(scraping_service: MangaSiteScrapingService, manga: Manga
 async def test_get_page_urls(
     scraping_service: MangaSiteScrapingService, chapter: Chapter
 ):
-    img_urls = await scraping_service.get_page_urls(chapter.page_url)
+    img_urls = await scraping_service.get_page_urls(str(chapter.page_url))
     assert len(img_urls) == 18
 
     for img_url in img_urls:

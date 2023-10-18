@@ -6,7 +6,7 @@ from .episode import Episode
 
 
 class Anime(BaseModel):
-    id: Optional[int]
+    id: Optional[int] = None
     name: str
     eps: str
     year: str
@@ -21,6 +21,6 @@ class AnimeBase(Anime):
 
 
 class AnimeSimple(AnimeBase):
-    latest_episode: Episode = None
+    latest_episode: Optional[Episode] = None
     last_read_episode: Episode = None
     last_added: datetime = None
