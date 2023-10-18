@@ -1,12 +1,13 @@
 import binascii
+import json
+import re
+
 from bs4 import BeautifulSoup
 from collections import defaultdict
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad
 from datetime import datetime
-import json
 from logging import getLogger
-import re
 from typing import List, Dict
 
 from core.models.chapter import Chapter

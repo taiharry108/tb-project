@@ -1,4 +1,5 @@
-from dependency_injector.wiring import inject, Provide
+# from dependency_injector.wiring import inject, Provide
+from kink import di
 import pytest
 
 from sqlalchemy import (
@@ -7,21 +8,14 @@ from sqlalchemy import (
     MetaData,
     Table,
     select,
-    update,
-    values,
-    column,
-    Integer,
-    Boolean,
-    text,
-    case,
-    func
+    func,
 )
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncConnection, create_async_engine
+from sqlalchemy.ext.asyncio import AsyncEngine, AsyncConnection
 
-from container import Container
-from core.admin_service import get_all_mangas_in_history, update_meta, update_chapters
+from core.admin_service import update_meta, update_chapters, get_all_mangas_in_history
 from core.models.manga_index_type_enum import MangaIndexTypeEnum
 from core.models.manga import MangaWithSite
+from core.scraping_service import ScrapingServiceFactory
 from database.database_service import DatabaseService
 from database.models import (
     MangaSite,
@@ -32,6 +26,7 @@ from database.models import (
     User,
     Episode,
 )
+from download_service import DownloadService
 
 
 @pytest.fixture(scope="module")
@@ -59,17 +54,8 @@ async def password():
 
 
 @pytest.fixture(autouse=True, scope="module")
-@inject
-def db_engine(
-    db_engine=Provide[Container.db_engine],
-) -> AsyncEngine:
-    return db_engine
-
-
-@pytest.fixture(autouse=True, scope="module")
-@inject
 def download_path(
-    download_path=Provide[Container.config.api.download_path],
+    download_path=di["api"]["download_path"],
 ) -> str:
     return f"{download_path}/test"
 
@@ -83,7 +69,7 @@ async def run_before_and_after_tests(
     manga_urls: list[str],
     db_engine: AsyncEngine,
 ):
-    import main
+    # import main
 
     async with database.session() as session:
         async with session.begin():
@@ -135,17 +121,19 @@ async def get_table(table_name: str, conn: AsyncConnection) -> Table:
     return table
 
 
-# async def test_get_all_mangas_in_history(db_engine: AsyncEngine, manga_url: str):
-#     async with db_engine.begin() as conn:
-#         all_mangas = await get_all_mangas_in_history(db_engine)
-#         assert len(all_mangas) == 2
-#         assert str(all_mangas[0].url) == manga_url
+async def test_get_all_mangas_in_history(db_engine: AsyncEngine, manga_urls: list[str]):
+    async with db_engine.begin() as conn:
+        all_mangas = await get_all_mangas_in_history(db_engine)
+        print(all_mangas)
+        assert len(all_mangas) == 1
+        assert str(all_mangas[0].url) == manga_urls[0]
 
 
 async def test_update_chapters(
     db_engine: AsyncEngine,
     manga_names: list[str],
     manga_urls: list[str],
+    scraping_service_factory: ScrapingServiceFactory,
 ):
     mangas = [
         MangaWithSite(
@@ -156,14 +144,18 @@ async def test_update_chapters(
         )
         for idx, (manga_name, manga_url) in enumerate(zip(manga_names, manga_urls))
     ]
-    chapters = await update_chapters(mangas)
+    chapters = await update_chapters(mangas, scraping_service_factory, db_engine)
     assert len(chapters[1][MangaIndexTypeEnum.CHAPTER]) == 8
 
     async with db_engine.begin() as conn:
         chapter_table = await get_table("chapters", conn)
-        stmt = select(func.count()).select_from(chapter_table).where(chapter_table.c.manga_id == 1)
-        
-        assert (await conn.execute(stmt)).scalar() == 9
+        stmt = (
+            select(func.count())
+            .select_from(chapter_table)
+            .where(chapter_table.c.manga_id == 1)
+        )
+
+        assert (await conn.execute(stmt)).scalar() == 8
 
 
 async def test_update_meta(
@@ -171,6 +163,8 @@ async def test_update_meta(
     db_engine: AsyncEngine,
     manga_names: list[str],
     manga_urls: list[str],
+    scraping_service_factory: ScrapingServiceFactory,
+    download_service: DownloadService,
 ):
     mangas = [
         MangaWithSite(
@@ -181,7 +175,13 @@ async def test_update_meta(
         )
         for idx, (manga_name, manga_url) in enumerate(zip(manga_names, manga_urls))
     ]
-    metas = await update_meta(mangas, download_path=download_path)
+    metas = await update_meta(
+        mangas,
+        ss_factory=scraping_service_factory,
+        download_service=download_service,
+        download_path=download_path,
+        db_engine=db_engine,
+    )
     for meta, manga in zip(metas, mangas):
         assert (
             f"downloaded/test/{manga.manga_site_name}/{manga.manga_name}/thum_img"

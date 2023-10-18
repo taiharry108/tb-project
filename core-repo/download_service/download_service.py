@@ -1,3 +1,6 @@
+import uuid
+
+
 from bs4 import BeautifulSoup
 from functools import wraps
 from httpx import AsyncClient, Limits, Timeout, Response
@@ -5,7 +8,6 @@ from logging import getLogger
 from pathlib import Path
 from pydantic import HttpUrl
 from typing import Callable, Dict, Union, List
-import uuid
 
 from store_service.store_service import StoreService
 from async_service import AsyncService
@@ -93,7 +95,7 @@ class DownloadService:
         max_keepalive_connections: int,
         headers: Dict[str, str],
         store_service: StoreService,
-        proxy: Dict[str, str],
+        # proxy: Dict[str, str],
     ) -> None:
         limits = Limits(
             max_connections=max_connections,

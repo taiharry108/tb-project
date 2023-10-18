@@ -46,7 +46,7 @@ class Manga(MangaWithMeta):
 
 
 class MangaSimple(MangaWithMeta):
-    latest_chapter: Chapter = None
+    latest_chapter: Optional[Chapter] = None
     last_read_chapter: Chapter = None
     last_added: datetime = None
     is_fav: bool = False

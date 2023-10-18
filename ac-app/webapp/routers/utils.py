@@ -1,17 +1,16 @@
-from dependency_injector.wiring import inject, Provide
 from fastapi import Depends
+from fastapi.responses import RedirectResponse
+from kink import di
 from logging import getLogger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from container import Container
 from database import DatabaseService
 
 logger = getLogger(__name__)
 
 
-@inject
 def get_database_service(
-    database_service: DatabaseService = Depends(Provide[Container.db_service]),
+    database_service: DatabaseService = Depends(lambda: di[DatabaseService]),
 ) -> DatabaseService:
     return database_service
 
@@ -28,3 +27,10 @@ async def get_db_session(
         raise
     finally:
         await session.close()
+
+
+async def get_redirect_response(
+    auth_server_url: str = Depends(lambda: di["auth_server"]["url"]),
+    redirect_url: str = Depends(lambda: di["auth_server"]["redirect_url"]),
+):
+    return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")

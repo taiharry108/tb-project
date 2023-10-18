@@ -1,26 +1,23 @@
 from datetime import datetime
 from logging import getLogger
-from dependency_injector.wiring import inject, Provider, Provide
 from pathlib import Path
 import pytest
-from container import Container
 from core.models.anime import Anime
 from core.models.episode import Episode
+from core.models.manga_site_enum import MangaSiteEnum
 
+from core.scraping_service import Anime1ScrapingService, ScrapingServiceFactory
 from core.scraping_service.anime_site_scraping_service import AnimeSiteScrapingService
-from core.scraping_service.anime1_scraping_service import Anime1ScrapingService
 
-from download_service import DownloadService
 
 logger = getLogger(__name__)
 
 
 @pytest.fixture
-@inject
 def scraping_service(
-    scraping_service_factory=Provider[Container.scraping_service_factory],
+    scraping_service_factory: ScrapingServiceFactory
 ) -> AnimeSiteScrapingService:
-    return scraping_service_factory("anime1")
+    return scraping_service_factory.get(MangaSiteEnum.Anime1)
 
 
 @pytest.mark.parametrize(

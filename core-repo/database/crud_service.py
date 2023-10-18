@@ -1,13 +1,12 @@
-from logging import getLogger
-from typing import Any, Dict, List, Union
-from database.database_service import DatabaseService
-
-from typing import List, TypeVar, Type
 from functools import wraps
-from sqlalchemy.ext.asyncio import AsyncSession as Session
+from logging import getLogger
 from sqlalchemy import select
 from sqlalchemy.exc import NoResultFound
+from sqlalchemy.ext.asyncio import AsyncSession as Session
 from sqlalchemy.orm import selectinload
+from typing import Any, Dict, List, Union, List, TypeVar, Type
+
+from database.database_service import DatabaseService
 
 T = TypeVar("T")
 
