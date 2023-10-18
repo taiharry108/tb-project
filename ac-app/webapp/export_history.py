@@ -1,10 +1,15 @@
 import json
 
+
 from asyncio import run
+from kink import di, inject
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncEngine
 from typing import TypedDict
 
-from container import Container
+from boostrap import bootstrap_di
+
+bootstrap_di()
 
 KEYS = [
     "email",
@@ -27,7 +32,7 @@ class History(TypedDict):
     manga_site_id: int
 
 
-async def get_all_mangas_from_history(container: Container):
+async def get_all_mangas_from_history(db_engine: AsyncEngine):
     query = """
         SELECT u.email,
             m.name as manga_name,
@@ -41,14 +46,13 @@ async def get_all_mangas_from_history(container: Container):
         LEFT JOIN users u ON h.user_id = u.id
         LEFT JOIN chapters c on h.chapter_id = c.id;
     """
-    async with container.db_engine().begin() as conn:
+    async with db_engine.begin() as conn:
         return await conn.execute(text(query))
 
 
 async def main():
-    container = Container()
 
-    result = await get_all_mangas_from_history(container)
+    result = await get_all_mangas_from_history(di[AsyncEngine])
     history_collection: list[History] = [
         {KEYS[idx]: item for idx, item in enumerate(row)} for row in result
     ]

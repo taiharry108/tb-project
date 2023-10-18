@@ -50,7 +50,14 @@ async def get_all_mangas_in_history(db_engine: AsyncEngine) -> list[MangaWithSit
                 joined_table.c.mangas_name.label("manga_name"),
                 joined_table.c.manga_sites_name.label("manga_site_name"),
                 joined_table.c.mangas_id.label("id"),
-            ).select_from(joined_table)
+            )
+            .select_from(joined_table)
+            .group_by(
+                joined_table.c.mangas_url,
+                joined_table.c.mangas_name,
+                joined_table.c.manga_sites_name,
+                joined_table.c.mangas_id,
+            )
         )
         return [MangaWithSite.model_validate(row) for row in rows]
 

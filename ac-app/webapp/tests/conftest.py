@@ -71,6 +71,7 @@ async def database() -> DatabaseService:
     di.factories[DatabaseService] = lambda di: DatabaseService(
         di[AsyncEngine], di[orm.sessionmaker], "test"
     )
+    await di[DatabaseService].create_database()
     return di[DatabaseService]
 
 

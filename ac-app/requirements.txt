@@ -2,8 +2,7 @@ asyncpg==0.28.0
 autopep8==2.0.4
 beautifulsoup4==4.12.2
 dataclasses_json==0.5.14
-dependency-injector==4.41.0
-fastapi==0.103.0
+fastapi==0.104.0
 fastapi-sessions==0.3.2
 kink==0.7.0
 httpx==0.24.1
