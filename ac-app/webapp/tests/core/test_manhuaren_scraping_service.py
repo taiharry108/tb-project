@@ -14,9 +14,7 @@ logger = getLogger(__name__)
 
 
 @pytest.fixture
-def scraping_service(
-    scraping_service_factory: ScrapingServiceFactory
-):
+def scraping_service(scraping_service_factory: ScrapingServiceFactory):
     return scraping_service_factory.get(MangaSiteEnum.ManHuaRen)
 
 
@@ -63,7 +61,7 @@ async def test_get_chapters(scraping_service: MangaSiteScrapingService, manga: M
     assert len(chapters[MangaIndexTypeEnum.CHAPTER]) == 533
     assert len(chapters[MangaIndexTypeEnum.MISC]) == 20
 
-    chap = chapters[MangaIndexTypeEnum.CHAPTER][0]    
+    chap = chapters[MangaIndexTypeEnum.CHAPTER][0]
     assert str(chap.page_url).endswith("m5196/")
     assert chap.title == "第1卷"
 

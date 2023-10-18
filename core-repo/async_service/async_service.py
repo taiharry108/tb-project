@@ -17,7 +17,7 @@ class AsyncService:
         in_q: asyncio.Queue,
         out_q: asyncio.Queue,
         async_func: AsyncFunctionDef,
-        **kwargs
+        **kwargs,
     ):
         while True:
             item = await in_q.get()
@@ -31,10 +31,11 @@ class AsyncService:
             while counter < 3:
                 try:
                     result = await async_func(**item, **kwargs)
+                    logger.info(f"{result=}")
                     break
                 except Exception as ex:
                     counter += 1
-                    logger.error(ex)
+                    logger.info(ex)
                     result = {}
             await asyncio.sleep(self.delay)
             await out_q.put(result)

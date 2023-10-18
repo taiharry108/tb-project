@@ -274,13 +274,13 @@ async def _download_pages(
     page_urls: List[str],
     db_chapter: DBChapter,
     session: AsyncSession,
-    download_service: DownloadService,
-    async_service: AsyncService,
+    dl_service: DownloadService,
+    asy_service: AsyncService,
     crud_service: CRUDService,
 ):
     pages = []
-    async for result in download_service.download_imgs(
-        async_service,
+    async for result in dl_service.download_imgs(
+        asy_service,
         download_path=download_path,
         img_list=[
             {"url": url, "filename": str(idx), "idx": idx, "total": len(page_urls)}
@@ -289,6 +289,7 @@ async def _download_pages(
         headers={"Referer": db_chapter.page_url},
     ):
         pages.append(result)
+        logger.info(f"{result=}")
         yield result
     await save_pages(pages, db_chapter.id, session, crud_service)
 

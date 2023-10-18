@@ -8,12 +8,12 @@ from boostrap import bootstrap_di
 
 bootstrap_di()
 
-# from container import Container
+from container import Container
 from routers import api, main, auth, user
 
 
 def create_app() -> FastAPI:
-    # container = Container()
+    container = Container()
 
     app = FastAPI()
 
@@ -33,7 +33,7 @@ def create_app() -> FastAPI:
     app.include_router(auth.router, prefix="/auth")
     app.include_router(user.router, prefix="/user")
     app.include_router(main.router, prefix="")
-    # container.init_resources()
+    container.init_resources()
 
     return app
 
@@ -44,4 +44,3 @@ app = create_app()
 @app.on_event("shutdown")
 async def on_shutdown():
     getattr(app, "container").shutdown_resources()
-    
