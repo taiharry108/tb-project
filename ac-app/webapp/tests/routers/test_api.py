@@ -11,7 +11,7 @@ from core.models.manga_site_enum import MangaSiteEnum
 from core.models.manga import MangaSimple
 from database import CRUDService
 from database import DatabaseService
-from database.models import MangaSite, Manga, Chapter, Page, Episode, Anime
+from database.models import MangaSite, Manga, Chapter, Page, Episode, Anime, History, AHistory, User
 
 from routers.api import save_pages
 from routers.db_utils import get_manga_site_id
@@ -100,12 +100,15 @@ async def run_before_and_after_tests(database: DatabaseService):
 
     async with database.session() as session:
         async with session.begin():
+            await session.execute(delete(AHistory))
+            await session.execute(delete(History))
             await session.execute(delete(Episode))
-            await session.execute(delete(Anime))
             await session.execute(delete(Page))
             await session.execute(delete(Chapter))
             await session.execute(delete(Manga))
+            await session.execute(delete(Anime))
             await session.execute(delete(MangaSite))
+            await session.execute(delete(User))
             session.add(MangaSite(name="manhuaren", url="https://www.manhuaren.com/"))
             session.add(MangaSite(name="anime1", url="https://anime1.me/"))
             await session.commit()

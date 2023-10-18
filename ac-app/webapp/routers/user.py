@@ -98,7 +98,7 @@ async def get_a_history(
 @router.get("/history", response_model=List[MangaSimple])
 async def get_history(
     time_sort: bool = False,
-    user_id: int = Depends(get_user_id_from_session_data),    
+    user_id: int = Depends(get_user_id_from_session_data),
     redirect_response=Depends(get_redirect_response),
     db_session: AsyncSession = Depends(get_db_session),
     crud_service: CRUDService = Depends(lambda: di[CRUDService]),
@@ -128,7 +128,11 @@ async def get_history(
     if not time_sort:
         return [simple_mangas[manga_id] for manga_id in manga_ids]
     else:
-        return list(sorted(simple_mangas.values(), key=lambda item: item.last_update, reverse=True))
+        return list(
+            sorted(
+                simple_mangas.values(), key=lambda item: item.last_update, reverse=True
+            )
+        )
 
 
 @router.post(
