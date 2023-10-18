@@ -1,13 +1,12 @@
-from dependency_injector.wiring import inject, Provider
-from httpx import AsyncClient
 import json
-from logging import getLogger
 import pytest
+
+from httpx import AsyncClient
+from logging import getLogger
 from sqlalchemy import delete, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Dict, List, Any
 
-from container import Container
 from core.models.manga_site_enum import MangaSiteEnum
 from core.models.manga import MangaSimple
 from database import CRUDService
@@ -114,21 +113,17 @@ async def run_before_and_after_tests(database: DatabaseService):
     main.app.dependency_overrides = {}
 
 
-@pytest.fixture(scope="module")
-@inject
-def scraping_service_factory(
-    scraping_service_factory=Provider[Container.scraping_service_factory],
+async def test_get_manga_site_id(
+    manga_site: MangaSiteEnum, db_session: AsyncSession, crud_service: CRUDService
 ):
-    return scraping_service_factory
-
-
-async def test_get_manga_site_id(manga_site: MangaSiteEnum, db_session: AsyncSession):
     result = await db_session.execute(
         select(MangaSite).where(MangaSite.name == manga_site.value)
     )
     db_manga_site: MangaSite = result.one()[0]
 
-    site_id = await get_manga_site_id(manga_site, session=db_session)
+    site_id = await get_manga_site_id(
+        manga_site, session=db_session, crud_service=crud_service
+    )
     assert db_manga_site.id == site_id
 
 
@@ -221,7 +216,6 @@ async def test_get_episode(
     )
     resp = await client.get(episode_path, params={"episode_id": db_episodes[0].id})
     assert "vid_path" in resp.json()
-    print(resp.json())
 
 
 async def test_get_chapters_manga_nonexistent(
@@ -251,7 +245,7 @@ async def test_get_meta_data_successful(
 
     assert meta_data["last_update"] == "2016-04-23T00:00:00"
     assert meta_data["finished"] == True
-    assert f"{manga_site}/{manga_name}/thum_img" in meta_data["thum_img"]
+    assert f"{manga_site.value}/{manga_name}/thum_img" in meta_data["thum_img"]
 
     db_manga = await crud_service.get_item_by_id(db_session, Manga, manga_id)
 
@@ -290,7 +284,7 @@ async def test_get_pages_successful(
                 assert "pic_path" in result
                 assert "idx" in result
                 assert "total" in result
-                assert f"{manga_site}/{manga_name}" in result["pic_path"]
+                assert f"{manga_site.value}/{manga_name}" in result["pic_path"]
 
                 pic_dict[result["idx"]] = result
 
@@ -303,7 +297,6 @@ async def test_get_pages_successful(
         assert page.pic_path == pic_dict[idx]["pic_path"]
 
 
-@inject
 async def test_save_pages(
     db_session: AsyncSession,
     crud_service: CRUDService,
@@ -315,7 +308,7 @@ async def test_save_pages(
         db_session, Chapter, "page_url", chapter_url
     )
     pages = [{"pic_path": pic_path, "idx": 0, "total": 1, "chapter_id": chapter_id}]
-    await save_pages(pages, chapter_id, db_session)
+    await save_pages(pages, chapter_id, db_session, crud_service)
     async with database.new_session() as session:
         async with session.begin():
             db_page = await crud_service.get_item_by_attr(
@@ -367,7 +360,7 @@ async def test_get_manga_successful(
     assert resp.json()
     manga_simple = MangaSimple(**resp.json())
     assert manga_simple.id == manga_id
-    assert manga_simple.url == manga_url
+    assert str(manga_simple.url) == manga_url
 
 
 async def test_get_manga_failed(manga_path: str, client: AsyncClient):

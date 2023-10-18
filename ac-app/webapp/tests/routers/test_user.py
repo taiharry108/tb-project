@@ -1,7 +1,8 @@
+import pytest
+
 from datetime import datetime
 from httpx import AsyncClient
 from logging import getLogger
-import pytest
 from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -381,8 +382,8 @@ async def test_del_a_history(
     assert len(history_animes) == 1
     assert history_animes[0].anime_id == anime_id
     assert history_animes[0].user_id == user_id
-    
-    resp = await client.request("DELETE", a_history_path, data={"anime_id": anime_id})    
+
+    resp = await client.request("DELETE", a_history_path, data={"anime_id": anime_id})
     assert resp.json() == {"success": True}
 
     history_animes = await crud_service.get_items_of_obj(

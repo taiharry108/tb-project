@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 
 
 class DatabaseService:
-    def __init__(self, engine: AsyncEngine, session_factory: orm.sessionmaker, url: str = None) -> None:
+    def __init__(
+        self, engine: AsyncEngine, session_factory: orm.sessionmaker, url: str = None
+    ) -> None:
         self._engine = engine
         self._session_factory = session_factory
         self.url = url

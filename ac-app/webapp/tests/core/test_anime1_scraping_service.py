@@ -15,7 +15,7 @@ logger = getLogger(__name__)
 
 @pytest.fixture
 def scraping_service(
-    scraping_service_factory: ScrapingServiceFactory
+    scraping_service_factory: ScrapingServiceFactory,
 ) -> AnimeSiteScrapingService:
     return scraping_service_factory.get(MangaSiteEnum.Anime1)
 

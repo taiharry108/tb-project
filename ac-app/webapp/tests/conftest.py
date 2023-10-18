@@ -1,7 +1,9 @@
 import asyncio
+import pytest
+
 from httpx import AsyncClient
 from kink import di, inject as kink_inject
-import pytest
+
 from sqlalchemy import orm
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
 
@@ -13,15 +15,16 @@ from database import DatabaseService, CRUDService
 from download_service import DownloadService
 
 
-
 from boostrap import bootstrap_di
+
 bootstrap_di()
+
 
 @pytest.fixture(scope="session")
 def event_loop():
     """Create an instance of the default event loop for each test case."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
-    
+
     yield loop
     loop.close()
 

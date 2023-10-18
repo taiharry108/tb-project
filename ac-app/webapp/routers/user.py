@@ -13,6 +13,7 @@ from core.models.anime import AnimeSimple
 from core.models.chapter import Chapter
 from core.models.episode import Episode
 from core.models.manga import MangaSimple
+from core.scraping_service import ScrapingServiceFactory
 from database import CRUDService
 from database.models import (
     User,
@@ -23,7 +24,7 @@ from database.models import (
     Anime,
     Episode as DBEpisode,
 )
-
+from download_service import DownloadService
 from routers.auth import get_session_data
 from routers.utils import get_db_session, get_redirect_response
 from session import SessionData
@@ -323,13 +324,9 @@ async def del_a_history(
             return True
         else:
             return False
+
     result = await crud_service.item_obj_iteraction(
-        db_session, 
-        User,
-        Anime,
-        user_id,
-        anime_id,
-        work
+        db_session, User, Anime, user_id, anime_id, work
     )
     if result:
         return {"success": True}
@@ -388,11 +385,16 @@ async def admin_update(
     is_active: bool = Depends(get_is_active_from_session_data),
     redirect_response=Depends(get_redirect_response),
     db_engine: AsyncEngine = Depends(lambda: di[AsyncEngine]),
+    download_service: DownloadService = Depends(lambda: di[DownloadService]),
+    download_path: str = Depends(lambda: di["api"]["download_path"]),
+    ss_factory: ScrapingServiceFactory = Depends(lambda: di[ScrapingServiceFactory]),
 ):
     if not is_active:
         return redirect_response
 
     mangas = await get_all_mangas_in_history(db_engine)
-    metas = await update_meta(mangas)
-    chapters = await update_chapters(mangas)
+    metas = await update_meta(
+        mangas, ss_factory, download_service, download_path, db_engine
+    )
+    chapters = await update_chapters(mangas, ss_factory, db_engine)
     return True

@@ -128,8 +128,10 @@ def get_scraping_service_from_manga(
 
 def get_scraping_service_from_anime(
     manga_site_name: str = Depends(get_manga_site_from_anime),
+    ss_factory: ScrapingServiceFactory = Depends(lambda: di[ScrapingServiceFactory]),
 ) -> ASSService:
-    return get_scraping_service_from_site(manga_site_name)
+    site = MangaSiteEnum(manga_site_name)
+    return get_scraping_service_from_site(site, ss_factory)
 
 
 async def get_manga_from_chapter_id(
