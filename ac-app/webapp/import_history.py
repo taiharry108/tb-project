@@ -91,7 +91,7 @@ async def _insert_rows(
 ) -> dict[str, int]:
     if not items:
         return set()
-    
+
     async with db_engine.begin() as conn:
         table = await get_table(table_name, conn)
         stmt = (
@@ -123,7 +123,9 @@ async def work_mangas(
 
 
 async def work_chapters(
-    db_engine: AsyncEngine, history_collection: list[History], manga_dict: dict[str, int]
+    db_engine: AsyncEngine,
+    history_collection: list[History],
+    manga_dict: dict[str, int],
 ):
     chapters: list[Chapter] = [
         {
@@ -143,7 +145,7 @@ async def work_chapters(
     return chap_dict
 
 
-async def insert_history(db_engine: AsyncEngine, hist_import_list: list[HistoryImport]):    
+async def insert_history(db_engine: AsyncEngine, hist_import_list: list[HistoryImport]):
     async with db_engine.begin() as conn:
         history_table = await get_table("history", conn)
         stmt = insert(history_table).values(hist_import_list)

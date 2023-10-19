@@ -11,7 +11,17 @@ from core.models.manga_site_enum import MangaSiteEnum
 from core.models.manga import MangaSimple
 from database import CRUDService
 from database import DatabaseService
-from database.models import MangaSite, Manga, Chapter, Page, Episode, Anime, History, AHistory, User
+from database.models import (
+    MangaSite,
+    Manga,
+    Chapter,
+    Page,
+    Episode,
+    Anime,
+    History,
+    AHistory,
+    User,
+)
 
 from routers.api import save_pages
 from routers.db_utils import get_manga_site_id

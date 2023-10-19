@@ -26,7 +26,7 @@ from database.models import (
     User,
     Episode,
     Anime,
-    AHistory
+    AHistory,
 )
 from download_service import DownloadService
 

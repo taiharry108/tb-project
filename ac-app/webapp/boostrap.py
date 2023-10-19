@@ -88,7 +88,7 @@ def bootstrap_di() -> None:
     di["num_workers"] = di["async_service"]["num_workers"]
     di["delay"] = di["async_service"]["delay"]
 
-    di.factories[AsyncService] = lambda di: AsyncService(di["num_workers"], di["delay"])
+    di[AsyncService] = lambda di: AsyncService(di["num_workers"], di["delay"])
 
     di.factories[DownloadService] = lambda di: DownloadService(
         di["max_connections"],
