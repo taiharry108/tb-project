@@ -2,8 +2,8 @@ import asyncio
 import pytest
 
 from httpx import AsyncClient
-from kink import di, inject as kink_inject
-
+from kink import di
+from logging import config as log_config
 from sqlalchemy import orm
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, AsyncEngine
 
@@ -24,15 +24,14 @@ bootstrap_di()
 def event_loop():
     """Create an instance of the default event loop for each test case."""
     loop = asyncio.get_event_loop_policy().new_event_loop()
-
     yield loop
     loop.close()
 
 
-# @pytest.fixture(autouse=True, scope="module")
-# @inject
-# async def container() -> Container:
-#     return Container()
+@pytest.fixture(autouse=True, scope="session")
+async def setup_logging() -> None:
+    log_config.fileConfig("logging.conf", disable_existing_loggers=False)
+    yield
 
 
 # @pytest.fixture(autouse=True, scope="module")
