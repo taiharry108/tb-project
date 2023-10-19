@@ -102,7 +102,6 @@ class ManhuarenScrapingService(MangaSiteScrapingService):
         return str(self.site.url)
 
     def _parse_datetime(self, dt_str) -> datetime:
-        print(dt_str)
         if "月" in dt_str:
             dt = datetime.strptime(f"{datetime.now().year}年{dt_str}", "%Y年%m月%d号")
         elif "前天" in dt_str:

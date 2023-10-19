@@ -43,7 +43,8 @@ async def get_user_id_from_session_data(
         user_id = await crud_service.get_id_by_attr(
             db_session, User, "email", session_data.username
         )
-    except AttributeError:
+    except AttributeError as ex:
+        logger.error(ex)
         user_id = None
     return user_id
 

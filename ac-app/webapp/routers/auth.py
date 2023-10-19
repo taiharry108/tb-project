@@ -7,11 +7,13 @@ from fastapi_sessions.frontends.implementations.cookie import (
 from fastapi_sessions.backends.session_backend import SessionBackend
 from jose import JWTError
 from kink import di
+from logging import getLogger
 from uuid import uuid4
 
 from security_service import SecurityService
 from session import BasicVerifier, SessionData
 
+logger = getLogger(__name__)
 router = APIRouter()
 
 
@@ -41,7 +43,7 @@ async def get_session_data(
     try:
         session_data = await _check_session(request, cookie, verifier)
     except HTTPException as ex:
-        print(ex.detail)
+        logger.error(ex.detail)
         return None
     return session_data
 
