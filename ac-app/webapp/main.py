@@ -13,6 +13,7 @@ bootstrap_di()
 # from container import Container
 from routers import api, main, auth, user
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     log_config.fileConfig("logging.conf", disable_existing_loggers=False)

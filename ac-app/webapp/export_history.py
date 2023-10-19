@@ -51,7 +51,6 @@ async def get_all_mangas_from_history(db_engine: AsyncEngine):
 
 
 async def main():
-
     result = await get_all_mangas_from_history(di[AsyncEngine])
     history_collection: list[History] = [
         {KEYS[idx]: item for idx, item in enumerate(row)} for row in result

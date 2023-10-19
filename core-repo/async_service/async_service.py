@@ -1,10 +1,16 @@
 import asyncio
 
 from ast import AsyncFunctionDef
+from itertools import islice
 from logging import getLogger
-from typing import Iterable
+from typing import Iterable, Coroutine
 
 logger = getLogger(__name__)
+
+
+def partition(lst, size):
+    for i in range(0, len(lst), size):
+        yield list(islice(lst, i, i + size))
 
 
 class AsyncService:
@@ -12,60 +18,16 @@ class AsyncService:
         self.num_workers = num_workers
         self.delay = delay
 
-    async def _producer(
-        self,
-        in_q: asyncio.Queue,
-        out_q: asyncio.Queue,
-        async_func: AsyncFunctionDef,
-        **kwargs,
-    ):
-        while True:
-            item = await in_q.get()
-
-            if item is None:
-                # this is the final item
-                await in_q.put(None)
-                await out_q.put(None)
-                break
-            counter = 0
-            while counter < 3:
-                try:
-                    result = await async_func(**item, **kwargs)
-                    logger.info(f"{result=}")
-                    break
-                except Exception as ex:
-                    counter += 1
-                    logger.info(ex)
-                    result = {}
-            await asyncio.sleep(self.delay)
-            await out_q.put(result)
-
-    async def _consumer(self, q: asyncio.Queue):
-        count = 0
-        while True:
-            item = await q.get()
-
-            if item is None:
-                count += 1
-            else:
-                yield item
-            if count == self.num_workers:
-                break
-
     async def work(self, items: Iterable, async_func: AsyncFunctionDef, **kwargs):
-        prod_queue = asyncio.Queue()
-        con_queue = asyncio.Queue()
-        for item in items:
-            await prod_queue.put(item)
+        semaphore = asyncio.Semaphore(self.num_workers)
 
-        await prod_queue.put(None)
+        async def sem_coro(coro: Coroutine):
+            async with semaphore:
+                result = await coro
+                return result
 
-        [
-            asyncio.create_task(
-                self._producer(prod_queue, con_queue, async_func, **kwargs)
-            )
-            for _ in range(self.num_workers)
-        ]
-
-        async for item in self._consumer(con_queue):
-            yield item
+        for part in partition(items, 10):
+            tasks = [async_func(**item, **kwargs) for item in part]
+            for item in asyncio.as_completed([sem_coro(c) for c in tasks]):
+                to_return = await item
+                yield to_return

@@ -1,3 +1,4 @@
+import asyncio
 import json
 
 from collections import defaultdict
@@ -62,6 +63,7 @@ async def save_pages(
         }
         for page in pages
     ]
+
     return await crud_service.bulk_create_objs_with_unique_key(
         session, Page, pages, "pic_path"
     )
@@ -268,19 +270,18 @@ async def _create_async_gen_from_pages(pages: Iterable[Page]):
         yield {"pic_path": db_page.pic_path, "idx": db_page.idx, "total": db_page.total}
 
 
-@kink_inject
 async def _download_pages(
     download_path: Path,
     page_urls: List[str],
     db_chapter: DBChapter,
     session: AsyncSession,
-    dl_service: DownloadService,
-    asy_service: AsyncService,
+    download_service: DownloadService,
+    async_service: AsyncService,
     crud_service: CRUDService,
 ):
     pages = []
-    async for result in dl_service.download_imgs(
-        asy_service,
+    async for result in download_service.download_imgs(
+        async_service,
         download_path=download_path,
         img_list=[
             {"url": url, "filename": str(idx), "idx": idx, "total": len(page_urls)}
@@ -289,7 +290,6 @@ async def _download_pages(
         headers={"Referer": db_chapter.page_url},
     ):
         pages.append(result)
-        logger.info(f"{result=}")
         yield result
     await save_pages(pages, db_chapter.id, session, crud_service)
 
@@ -341,6 +341,8 @@ async def get_pages(
     crud_service: CRUDService = Depends(lambda: di[CRUDService]),
     scraping_service: MSSService = Depends(db_utils.get_scraping_service_from_chapter),
     download_path: str = Depends(lambda: di["api"]["download_path"]),
+    download_service: DownloadService = Depends(lambda: di[DownloadService]),
+    async_service: AsyncService = Depends(lambda: di[AsyncService]),
 ):
     pages = await crud_service.get_items_by_same_attr(
         session, Page, "chapter_id", db_chapter.id
@@ -356,7 +358,15 @@ async def get_pages(
             / db_manga.name
             / db_chapter.title
         )
-        page_gen = _download_pages(download_path, page_urls, db_chapter, session)
+        page_gen = _download_pages(
+            download_path,
+            page_urls,
+            db_chapter,
+            session,
+            download_service,
+            async_service,
+            crud_service,
+        )
     else:
         page_gen = _create_async_gen_from_pages(pages)
 
