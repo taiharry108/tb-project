@@ -1,9 +1,7 @@
-from dependency_injector.wiring import inject, Provide
 from httpx import AsyncClient
 import pytest
 from sqlalchemy import delete
 
-from container import Container
 from database import DatabaseService
 from database.models import User as DBUser
 
@@ -41,14 +39,6 @@ def logout_path() -> str:
 @pytest.fixture(scope="module")
 def auth_path() -> str:
     return "/user/auth"
-
-
-@pytest.fixture(scope="module")
-@inject
-def db_service(
-    db_service: DatabaseService = Provide[Container.db_service],
-) -> DatabaseService:
-    return db_service
 
 
 @pytest.fixture(autouse=True, scope="module")
@@ -168,10 +158,14 @@ async def test_auth_successful(
     resp = await client.get(auth_path, params={"redirect_url": redirect_url})
     assert resp.status_code == 307
     assert resp.headers["location"].startswith(redirect_url)
+    assert client.cookies.get("a_session_id")
 
 
 @pytest.mark.anyio
-async def test_logout_successful(client: AsyncClient, logout_path: str):
+async def test_logout_successful(
+    client: AsyncClient,
+    logout_path: str,
+):
     assert client.cookies.get("a_session_id")
 
     resp = await client.post(logout_path)

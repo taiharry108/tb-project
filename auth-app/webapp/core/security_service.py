@@ -1,8 +1,7 @@
 from datetime import datetime, timedelta
-from pathlib import Path
 from typing import Optional
 
-from passlib.context import CryptContext
+import bcrypt
 from jose import jwt
 
 
@@ -17,24 +16,23 @@ class SecurityService:
         self,
         private_key: str,
         algorithm: str,
-        rt_key: str,
         access_token_expire_minutes: int,
-        pwd_context: CryptContext,
     ):
         self.secret_key = private_key
         self.algorithm = algorithm
-        self.rt_key = rt_key
         self.access_token_expire_minutes = access_token_expire_minutes
-        self.pwd_context = pwd_context
 
     def verify_password(self, plain_password: str, hashed_password: str) -> bool:
         try:
-            return self.pwd_context.verify(plain_password, hashed_password)
+            return bcrypt.checkpw(
+                plain_password.encode("utf8"), hashed_password.encode("utf8")
+            )
         except ValueError:
             return False
 
-    def hash_password(self, password: str) -> bool:
-        return self.pwd_context.hash(password)
+    def hash_password(self, password: str) -> str:
+        salt = bcrypt.gensalt(rounds=15)
+        return bcrypt.hashpw(password.encode("utf8"), salt).decode('utf8')
 
     def create_access_token(
         self, data: dict, expires_delta: Optional[timedelta] = None

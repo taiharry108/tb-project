@@ -1,6 +1,4 @@
 from datetime import timedelta
-from typing import List, Union
-from dependency_injector.wiring import inject, Provide
 from fastapi import APIRouter, Depends, Form, HTTPException, status, Request, Response
 from fastapi.security import OAuth2PasswordBearer
 from fastapi.responses import RedirectResponse, HTMLResponse
@@ -8,13 +6,13 @@ from fastapi.templating import Jinja2Templates
 from fastapi_sessions.backends.session_backend import SessionBackend
 from fastapi_sessions.frontends.session_frontend import SessionFrontend
 from fastapi_sessions.frontends.implementations import SessionCookie
-
+from kink import di
 from pydantic import EmailStr
 from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List, Union
 from urllib.parse import quote
 from uuid import uuid4
 
-from container import Container
 from core.user_service import UserService
 from core.security_service import SecurityService
 from core.models.user import User
@@ -40,11 +38,10 @@ async def create_session(
     return session
 
 
-@inject
 async def get_session_data(
     request: Request,
-    cookie: SessionCookie = Depends(Provide[Container.cookie]),
-    verifier: BasicVerifier = Depends(Provide[Container.verifier]),
+    cookie: SessionCookie = Depends(lambda: di["cookie"]),
+    verifier: BasicVerifier = Depends(lambda: di["verifier"]),
 ):
     try:
         cookie(request)
@@ -86,9 +83,8 @@ async def login_page(request: Request):
 
 
 @router.post("/signup")
-@inject
 async def signup(
-    user_service: UserService = Depends(Provide[Container.user_service]),
+    user_service: UserService = Depends(lambda: di[UserService]),
     username: EmailStr = Form(...),
     password: str = Form(...),
     session: AsyncSession = Depends(get_db_session),
@@ -104,12 +100,11 @@ async def signup(
 
 
 @router.post("/logout")
-@inject
 async def logout(
     response: Response,
     request: Request,
-    cookie: SessionFrontend = Depends(Provide[Container.cookie]),
-    backend: SessionBackend = Depends(Provide[Container.session_backend]),
+    cookie: SessionFrontend = Depends(lambda: di["cookie"]),
+    backend: SessionBackend = Depends(lambda: di["session_backend"]),
 ):
     session_id = cookie(request)
     await backend.delete(session_id)
@@ -120,17 +115,16 @@ async def logout(
 
 
 @router.post("/login")
-@inject
 async def login_for_access_token(
     response: Response,
     username: str = Form(...),
     password: str = Form(...),
     redirect_url: Union[str, None] = Form(default=None),
-    user_service: UserService = Depends(Provide[Container.user_service]),
-    security_service: SecurityService = Depends(Provide[Container.security_service]),
-    backend: SessionBackend = Depends(Provide[Container.session_backend]),
-    cookie: SessionFrontend = Depends(Provide[Container.cookie]),
-    allowed_redirect: List[str] = Depends(Provide[Container.config.allowed_redirect]),
+    user_service: UserService = Depends(lambda: di[UserService]),
+    security_service: SecurityService = Depends(lambda: di[SecurityService]),
+    cookie: SessionFrontend = Depends(lambda: di["cookie"]),
+    backend: SessionBackend = Depends(lambda: di["session_backend"]),
+    allowed_redirect: List[str] = Depends(lambda: di["allowed_redirect"]),
     session: AsyncSession = Depends(get_db_session),
 ):
     if redirect_url and redirect_url not in allowed_redirect:
@@ -160,7 +154,6 @@ async def login_for_access_token(
 
 
 @router.get("/whoami")
-@inject
 async def whoami(session_data: SessionData = Depends(get_session_data)):
     if not session_data:
         return RedirectResponse("/auth/user/")
@@ -168,12 +161,11 @@ async def whoami(session_data: SessionData = Depends(get_session_data)):
 
 
 @router.get("/auth", response_class=RedirectResponse)
-@inject
 async def authenticate(
     redirect_url: str,
     session_data: SessionData = Depends(get_session_data),
-    security_service: SecurityService = Depends(Provide[Container.security_service]),
-    allowed_redirect: List[str] = Depends(Provide[Container.config.allowed_redirect]),
+    security_service: SecurityService = Depends(lambda: di[SecurityService]),
+    allowed_redirect: List[str] = Depends(lambda: di["allowed_redirect"]),
 ):
     if redirect_url not in allowed_redirect:
         raise HTTPException(

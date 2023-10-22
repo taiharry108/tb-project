@@ -1,21 +1,25 @@
 """Application module."""
+from contextlib import asynccontextmanager
 from logging import config
-
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from container import Container
+from boostrap import bootstrap_di
+
+bootstrap_di()
+
 from routers import main
 
 
-config.fileConfig("logging.conf", disable_existing_loggers=False)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    config.fileConfig("logging.conf", disable_existing_loggers=False)
+    yield
 
 
 def create_app() -> FastAPI:
-    container = Container()
-
-    app = FastAPI()
+    app = FastAPI(lifespan=lifespan)
 
     origins = ["http://localhost:60889"]
 
@@ -27,9 +31,6 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.mount("/css", StaticFiles(directory="/client/src/css/"), name="css")
-
-    setattr(app, "container", container)
-
     app.include_router(main.router, prefix="/user")
 
     return app

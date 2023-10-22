@@ -1,16 +1,15 @@
+import os
+import pytest
+
 from datetime import timedelta
 from typing import AsyncGenerator
-import pytest
-from dependency_injector.wiring import inject, Provide
-from dependency_injector import providers
 from jose import jwt, exceptions
+from kink import di
+from logging import getLogger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from logging import getLogger
 
-from container import Container
 from core.security_service import SecurityService
-
 from database import DatabaseService
 
 logger = getLogger(__name__)
@@ -27,19 +26,15 @@ def password() -> str:
 
 
 @pytest.fixture(scope="module")
-@inject
 def security_service(
-    security_service: providers.Singleton[SecurityService] = Provide[
-        Container.security_service
-    ],
+    security_service: SecurityService = di[SecurityService],
 ) -> SecurityService:
     return security_service
 
 
 @pytest.fixture
 def public_key() -> str:
-    with open("jwt_public.key") as f:
-        return f.read()
+    return os.getenv("JWT_PUBLIC_KEY")
 
 
 @pytest.fixture
