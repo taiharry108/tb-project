@@ -37,12 +37,10 @@ run-lint:
 export-history:
 	@docker compose -f ./ac-app/docker-compose.yml run --rm web python export_history.py
 
-run-test:
-	@
-		export JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY} && \
+run-tests:
+	@export JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY} && \
 		export JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY} && \
 		export POSTGRES_PASSWORD=${POSTGRES_PASSWORD} && \
 		export POSTGRES_USER=${POSTGRES_USER} && \
-		docker compose -f ${COMPOSE_FILE} up -d test-db --scale test-db=1 && \
-		docker compose -f ${COMPOSE_FILE} run --rm web pytest -s . && \
-		docker compose -f ${COMPOSE_FILE} down test-db
+		export COMPOSE_FILE=${COMPOSE_FILE} && \
+		./run_tests.sh
