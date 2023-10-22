@@ -80,9 +80,9 @@ async def crud_service(database: DatabaseService) -> CRUDService:
     return di[CRUDService]
 
 
-# @pytest.fixture(scope="module")
-# def anyio_backend():
-#     return "asyncio"
+@pytest.fixture(scope="module")
+def anyio_backend():
+    return "asyncio"
 
 
 @pytest.fixture(scope="module")

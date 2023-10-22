@@ -1,17 +1,16 @@
-from dependency_injector.wiring import inject, Provide
 from fastapi import Depends
+from kink import di
 from logging import getLogger
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from container import Container
+
 from database import DatabaseService
 
 logger = getLogger(__name__)
 
 
-@inject
 def get_database_service(
-    database_service: DatabaseService = Depends(Provide[Container.db_service]),
+    database_service: DatabaseService = Depends(lambda: di[DatabaseService]),
 ) -> DatabaseService:
     return database_service
 
