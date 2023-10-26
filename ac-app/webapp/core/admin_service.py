@@ -3,7 +3,7 @@ from pathlib import Path
 from sqlalchemy import select, Table, MetaData, case
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncConnection
-from typing import Coroutine
+from typing import Coroutine, TypeVar
 
 from core.models.chapter import Chapter
 from core.models.manga import MangaWithSite
@@ -13,13 +13,17 @@ from core.scraping_service import ScrapingServiceFactory
 from core.scraping_service.manga_site_scraping_service import MangaSiteScrapingService
 from download_service import DownloadService
 
+T = TypeVar('T')
 
-async def gather_with_concurrency(n: int, *coros: Coroutine):
+async def gather_with_concurrency(n: int, *coros: Coroutine[None, None, T]) -> list[T | Exception]:
     semaphore = asyncio.Semaphore(n)
 
-    async def sem_coro(coro):
-        async with semaphore:
-            return await coro
+    async def sem_coro(coro: Coroutine[None, None, T]) -> T | Exception:
+        try:
+            async with semaphore:
+                return await coro
+        except Exception as ex:
+            return ex
 
     return await asyncio.gather(*(sem_coro(c) for c in coros))
 
@@ -99,10 +103,8 @@ async def update_chapters(
         for manga in mangas
     ]
 
-    chap_result: list[
-        dict[MangaIndexTypeEnum, list[Chapter]]
-    ] = await gather_with_concurrency(5, *tasks)
-    chapter_dict = {manga.id: chap for manga, chap in zip(mangas, chap_result)}
+    chap_result = await gather_with_concurrency(5, *tasks)
+    chapter_dict = {manga.id: chap for manga, chap in zip(mangas, chap_result) if isinstance(chap, Chapter)}
     chapter_list = []
     for manga_id, chapters in chapter_dict.items():
         for m_type, chap_list in chapters.items():
@@ -147,7 +149,8 @@ async def update_meta(
         for manga in mangas
     ]
 
-    result: list[Meta] = await gather_with_concurrency(5, *tasks)
+    result = await gather_with_concurrency(5, *tasks)
+    result = [meta for meta in result if isinstance(meta, Meta)]
 
     async with db_engine.begin() as conn:
         last_update_map = {
