@@ -41,11 +41,11 @@ $(function ($) {
     const getChapNeigbhor = () => {
         if (!chapterId)
             return;
-        
+
         Object.keys(chapterDict).forEach((key) => {
             const index = chapterDict[key].findIndex(item => item.id == chapterId);
             if (index == -1)
-                return 
+                return
 
             prevChapId = chapterDict[key][Math.max(index - 1, 0)].id
             nextChapId = chapterDict[key][Math.min(index + 1, chapterDict[key].length - 1)].id
@@ -167,14 +167,15 @@ $(function ($) {
                 data: data,
                 success: (response) => {
                     addMeta(response);
-                    $.ajax({
-                        type: 'POST',
-                        url: historyEndpoint,
-                        data: data,
-                        success: (response) => {
-                            console.log(response);
-                        }
-                    });
+                }
+            });
+
+            $.ajax({
+                type: 'POST',
+                url: historyEndpoint,
+                data: data,
+                success: (response) => {
+                    console.log(response);
                 }
             });
             updateLastRead();
@@ -194,7 +195,7 @@ $(function ($) {
         });
     }
 
-    
+
     $("#view-modal").on("hidden.bs.modal", () => {
         evtSource.close();
     });

@@ -1,5 +1,6 @@
 $(function ($) {
     const historyEndpoint = '/ac/user/history';
+    const updateEndpoint = '/ac/user/admin-update';
     const aHistoryEndpoint = '/ac/user/a_history';
     const staticFilesEndpoint = "/static"
 
@@ -89,6 +90,21 @@ $(function ($) {
         });
     };
 
+    const refreshMeta = () => {
+        $.ajax({
+            type: 'GET',
+            url: updateEndpoint,
+            success: (response) => {
+                console.log(response);
+                $("div.history-container").empty();
+                fetchHistory(false);
+            },
+            complete: () => {
+            }
+        });
+    };
+
+
     fetchHistory(false);
 
     const clearHistoryContainer = () => {
@@ -109,6 +125,10 @@ $(function ($) {
     $('#sort-by-time-span').click(() => {
         $("div.history-container").empty();
         fetchHistory(true);
+    });
+
+    $('#refresh-span').click(() => {
+        refreshMeta();
     });
 
 })
