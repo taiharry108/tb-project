@@ -108,7 +108,7 @@ class ManhuarenScrapingService(MangaSiteScrapingService):
             dt = datetime.now() - timedelta(days=2)
         elif "昨天" in dt_str:
             dt = datetime.now() - timedelta(days=1)
-        elif "今天" in dt_str:
+        elif "今天" in dt_str or "分钟前" in dt_str:
             dt = datetime.now()
         else:
             dt = datetime.strptime(dt_str, "%Y-%m-%d")
@@ -125,7 +125,11 @@ class ManhuarenScrapingService(MangaSiteScrapingService):
         chapter_title = latest_chap_tag.text.strip()
         chapter_url = convert_url(latest_chap_tag.get("href"), self.url)
 
-        last_update = self._parse_datetime(last_update)
+        try:
+            last_update = self._parse_datetime(last_update)
+        except Exception as ex:
+            logger.error(f"{ex=}, {manga_url=}")
+            last_update = None
 
         return Meta(
             last_update=last_update,
