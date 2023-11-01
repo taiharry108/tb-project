@@ -1,4 +1,6 @@
 import asyncio
+
+from logging import getLogger
 from pathlib import Path
 from sqlalchemy import select, Table, MetaData, case
 from sqlalchemy.dialects.postgresql import insert
@@ -13,6 +15,8 @@ from core.scraping_service import ScrapingServiceFactory
 from core.scraping_service.manga_site_scraping_service import MangaSiteScrapingService
 from download_service import DownloadService
 
+
+logger = getLogger(__name__)
 T = TypeVar('T')
 
 async def gather_with_concurrency(n: int, *coros: Coroutine[None, None, T]) -> list[T | Exception]:
@@ -23,6 +27,7 @@ async def gather_with_concurrency(n: int, *coros: Coroutine[None, None, T]) -> l
             async with semaphore:
                 return await coro
         except Exception as ex:
+            logger.error(f"{ex=}")
             return ex
 
     return await asyncio.gather(*(sem_coro(c) for c in coros))
@@ -104,7 +109,7 @@ async def update_chapters(
     ]
 
     chap_result = await gather_with_concurrency(5, *tasks)
-    chapter_dict = {manga.id: chap for manga, chap in zip(mangas, chap_result) if isinstance(chap, Chapter)}
+    chapter_dict = {manga.id: chap for manga, chap in zip(mangas, chap_result) if isinstance(chap, dict)}
     chapter_list = []
     for manga_id, chapters in chapter_dict.items():
         for m_type, chap_list in chapters.items():
