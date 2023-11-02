@@ -18,6 +18,7 @@ make run COMPOSE_FILE=./auth-app/docker-compose.yml
 make run COMPOSE_FILE=./core-repo/docker-compose.yml
 ```
 Note: `core-repo` should be run at last. It creates a postgres, redis, and nginx server, which acts as a reverse proxy server.
+
 Now you should be able to access the AC app by 
 `
 http://localhost/ac/
