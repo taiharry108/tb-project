@@ -1,7 +1,10 @@
+import os
+import pytest
+
 from datetime import datetime
 from logging import getLogger
 from pathlib import Path
-import pytest
+
 from core.models.anime import Anime
 from core.models.episode import Episode
 from core.models.manga_site_enum import MangaSiteEnum
@@ -58,10 +61,12 @@ async def test_get_video_url(scraping_service: Anime1ScrapingService):
 
 async def test_download_episode(
     scraping_service: Anime1ScrapingService,
+    tmp_path: Path
 ):
     anime = Anime(name="", eps="", year="", season="", sub="", url="?cat=975")
     eps = await scraping_service.get_index_page(anime)
     video_url = await scraping_service.get_video_url(eps[0])
-    await scraping_service.download_service.download_vid(
-        url=video_url, download_path=Path("./downloaded")
+    result = await scraping_service.download_service.download_vid(
+        url=video_url, download_path=tmp_path
     )
+    assert os.path.exists(result["vid_path"])
