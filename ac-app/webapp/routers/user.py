@@ -12,13 +12,14 @@ from core.admin_service import update_meta, get_all_mangas_in_history, update_ch
 from core.models.anime import AnimeSimple
 from core.models.chapter import Chapter
 from core.models.episode import Episode
+from core.models.history import History
 from core.models.manga import MangaSimple
 from core.scraping_service import ScrapingServiceFactory
 from database import CRUDService
 from database.models import (
     User,
     Manga,
-    History,
+    History as DBHistory,
     Chapter as DBChapter,
     AHistory,
     Anime,
@@ -136,6 +137,23 @@ async def get_history(
         )
 
 
+@router.get("/history-page", response_model=History)
+async def get_history_page(
+    manga_id: int,
+    user_id: int = Depends(get_user_id_from_session_data),
+    redirect_response=Depends(get_redirect_response),
+    db_session: AsyncSession = Depends(get_db_session),
+):
+    if not user_id:
+        return redirect_response
+    result = await db_session.execute(
+        select(DBHistory.page_idx).where(DBHistory.manga_id == manga_id)
+    )
+    page_idx = result.fetchone()[0]
+    resp = History(user_id=user_id, manga_id=manga_id, page_idx=page_idx)
+    return resp
+
+
 @router.post(
     "/a_history",
 )
@@ -194,9 +212,9 @@ async def add_history(
 
     async def work(session, db_user, db_manga):
         q = (
-            select(History)
-            .where(History.manga_id == manga_id)
-            .where(History.user_id == user_id)
+            select(DBHistory)
+            .where(DBHistory.manga_id == manga_id)
+            .where(DBHistory.user_id == user_id)
         )
         db_hist = await session.execute(q)
         try:
@@ -204,7 +222,7 @@ async def add_history(
         except NoResultFound:
             db_hist = None
         if db_hist is None:
-            db_hist = History(last_added=datetime.now(), user=db_user, manga=db_manga)
+            db_hist = DBHistory(last_added=datetime.now(), user=db_user, manga=db_manga)
             session.add(db_hist)
         else:
             db_hist.last_added = datetime.now()
@@ -279,9 +297,9 @@ async def update_history(
 
     async def work(session, db_user, db_manga):
         q = (
-            select(History)
-            .where(History.manga_id == manga_id)
-            .where(History.user_id == user_id)
+            select(DBHistory)
+            .where(DBHistory.manga_id == manga_id)
+            .where(DBHistory.user_id == user_id)
         )
         db_hist = await session.execute(q)
         try:
@@ -297,6 +315,46 @@ async def update_history(
     )
     if history:
         return {"user_id": user_id, "manga_id": manga_id, "chapter_id": chapter_id}
+
+    raise HTTPException(
+        status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Manga does not exist"
+    )
+
+
+@router.put(
+    "/history-page",
+)
+async def update_history_page(
+    manga_id: int = Form(),
+    page_idx: int = Form(),
+    user_id: int = Depends(get_user_id_from_session_data),
+    redirect_response=Depends(get_redirect_response),
+    db_session: AsyncSession = Depends(get_db_session),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
+):
+    if not user_id:
+        return redirect_response
+
+    async def work(session, db_user, db_manga):
+        q = (
+            select(DBHistory)
+            .where(DBHistory.manga_id == manga_id)
+            .where(DBHistory.user_id == user_id)
+        )
+        db_hist = await session.execute(q)
+        try:
+            db_hist = db_hist.one()[0]
+            db_hist.page_idx = page_idx
+            await session.commit()
+        except (NoResultFound, IntegrityError):
+            db_hist = None
+        return db_hist
+
+    history = await crud_service.item_obj_iteraction(
+        db_session, User, Manga, user_id, manga_id, work
+    )
+    if history:
+        return {"user_id": user_id, "manga_id": manga_id, "page_idx": page_idx}
 
     raise HTTPException(
         status_code=status.HTTP_406_NOT_ACCEPTABLE, detail="Manga does not exist"
@@ -360,9 +418,9 @@ async def del_history(
 
     async def work(session, db_user, db_manga):
         q = (
-            select(History)
-            .where(History.manga_id == manga_id)
-            .where(History.user_id == user_id)
+            select(DBHistory)
+            .where(DBHistory.manga_id == manga_id)
+            .where(DBHistory.user_id == user_id)
         )
         db_hist = await session.execute(q)
         try:

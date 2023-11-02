@@ -34,6 +34,7 @@ class History(Base):
     manga = relationship("Manga", back_populates="users")
     user = relationship("User", back_populates="history_mangas")
     chapter = relationship("Chapter")
+    page_idx = Column(Integer, nullable=True)
 
 
 class MangaSite(Base):

@@ -32,7 +32,7 @@ class SecurityService:
 
     def hash_password(self, password: str) -> str:
         salt = bcrypt.gensalt(rounds=15)
-        return bcrypt.hashpw(password.encode("utf8"), salt).decode('utf8')
+        return bcrypt.hashpw(password.encode("utf8"), salt).decode("utf8")
 
     def create_access_token(
         self, data: dict, expires_delta: Optional[timedelta] = None
