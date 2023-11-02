@@ -96,13 +96,3 @@ async def test_get_page_urls(
     for img_url in img_urls:
         assert img_url.startswith("https://manhua")
         assert ".jpg" in img_url
-
-
-# @pytest.mark.parametrize("m_data,c_data", [
-#     ({"name": "海盗战记", "url": "https://www.manhuaren.com/manhua-haidaozhanji/"},
-#      {"title": "第186话", "page_url": 'https://www.manhuaren.com/m1199827/'})
-# ])
-# async def test_download_chapter(scraping_service: MangaSiteScrapingService, manga: Manga, chapter: Chapter):
-#     async for item in scraping_service.download_chapter(manga, chapter):
-#         assert "pic_path" in item
-#         assert "idx" in item
