@@ -1,6 +1,7 @@
 $(function ($) {
     const chaptersEndpoint = '/ac/api/chapters';
     const historyEndpoint = '/ac/user/history';
+    const historyPageEndpoint = '/ac/user/history-page';
     const mangaEndpoint = '/ac/api/manga';
     const metaEndpoint = '/ac/api/meta';
     const pagesEndpoint = '/ac/api/pages';
@@ -16,6 +17,8 @@ $(function ($) {
     let readyToFetch = true;
 
     const staticFilesEndpoint = "/static";
+
+    let currentPageIdx = null;
 
     const getChapterFromIndices = (tabIdx, chapIdx) => {
         if (chapterDict) {
@@ -34,6 +37,28 @@ $(function ($) {
             data: data,
             success: (response) => {
                 updateLastRead();
+            }
+        });
+    }
+
+    const getHistoryPage = async () => {
+        const data = { manga_id: mangaId }
+        let resp = await $.ajax({
+            type: 'GET',
+            url: historyPageEndpoint,
+            data: data,
+        });
+        return resp
+    }
+
+    const updateHistoryPage = (pageIdx) => {
+        const data = { manga_id: mangaId, page_idx: pageIdx };
+        $.ajax({
+            type: 'PUT',
+            url: historyPageEndpoint,
+            data: data,
+            success: (response) => {
+                console.log(response);
             }
         });
     }
@@ -121,17 +146,25 @@ $(function ($) {
         });
     }
 
-    const fetchPages = (chapId) => {
+    const calculateHeight = (pageIdx) => {
+        return $("div.modal-content-container img").slice(0, pageIdx).toArray().reduce((acc, cur) => acc + cur.height, 0);
+    }
+
+    const fetchPages = async (chapId) => {
         readyToFetch = false;
         const modalContainer = $("div.modal-content-container");
         modalContainer.find("div").remove();
         let added = false;
         evtSource = new EventSource(`${pagesEndpoint}?chapter_id=${chapId}`);
-        evtSource.onmessage = (e) => {
+        evtSource.onmessage = async (e) => {
             const data = JSON.parse(e.data);
             if (e.data === '{}') {
                 evtSource.close();
                 readyToFetch = true;
+                resp = await getHistoryPage();
+                currentPageIdx = resp.page_idx;
+                height = calculateHeight(currentPageIdx);
+                window.scrollBy(0, height);
             }
             else {
                 if (!added) {
@@ -239,6 +272,23 @@ $(function ($) {
         }
     }
     autoFetch();
+
+    eleInMid = (ele) => {
+        let rect = ele.getBoundingClientRect();
+        let midY = rect.y + rect.height / 2;
+        return midY >= 0 && midY <= window.innerHeight;
+    }
+
+    window.addEventListener('scrollend', function () {
+        $("div.modal-content-container img").each((idx, ele) => {
+            let isMid = eleInMid(ele);
+            if (isMid && currentPageIdx != idx) {
+                currentPageIdx = idx;
+                updateHistoryPage(idx);
+            }
+
+        });
+    });
 
 })
 

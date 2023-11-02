@@ -5,7 +5,7 @@ from kink import di
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import CRUDService
-from database.models import Manga, Anime, Chapter
+from database.models import Manga, Anime, Chapter, User
 from routers.auth import get_session_data
 from routers.utils import get_db_session, get_redirect_response
 from session import SessionData
@@ -84,6 +84,21 @@ async def anime_page(
         "anime.html",
         {"request": request, "anime_id": anime_id, "anime_name": anime_name},
     )
+
+
+async def get_user_id_from_session_data(
+    session_data: SessionData = Depends(get_session_data),
+    crud_service: CRUDService = Depends(lambda: di[CRUDService]),
+    db_session: AsyncSession = Depends(get_db_session),
+):
+    try:
+        user_id = await crud_service.get_id_by_attr(
+            db_session, User, "email", session_data.username
+        )
+    except AttributeError as ex:
+        logger.error(ex)
+        user_id = None
+    return user_id
 
 
 @router.get("/chapter")

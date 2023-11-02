@@ -7,6 +7,7 @@ from sqlalchemy import delete
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from core.models.anime import AnimeSimple
+from core.models.history import History
 from core.models.manga import MangaSimple
 from database import CRUDService
 from database import DatabaseService
@@ -15,7 +16,7 @@ from database.models import (
     Manga,
     Chapter,
     Page,
-    History,
+    History as DBHistory,
     User,
     Anime,
     Episode,
@@ -32,6 +33,11 @@ logger = getLogger(__name__)
 @pytest.fixture(scope="module")
 def history_path():
     return "/user/history"
+
+
+@pytest.fixture(scope="module")
+def history_page_path():
+    return "/user/history-page"
 
 
 @pytest.fixture(scope="module")
@@ -109,7 +115,7 @@ async def run_before_and_after_tests(
     async with database.session() as session:
         async with session.begin():
             await session.execute(delete(AHistory))
-            await session.execute(delete(History))
+            await session.execute(delete(DBHistory))
             await session.execute(delete(Episode))
             await session.execute(delete(Anime))
             await session.execute(delete(Page))
@@ -192,6 +198,11 @@ async def chapter_id(
                 session, Chapter, "page_url", chapter_url
             )
             return db_chapter.id
+
+
+@pytest.fixture(scope="module")
+async def page_idx() -> int:
+    return 0
 
 
 @pytest.fixture(scope="module")
@@ -293,6 +304,31 @@ async def test_update_history(
     assert history_mangas[0].chapter_id == chapter_id
 
 
+async def test_update_history_page(
+    history_page_path: str,
+    client: AsyncClient,
+    manga_id: int,
+    user_id: int,
+    page_idx: int,
+    crud_service: CRUDService,
+    db_session: AsyncSession,
+):
+    data = {"manga_id": manga_id, "page_idx": page_idx}
+    resp = await client.put(history_page_path, data=data)
+    assert resp.json() == {
+        "user_id": user_id,
+        "manga_id": manga_id,
+        "page_idx": page_idx,
+    }
+    history_mangas = await crud_service.get_items_of_obj(
+        db_session, User, user_id, "history_mangas"
+    )
+    assert len(history_mangas) == 1
+    assert history_mangas[0].manga_id == manga_id
+    assert history_mangas[0].user_id == user_id
+    assert history_mangas[0].page_idx == page_idx
+
+
 async def test_update_a_history(
     a_history_path: str,
     client: AsyncClient,
@@ -337,7 +373,7 @@ async def test_get_a_history(
     episode_title: str,
 ):
     resp = await client.get(a_history_path)
-    anime = AnimeSimple(**resp.json()[0])
+    anime = AnimeSimple.model_validate(resp.json()[0])
     assert anime.name == anime_name
     assert anime.url == anime_url
     assert anime.last_read_episode.title == episode_title
@@ -352,11 +388,20 @@ async def test_get_history(
     chapter_url: str,
 ):
     resp = await client.get(history_path)
-    manga = MangaSimple(**resp.json()[0])
+    manga = MangaSimple.model_validate(resp.json()[0])
     assert manga.name == manga_name
     assert str(manga.url) == manga_url
     assert manga.last_read_chapter.title == chapter_title
     assert str(manga.last_read_chapter.page_url) == chapter_url
+
+
+async def test_get_history_page(
+    history_page_path: str, client: AsyncClient, manga_id: int, page_idx: int
+):
+    resp = await client.get(history_page_path, params={"manga_id": manga_id})
+    history = History.model_validate(resp.json())
+    assert history.page_idx == page_idx
+    assert history.manga_id == manga_id
 
 
 async def test_add_history_fail(

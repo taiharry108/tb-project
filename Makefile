@@ -24,7 +24,7 @@ build-client:
 	@docker compose -f ${COMPOSE_FILE} run --rm frontend npm run start
 
 migrate-db:
-	@docker compose -f ${COMPOSE_FILE} run --rm core alembic revision --autogenerate -m ${MIGRATION_MESSAGE} && \
+	@docker compose -f ${COMPOSE_FILE} run --rm core alembic revision --autogenerate -m '${MIGRATION_MESSAGE}' && \
 		docker compose -f ${COMPOSE_FILE} run --rm core alembic upgrade head
 
 update-db:
