@@ -95,18 +95,12 @@ class DownloadService:
         max_keepalive_connections: int,
         headers: Dict[str, str],
         store_service: StoreService,
-        # proxy: Dict[str, str],
     ) -> None:
         limits = Limits(
             max_connections=max_connections,
             max_keepalive_connections=max_keepalive_connections,
         )
         timeout = Timeout(100, read=None)
-        # if not proxy:
-        #     proxies = f"socks5://{proxy['username']}:{proxy['password']}@{proxy['server']}:{proxy['port']}"
-        #     self.client = AsyncClient(
-        #         limits=limits, timeout=timeout, verify=False, proxies=proxies)
-        # else:
         self.client = AsyncClient(limits=limits, timeout=timeout, verify=False)
 
         self.headers = headers
