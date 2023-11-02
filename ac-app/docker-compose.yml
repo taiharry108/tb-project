@@ -67,8 +67,3 @@ services:
       - core_default
     deploy:
       replicas: 0
-  redis:
-    container_name: default-redis
-    image: redis:alpine
-    networks:
-      - core_default

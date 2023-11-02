@@ -52,3 +52,9 @@ services:
       POSTGRES_DB: mydb
     networks:
       - core_default
+  redis:
+    container_name: default-redis
+    image: redis:alpine
+    networks:
+      - core_default
+
