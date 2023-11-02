@@ -9,7 +9,6 @@ services:
     build:
       context: ./
       dockerfile: dockerfiles/client.dockerfile
-    # command: tail -F anything
     image: ac-app-client-builder:1.0
     container_name: ac-app-client-builder
     volumes:

@@ -1,0 +1,31 @@
+download_service:
+  max_connections: 20
+  max_keepalive_connections: 20
+  headers:
+    User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/79.0.3945.130 Safari/537.36
+    Accept-Language: en-US,en;q=0.9,zh-TW;q=0.8,zh;q=0.7,ja;q=0.6,zh-CN;q=0.5
+  store: fs
+
+security_service:
+  algorithm: "RS256"
+
+store_service:
+  name: fs
+
+db:
+  url: postgresql+asyncpg://%POSTGRES_URL%
+  test_url: postgresql+asyncpg://%TEST_POSTGRES_URL%
+
+api:
+  download_path: /downloaded
+
+async_service:
+  num_workers: 5
+  delay: 1
+
+auth_server:
+  url: "/auth"
+  redirect_url: "/ac/auth"
+
+redis:
+  url: "default-redis"
