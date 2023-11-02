@@ -13,8 +13,8 @@ store_service:
   name: fs
 
 db:
-  url: postgresql+asyncpg://%POSTGRES_URL%
-  test_url: postgresql+asyncpg://%TEST_POSTGRES_URL%
+  url: "postgresql+asyncpg://POSTGRES_USER:POSTGRES_PASSWORD@core-db/mydb"
+  test_url: "postgresql+asyncpg://POSTGRES_USER:POSTGRES_PASSWORD@core-test-db/mydb"
 
 api:
   download_path: /downloaded

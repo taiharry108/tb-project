@@ -1,0 +1,15 @@
+some_service:
+  name: "s"
+
+db:
+  url: "postgresql+asyncpg://POSTGRES_USER:POSTGRES_PASSWORD@core-db/mydb"
+  test_url: "postgresql+asyncpg://POSTGRES_USER:POSTGRES_PASSWORD@core-test-db/mydb"
+
+security_service:
+  algorithm: "RS256"
+  access_token_expire_minutes: 10080
+
+allowed_redirect: ["http://localhost:60889/auth", "/encrypt/auth", "/ac/auth"]
+
+redis:
+  url: "default-redis"
