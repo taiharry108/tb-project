@@ -60,8 +60,7 @@ async def test_get_video_url(scraping_service: Anime1ScrapingService):
 
 
 async def test_download_episode(
-    scraping_service: Anime1ScrapingService,
-    tmp_path: Path
+    scraping_service: Anime1ScrapingService, tmp_path: Path
 ):
     anime = Anime(name="", eps="", year="", season="", sub="", url="?cat=975")
     eps = await scraping_service.get_index_page(anime)

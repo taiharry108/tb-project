@@ -27,8 +27,11 @@ def request_resp(method: str = "GET"):
                 else False
             )
             data = kwargs.pop("data") if "data" in kwargs else {}
+            json = kwargs.pop("json") if "json" in kwargs else {}
 
-            logger.info(f"going to send a {method} request to {url}")
+            logger.info(
+                f"going to send a {method} request to {url} with data {data} and {headers=}"
+            )
 
             client: AsyncClient = self.client
             resp = await client.request(
@@ -37,6 +40,7 @@ def request_resp(method: str = "GET"):
                 headers=headers,
                 follow_redirects=follow_redirects,
                 data=data,
+                json=json,
             )
 
             if resp.status_code == 200:

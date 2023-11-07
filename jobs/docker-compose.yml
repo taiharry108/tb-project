@@ -2,10 +2,28 @@ version: '3.7'
 
 networks:
   core_default:
-    external:
-      name: core-vn
+    external: true
+    name: core-vn
+  bt_default:
+    external: true
+    name: bt_virtual_network
 
 services:
+  dmhy:
+    container_name: dmhy-job
+    image: dmhy-job:1.0
+    build:
+      context: ./dmhy
+      dockerfile: Dockerfile
+    command: tail -F anything
+    volumes:
+      - ./.vscode-server:/root/.vscode-server
+      - ../core-repo/download_service/:/core/download_service
+      - ../core-repo/store_service/:/core/store_service
+      - ../core-repo/async_service/:/core/async_service
+      - ./dmhy/src:/src
+    environment:
+      - PYTHONPATH=/core
   encryption:
     container_name: encryption_job
     build:
