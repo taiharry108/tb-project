@@ -11,7 +11,7 @@ from core.models.manga import MangaSimple
 
 
 from core.models.manga_site_enum import MangaSiteEnum
-from core.models.mock import MOCK_MANGA
+from core.models.mock import MOCK_MANGA, MOCK_CHAPTER, Manga as MangaPy, Chapter as ChapterPy
 from core.scraping_service.mock_manga_scraping_service import MockMangaScrapingService
 from database import CRUDService
 from database import DatabaseService
@@ -81,21 +81,6 @@ def pic_path():
     return "test.png"
 
 
-# @pytest.fixture(scope="module")
-# def manga_url():
-#     return "https://www.manhuaren.com/manhua-huoyingrenzhe-naruto/"
-
-
-# @pytest.fixture(scope="module")
-# def anime_url():
-#     return "?cat=1029"
-
-
-# @pytest.fixture(scope="module")
-# def chapter_url():
-#     return "https://www.manhuaren.com/m208255/"
-
-
 @pytest.fixture(scope="module")
 def manga_site() -> MangaSiteEnum:
     return MangaSiteEnum.ManHuaRen
@@ -107,12 +92,17 @@ def anime_site() -> MangaSiteEnum:
 
 
 @pytest.fixture(scope="module")
-def manga() -> Manga:
+def manga() -> MangaPy:
     return MOCK_MANGA
 
 
+@pytest.fixture(scope="module")
+def chapter() -> ChapterPy:
+    return MOCK_CHAPTER
+
+
 @pytest.fixture(autouse=True, scope="module")
-async def run_before_and_after_tests(database: DatabaseService, manga: Manga):
+async def run_before_and_after_tests(database: DatabaseService, manga: MangaPy):
     from main import app
 
     app.dependency_overrides[get_scraping_service_from_site] = MockMangaScrapingService
@@ -155,27 +145,6 @@ async def test_get_manga_site_id(
     assert db_manga_site.id == site_id
 
 
-# async def test_search_anime(
-#     search_path: str,
-#     client: AsyncClient,
-#     anime_name: str,
-#     anime_url: str,
-#     anime_site: MangaSiteEnum,
-#     crud_service: CRUDService,
-#     db_session: AsyncSession,
-# ):
-#     resp = await client.get(
-#         search_path, params={"site": anime_site.value, "keyword": anime_name}
-#     )
-#     for item in resp.json():
-#         if item["name"] == anime_name:
-#             break
-
-#     assert item["url"] == anime_url
-#     assert item["id"] is not None
-
-#     db_anime = await crud_service.get_item_by_attr(db_session, Anime, "url", anime_url)
-#     db_anime.id == item["id"]
 
 
 async def test_search_manga(
@@ -207,34 +176,6 @@ async def test_get_chapters_successful(
             for chapter in chapters:
                 assert "id" in chapter
                 assert chapter.get("id") is not None
-
-
-# async def test_get_episodes(
-#     anime_url: str,
-#     episodes_path: str,
-#     client: AsyncClient,
-#     crud_service: CRUDService,
-#     db_session: AsyncSession,
-# ):
-#     anime_id = await crud_service.get_id_by_attr(db_session, Anime, "url", anime_url)
-#     resp = await client.get(episodes_path, params={"anime_id": anime_id})
-#     episodes: List[Episode] = resp.json()
-#     assert len(episodes) == 12
-
-
-# async def test_get_episode(
-#     anime_url: str,
-#     episode_path: str,
-#     client: AsyncClient,
-#     crud_service: CRUDService,
-#     db_session: AsyncSession,
-# ):
-#     anime_id = await crud_service.get_id_by_attr(db_session, Anime, "url", anime_url)
-#     db_episodes = await crud_service.get_items_by_same_attr(
-#         db_session, Episode, "anime_id", anime_id
-#     )
-#     resp = await client.get(episode_path, params={"episode_id": db_episodes[0].id})
-#     assert "vid_path" in resp.json()
 
 
 async def test_get_chapters_manga_nonexistent(
@@ -274,8 +215,9 @@ async def test_get_pages_successful(
     pages_path: str,
     crud_service: CRUDService,
     db_session: AsyncSession,
+    chapter: ChapterPy,
 ):
-    chapter_id = 1
+    chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", str(chapter.page_url))
     pic_dict = {}
     with TestClient(app) as client:
         with client.stream("GET", pages_path, params={"chapter_id": chapter_id}) as r:
@@ -303,8 +245,9 @@ async def test_save_pages(
     crud_service: CRUDService,
     database: DatabaseService,
     pic_path: str,
+    chapter: ChapterPy,
 ):
-    chapter_id = 1
+    chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", str(chapter.page_url))
     pages = [{"pic_path": pic_path, "idx": 0, "total": 1, "chapter_id": chapter_id}]
     await save_pages(pages, chapter_id, db_session, crud_service)
     async with database.new_session() as session:
@@ -324,8 +267,9 @@ async def test_get_pages_from_db(
     client: AsyncClient,
     crud_service: CRUDService,
     db_session: AsyncSession,
+    chapter: ChapterPy
 ):
-    chapter_id = 1
+    chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", str(chapter.page_url))
     pages = await crud_service.get_items_by_same_attr(
         db_session, Page, "chapter_id", chapter_id
     )
@@ -369,3 +313,53 @@ async def test_get_manga_failed(manga_path: str, client: AsyncClient):
     resp = await client.get(manga_path, params={"manga_id": -1})
     assert resp.status_code == 406
     app.dependency_overrides[get_db_manga_from_id] = lambda: manga
+
+
+# async def test_search_anime(
+#     search_path: str,
+#     client: AsyncClient,
+#     anime_name: str,
+#     anime_url: str,
+#     anime_site: MangaSiteEnum,
+#     crud_service: CRUDService,
+#     db_session: AsyncSession,
+# ):
+#     resp = await client.get(
+#         search_path, params={"site": anime_site.value, "keyword": anime_name}
+#     )
+#     for item in resp.json():
+#         if item["name"] == anime_name:
+#             break
+
+#     assert item["url"] == anime_url
+#     assert item["id"] is not None
+
+#     db_anime = await crud_service.get_item_by_attr(db_session, Anime, "url", anime_url)
+#     db_anime.id == item["id"]
+
+# async def test_get_episodes(
+#     anime_url: str,
+#     episodes_path: str,
+#     client: AsyncClient,
+#     crud_service: CRUDService,
+#     db_session: AsyncSession,
+# ):
+#     anime_id = await crud_service.get_id_by_attr(db_session, Anime, "url", anime_url)
+#     resp = await client.get(episodes_path, params={"anime_id": anime_id})
+#     episodes: List[Episode] = resp.json()
+#     assert len(episodes) == 12
+
+
+# async def test_get_episode(
+#     anime_url: str,
+#     episode_path: str,
+#     client: AsyncClient,
+#     crud_service: CRUDService,
+#     db_session: AsyncSession,
+# ):
+#     anime_id = await crud_service.get_id_by_attr(db_session, Anime, "url", anime_url)
+#     db_episodes = await crud_service.get_items_by_same_attr(
+#         db_session, Episode, "anime_id", anime_id
+#     )
+#     resp = await client.get(episode_path, params={"episode_id": db_episodes[0].id})
+#     assert "vid_path" in resp.json()
