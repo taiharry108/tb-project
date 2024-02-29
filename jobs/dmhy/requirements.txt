@@ -1,0 +1,12 @@
+autopep8==2.0.4
+beautifulsoup4==4.12.2
+dataclasses_json==0.6.1
+httpx==0.24.1
+httpx[http2]==0.24.1
+kink==0.7.0
+pydantic==2.4.2
+pytest==7.4.0
+pytest-asyncio==0.21.1
+pytest-httpserver==1.0.8
+python-dotenv==1.0.0
+pyyaml==6.0.1
