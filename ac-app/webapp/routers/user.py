@@ -305,6 +305,7 @@ async def update_history(
         try:
             db_hist = db_hist.one()[0]
             db_hist.chapter_id = chapter_id
+            db_hist.page_idx = 0
             await session.commit()
         except (NoResultFound, IntegrityError):
             db_hist = None

@@ -22,6 +22,12 @@ from download_service import DownloadService
 
 logger = getLogger(__name__)
 
+def find_first_weird_character(s: bytes) -> int:
+    for i, c in enumerate(s):
+        if c < 0x20 or c > 0x7e:
+            return i
+    return -1
+
 
 def decrypt(encrypted, passphrase, iv) -> str:
     encrypted = binascii.unhexlify(encrypted)
@@ -33,17 +39,17 @@ def decrypt(encrypted, passphrase, iv) -> str:
     end_idx = decrypted.rfind(b"}")
     end_idx = max(end_idx, decrypted.rfind(b"]"))
     decrypted = decrypted[: end_idx + 1]
-    try:
-        decrypted = decrypted.decode("utf-8").strip()
-    except:
-        pass
+    idx = find_first_weird_character(decrypted)
+    logger.info(f"{idx=}")
+    if idx != -1:        
+        decrypted = decrypted[:idx]
 
-    return decrypted
+    return decrypted.decode("utf-8").strip()
 
 
 class CopyMangaScrapingService(MangaSiteScrapingService):
     def __init__(self, download_service: DownloadService):
-        self.site: Site = Site(id=1, name="copymanga", url="https://copymanga.site/")
+        self.site: Site = Site(id=1, name="copymanga", url="https://copymanga.tv/")
         self.download_service = download_service
         self._index_page_cache = {}
 
@@ -53,7 +59,7 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
         def construct_url(path_word: str):
             return f"{self.url}comic/{path_word}"
 
-        search_url = f"{self.url}api/kb/web/searchs/comics?offset=0&platform=2&limit=12&q={keyword}&q_type="
+        search_url = f"{self.url}api/kb/web/searcha/comics?offset=0&platform=2&limit=12&q={keyword}&q_type="
 
         result = await self.download_service.get_json(search_url)
         result = result["results"]["list"]
@@ -111,7 +117,9 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
             return {}
         encrypted = data["results"]
         decrypted = decrypt(encrypted[16:], passphrase, encrypted[:16])
-        json_data = json.loads(decrypted)
+        logger.info(f"{type(decrypted)=}")
+        json_data = json.loads(decrypted[:decrypted.rfind("}") + 1])
+        
         return json_data
 
     async def get_chapters(
@@ -154,5 +162,6 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
         soup = await self.download_service.get_soup(chapter_url)
         passphrase = self.get_passphrase("jojo = ", soup)
         encrypted = soup.find("div", class_="imageData").get("contentkey")
-        json_data = json.loads(decrypt(encrypted[16:], passphrase, encrypted[:16]))
+        decrypted = decrypt(encrypted[16:], passphrase, encrypted[:16])
+        json_data = json.loads(decrypted[:decrypted.rfind("]") + 1])
         return [item["url"] for item in json_data]

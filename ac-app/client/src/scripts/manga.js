@@ -29,7 +29,7 @@ $(function ($) {
         return null;
     }
 
-    const updateHistory = (chapId) => {
+    const updateHistory = (chapId, callback=null) => {
         const data = { manga_id: mangaId, chapter_id: chapId };
         $.ajax({
             type: 'PUT',
@@ -37,6 +37,8 @@ $(function ($) {
             data: data,
             success: (response) => {
                 updateLastRead();
+                if (callback)
+                    callback();
             }
         });
     }
@@ -155,29 +157,30 @@ $(function ($) {
         const modalContainer = $("div.modal-content-container");
         modalContainer.find("div").remove();
         let added = false;
-        evtSource = new EventSource(`${pagesEndpoint}?chapter_id=${chapId}`);
-        evtSource.onmessage = async (e) => {
-            const data = JSON.parse(e.data);
-            if (e.data === '{}') {
-                evtSource.close();
-                readyToFetch = true;
-                resp = await getHistoryPage();
-                currentPageIdx = resp.page_idx;
-                height = calculateHeight(currentPageIdx);
-                window.scrollBy(0, height);
-            }
-            else {
-                if (!added) {
-                    for (let index = 0; index < data.total; index++)
-                        modalContainer.append(`<div page-idx=${index}></div>`)
-                    added = true;
-                }
-                const picPath = data.pic_path.replace("/downloaded", staticFilesEndpoint);
-                modalContainer.find(`div[page-idx=${data.idx}]`).append(`<img class="mx-auto" src="${picPath}"></img>`)
-            }
-        }
         getChapNeigbhor();
-        updateHistory(chapId);
+        updateHistory(chapId, () => {
+            evtSource = new EventSource(`${pagesEndpoint}?chapter_id=${chapId}`);
+            evtSource.onmessage = async (e) => {
+                const data = JSON.parse(e.data);
+                if (e.data === '{}') {
+                    evtSource.close();
+                    readyToFetch = true;
+                    resp = await getHistoryPage();
+                    currentPageIdx = resp.page_idx;
+                    height = calculateHeight(currentPageIdx);
+                    window.scrollBy(0, height);
+                }
+                else {
+                    if (!added) {
+                        for (let index = 0; index < data.total; index++)
+                            modalContainer.append(`<div page-idx=${index}></div>`)
+                        added = true;
+                    }
+                    const picPath = data.pic_path.replace("/downloaded", staticFilesEndpoint);
+                    modalContainer.find(`div[page-idx=${data.idx}]`).append(`<img class="mx-auto" src="${picPath}"></img>`)
+                }
+            }
+        });
     }
 
     const fetchManga = (callback=null, arg=null) => {
