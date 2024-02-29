@@ -1,11 +1,17 @@
 import asyncio
 
-from ast import AsyncFunctionDef
 from itertools import islice
 from logging import getLogger
-from typing import Iterable, Coroutine
+from typing import Iterable, Coroutine, AsyncGenerator, TypeVar, Callable, Awaitable
 
 logger = getLogger(__name__)
+
+T = TypeVar("T")
+
+
+def partition(lst, size):
+    for i in range(0, len(lst), size):
+        yield list(islice(lst, i, i + size))
 
 
 def partition(lst, size):
@@ -18,7 +24,9 @@ class AsyncService:
         self.num_workers = num_workers
         self.delay = delay
 
-    async def work(self, items: Iterable, async_func: AsyncFunctionDef, **kwargs):
+    async def work(
+        self, items: Iterable, async_func: Callable[..., Awaitable[T]], **kwargs
+    ) -> AsyncGenerator[T, None]:
         semaphore = asyncio.Semaphore(self.num_workers)
 
         async def sem_coro(coro: Coroutine):

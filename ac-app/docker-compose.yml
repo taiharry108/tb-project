@@ -53,6 +53,44 @@ services:
     dns:
       - 8.8.8.8
       - 8.8.4.4
+  web-test:
+    cap_add:
+      - NET_ADMIN
+    build:
+      context: ./
+      dockerfile: dockerfiles/app-test.dockerfile
+    image: ac-app:1.0
+    command:
+      - /bin/sh
+      - -c
+      - |
+        openvpn --config /openvpn/client.ovpn --auth-user-pass /openvpn/pass.txt &
+        uvicorn main:app --reload --workers 1 --host 0.0.0.0 --port 8000
+    container_name: ac-app
+    volumes:
+      - ./webapp:/webapp
+      - ../core-repo/async_service/:/core/async_service
+      - ../core-repo/database/:/core/database
+      - ../core-repo/download_service/:/core/download_service
+      - ../core-repo/queue_service/:/core/queue_service
+      - ../core-repo/security_service/:/core/security_service
+      - ../core-repo/session/:/core/session
+      - ../core-repo/store_service/:/core/store_service
+      - ./.vscode-server:/root/.vscode-server
+      - ../static:/downloaded
+      - ./client:/client
+      - ./openvpn:/openvpn
+    networks:
+      - core_default
+    environment:
+      - PYTHONPATH=/core
+      - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY}
+      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+    devices:
+      - /dev/net/tun
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
   test-db:
     container_name: core-test-db
     image: postgres:alpine
