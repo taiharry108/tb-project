@@ -205,3 +205,20 @@ class DownloadService:
             img_list, self.download_img, headers=headers, download_path=download_path
         ):
             yield item
+
+
+class MockDownloadService:
+    async def download_img(
+        self, url: HttpUrl, download_path: Path, filename: str
+    ) -> Dict:
+        return {"pic_path": "test_pic.png"}
+
+    async def download_imgs(
+        self,
+        async_service: AsyncService,
+        download_path: Path,
+        img_list: List[Dict[str, int | str | None]],
+        headers: Dict[str, str],
+    ):
+        for item in img_list:
+            yield {"pic_path": item["url"], "idx": item["idx"], "total": item["total"]}

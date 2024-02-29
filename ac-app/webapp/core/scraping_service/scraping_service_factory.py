@@ -11,6 +11,7 @@ from core.scraping_service.manga_site_scraping_service import (
 )
 
 from core.scraping_service.manhuaren_scraping_service import ManhuarenScrapingService
+from core.scraping_service.mock_manga_scraping_service import MockMangaScrapingService
 
 
 class ScrapingServiceFactory:

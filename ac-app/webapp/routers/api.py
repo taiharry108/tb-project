@@ -18,6 +18,7 @@ from core.models.episode import Episode
 from core.models.manga import MangaBase, MangaSimple
 from core.models.manga_index_type_enum import MangaIndexTypeEnum, m_types
 from core.models.meta import Meta
+from core.models.site import Site
 from core.scraping_service.anime_site_scraping_service import (
     AnimeSiteScrapingService as ASSService,
 )
@@ -76,6 +77,7 @@ async def _search_manga(
     session: AsyncSession = Depends(get_db_session),
     scraping_service: MSSService = Depends(db_utils.get_scraping_service_from_site),
 ) -> list[MangaBase] | None:
+    print(scraping_service)
     if isinstance(scraping_service, Anime1ScrapingService):
         return None
     mangas = await scraping_service.search_manga(keyword)
@@ -235,21 +237,42 @@ async def get_chapters(
     return result
 
 
+async def _download_thum_img(
+    download_service: DownloadService,
+    download_path: str,
+    site_name: str,
+    manga_name: str,
+    thum_img_url: str,
+):
+    download_path = Path(download_path) / site_name / manga_name
+
+    download_result = await download_service.download_img(
+        url=str(thum_img_url), download_path=download_path, filename="thum_img"
+    )
+    return download_result
+
+
+def get_download_service():
+    return di[DownloadService]
+
+
 @router.get("/meta", response_model=Meta)
 async def get_meta(
     db_manga: Manga = Depends(db_utils.get_db_manga_from_id),
     scraping_service: MSSService = Depends(db_utils.get_scraping_service_from_manga),
-    download_service: DownloadService = Depends(lambda: di[DownloadService]),
+    download_service: DownloadService = Depends(get_download_service),
     download_path: str = Depends(lambda: di["api"]["download_path"]),
     crud_service: CRUDService = Depends(lambda: di[CRUDService]),
     db_session: AsyncSession = Depends(get_db_session),
 ):
     meta = await scraping_service.get_meta(db_manga.url)
 
-    download_path = Path(download_path) / scraping_service.site.name / db_manga.name
-
-    download_result = await download_service.download_img(
-        url=str(meta.thum_img), download_path=download_path, filename="thum_img"
+    download_result = await _download_thum_img(
+        download_service,
+        download_path,
+        scraping_service.site.name,
+        db_manga.name,
+        str(meta.thum_img),
     )
     meta.thum_img = download_result["pic_path"]
 
@@ -341,7 +364,7 @@ async def get_pages(
     crud_service: CRUDService = Depends(lambda: di[CRUDService]),
     scraping_service: MSSService = Depends(db_utils.get_scraping_service_from_chapter),
     download_path: str = Depends(lambda: di["api"]["download_path"]),
-    download_service: DownloadService = Depends(lambda: di[DownloadService]),
+    download_service: DownloadService = Depends(get_download_service),
     async_service: AsyncService = Depends(lambda: di[AsyncService]),
 ):
     pages = await crud_service.get_items_by_same_attr(

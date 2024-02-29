@@ -22,9 +22,10 @@ from download_service import DownloadService
 
 logger = getLogger(__name__)
 
+
 def find_first_weird_character(s: bytes) -> int:
     for i, c in enumerate(s):
-        if c < 0x20 or c > 0x7e:
+        if c < 0x20 or c > 0x7E:
             return i
     return -1
 
@@ -41,7 +42,7 @@ def decrypt(encrypted, passphrase, iv) -> str:
     decrypted = decrypted[: end_idx + 1]
     idx = find_first_weird_character(decrypted)
     logger.info(f"{idx=}")
-    if idx != -1:        
+    if idx != -1:
         decrypted = decrypted[:idx]
 
     return decrypted.decode("utf-8").strip()
@@ -118,8 +119,8 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
         encrypted = data["results"]
         decrypted = decrypt(encrypted[16:], passphrase, encrypted[:16])
         logger.info(f"{type(decrypted)=}")
-        json_data = json.loads(decrypted[:decrypted.rfind("}") + 1])
-        
+        json_data = json.loads(decrypted[: decrypted.rfind("}") + 1])
+
         return json_data
 
     async def get_chapters(
@@ -163,5 +164,5 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
         passphrase = self.get_passphrase("jojo = ", soup)
         encrypted = soup.find("div", class_="imageData").get("contentkey")
         decrypted = decrypt(encrypted[16:], passphrase, encrypted[:16])
-        json_data = json.loads(decrypted[:decrypted.rfind("]") + 1])
+        json_data = json.loads(decrypted[: decrypted.rfind("]") + 1])
         return [item["url"] for item in json_data]
