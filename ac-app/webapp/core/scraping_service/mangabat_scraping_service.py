@@ -106,7 +106,9 @@ class MangaBatScrapingService(MangaSiteScrapingService):
             if "Status" in tr.find("td", class_="table-label").text:
                 finished = tr.find("td", class_="table-value").text == "Completed"
 
-        for right_extent_div in div.find("div", class_="story-info-right-extent").find_all("p"):
+        for right_extent_div in div.find(
+            "div", class_="story-info-right-extent"
+        ).find_all("p"):
             if "Updated" in right_extent_div.find("span", class_="stre-label").text:
                 last_update = right_extent_div.find("span", class_="stre-value").text
             if "Latest Chap" in right_extent_div.text:
@@ -156,4 +158,6 @@ class MangaBatScrapingService(MangaSiteScrapingService):
         """Get all the urls of a chaper, return a list of strings"""
         soup = await self.download_service.get_soup(chapter_url)
 
-        return [img_tag.get("src") for img_tag in soup.find_all("img", class_="img-content")]
+        return [
+            img_tag.get("src") for img_tag in soup.find_all("img", class_="img-content")
+        ]

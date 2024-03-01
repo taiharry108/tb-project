@@ -83,7 +83,13 @@ async def test_get_meta(scraping_service: MangaSiteScrapingService, manga: Manga
 
 
 @pytest.mark.parametrize(
-    "c_data", [{"title": "Chapter 700.5 : Uzumaki Naruto", "page_url": "https://readmangabat.com/read-sl358578-chap-700.5"}]
+    "c_data",
+    [
+        {
+            "title": "Chapter 700.5 : Uzumaki Naruto",
+            "page_url": "https://readmangabat.com/read-sl358578-chap-700.5",
+        }
+    ],
 )
 async def test_get_page_urls(
     scraping_service: MangaSiteScrapingService, chapter: Chapter

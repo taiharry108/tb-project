@@ -18,6 +18,10 @@ $(function ($) {
                 site = "anime1";
                 isManga = false;
                 break;
+            case "MangaBat":
+                site = "mangabat";
+                isManga = true;
+                break;
             default:
                 site = "manhuaren";
                 isManga = true;

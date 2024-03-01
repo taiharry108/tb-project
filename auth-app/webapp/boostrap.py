@@ -7,10 +7,12 @@ from kink import di
 from redis import Redis
 from sqlalchemy import orm
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, AsyncSession
+from urllib.parse import urlparse
 
 from core.security_service import SecurityService
 from core.user_service import UserService
 from database import DatabaseService, CRUDService
+from secret_service import SecretService
 from session import RedisBackend, BasicVerifier
 
 
@@ -19,13 +21,29 @@ def _load_config_file() -> dict:
         return yaml.safe_load(f)
 
 
+def create_redis(url: str) -> Redis:
+    parsed_url = urlparse(url)
+    if parsed_url.hostname is None:
+        return Redis(url)
+    else:
+        return Redis(
+            host=parsed_url.hostname,
+            port=parsed_url.port,
+            password=parsed_url.password,
+            ssl=True,
+            username=parsed_url.username,
+        )
+
+
 def bootstrap_di() -> None:
     config_obj = _load_config_file()
 
     for key, value in config_obj.items():
         di[key] = value
+    
+    di[SecretService] = lambda di: SecretService()
+    di["private_key"] = di[SecretService].get_secret("jwt.key")
 
-    di["private_key"] = os.getenv("JWT_PRIVATE_KEY")
     di["algorithm"] = di["security_service"]["algorithm"]
     di["access_token_expire_minutes"] = di["security_service"][
         "access_token_expire_minutes"
@@ -36,9 +54,8 @@ def bootstrap_di() -> None:
         algorithm=di["algorithm"],
         access_token_expire_minutes=di["access_token_expire_minutes"],
     )
-
     di.factories[AsyncEngine] = lambda di: create_async_engine(
-        di["db"]["url"], echo=False
+        di[SecretService].get_secret("DB_URL"), echo=False
     )
     di.factories[orm.sessionmaker] = lambda di: orm.sessionmaker(
         autocommit=False,
@@ -57,7 +74,7 @@ def bootstrap_di() -> None:
         crud_service=di[CRUDService], security_service=di[SecurityService]
     )
 
-    di[Redis] = lambda di: Redis(di["redis"]["url"])
+    di[Redis] = lambda di: create_redis(di[SecretService].get_secret("REDIS_URL"))
 
     di["identifier"] = "auth_app"
 
