@@ -7,6 +7,7 @@ from kink import di
 from redis import Redis
 from sqlalchemy import orm
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, AsyncSession
+from urllib.parse import urlparse
 
 from async_service import AsyncService
 from core.scraping_service import (
@@ -19,6 +20,7 @@ from core.scraping_service import (
 from database import DatabaseService, CRUDService
 from download_service import DownloadService
 from queue_service import EncryptMessage
+from secret_service import SecretService
 from security_service import SecurityService
 from session import RedisBackend, BasicVerifier
 from store_service import FSStoreService
@@ -29,20 +31,34 @@ def _load_config_file() -> dict:
         return yaml.safe_load(f)
 
 
+def create_redis(url: str) -> Redis:
+    parsed_url = urlparse(url)
+    if parsed_url.hostname is None:
+        return Redis(url)
+    else:
+        return Redis(
+            host=parsed_url.hostname,
+            port=parsed_url.port,
+            password=parsed_url.password,
+            ssl=True,
+            username=parsed_url.username,
+        )
+
+
 def bootstrap_di() -> None:
     config_obj = _load_config_file()
 
     for key, value in config_obj.items():
         di[key] = value
 
-    di["store_service"] = FSStoreService()
-    di["public_key"] = os.getenv("JWT_PUBLIC_KEY")
+    di["store_service"] = FSStoreService()    
     di["algorithm"] = di["security_service"]["algorithm"]
-
+    di[SecretService] = lambda di: SecretService()
+    di["public_key"] = di[SecretService].get_secret("jwt.key.pub")
     di[SecurityService] = lambda di: SecurityService(di["public_key"], di["algorithm"])
-
+    
     di.factories[AsyncEngine] = lambda di: create_async_engine(
-        di["db"]["url"], echo=False
+        di[SecretService].get_secret("DB_URL"), echo=False
     )
     di.factories[orm.sessionmaker] = lambda di: orm.sessionmaker(
         autocommit=False,
@@ -52,7 +68,10 @@ def bootstrap_di() -> None:
         class_=AsyncSession,
     )
 
-    di[Redis] = lambda di: Redis(di["redis"]["url"])
+    di["auth_server_url"] = di[SecretService].get_secret("AUTH_SERVER_URL")
+    di["auth_server_redirect_url"] = di[SecretService].get_secret("AUTH_SERVER_REDIRECT_URL")
+
+    di[Redis] = lambda di: create_redis(di[SecretService].get_secret("REDIS_URL"))
     di["message_cls"] = EncryptMessage
 
     di["identifier"] = "ac_app"

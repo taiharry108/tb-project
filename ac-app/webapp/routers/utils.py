@@ -30,7 +30,7 @@ async def get_db_session(
 
 
 async def get_redirect_response(
-    auth_server_url: str = Depends(lambda: di["auth_server"]["url"]),
-    redirect_url: str = Depends(lambda: di["auth_server"]["redirect_url"]),
+    auth_server_url: str = Depends(lambda: di["auth_server_url"]),
+    redirect_url: str = Depends(lambda: di["auth_server_redirect_url"]),
 ):
     return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")

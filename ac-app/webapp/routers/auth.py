@@ -54,7 +54,7 @@ async def logout(
     request: Request,
     cookie: SessionFrontend = Depends(lambda: di["cookie"]),
     backend: SessionBackend = Depends(lambda: di["session_backend"]),
-    auth_server_url: str = Depends(lambda: di["auth_server"]["url"]),
+    auth_server_url: str = Depends(lambda: di["auth_server_url"]),
 ):
     session_id = cookie(request)
     await backend.delete(session_id)
@@ -85,5 +85,5 @@ async def auth(
         raise credentials_exception
     await create_session(username, response, backend, cookie)
     response.status_code = status.HTTP_307_TEMPORARY_REDIRECT
-    response.headers["location"] = "/ac/"
+    response.headers["location"] = "/"
     return response
