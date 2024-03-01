@@ -3,3 +3,4 @@ from .anime1_scraping_service import Anime1ScrapingService
 from .copymanga_scraping_service import CopyMangaScrapingService
 from .manhuaren_scraping_service import ManhuarenScrapingService
 from .mock_manga_scraping_service import MockMangaScrapingService
+from .mangabat_scraping_service import MangaBatScrapingService

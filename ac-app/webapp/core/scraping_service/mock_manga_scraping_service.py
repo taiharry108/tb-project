@@ -43,11 +43,7 @@ class MockMangaScrapingService(MangaSiteScrapingService):
     ) -> Dict[MangaIndexTypeEnum, List[Chapter]]:
         """Get index page of manga, return a manga with chapters"""
 
-        return {
-            MangaIndexTypeEnum.CHAPTER: [
-                MOCK_CHAPTER
-            ]
-        }
+        return {MangaIndexTypeEnum.CHAPTER: [MOCK_CHAPTER]}
 
     async def get_page_urls(self, chapter_url: str) -> List[str]:
         """Get all the urls of a chaper, return a list of strings"""

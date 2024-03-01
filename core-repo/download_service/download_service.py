@@ -120,6 +120,11 @@ class DownloadService:
         """Make a get request and return with json"""
         return resp.json()
 
+    @request_resp("POST")
+    async def post_json(self, resp: Response) -> Union[List, Dict]:
+        """Make a get request and return with json"""
+        return resp.json()
+
     @request_resp("GET")
     async def get_bytes(self, resp: Response) -> bytes:
         """Make a get request and return with bytes"""

@@ -11,7 +11,7 @@ from core.scraping_service.manga_site_scraping_service import (
 )
 
 from core.scraping_service.manhuaren_scraping_service import ManhuarenScrapingService
-from core.scraping_service.mock_manga_scraping_service import MockMangaScrapingService
+from core.scraping_service.mangabat_scraping_service import MangaBatScrapingService
 
 
 class ScrapingServiceFactory:
@@ -20,10 +20,12 @@ class ScrapingServiceFactory:
         anime1: Anime1ScrapingService,
         copymanga: CopyMangaScrapingService,
         manhuaren: ManhuarenScrapingService,
+        mangabat: MangaBatScrapingService,
     ):
         self.anime1 = anime1
         self.copymanga = copymanga
         self.manhuaren = manhuaren
+        self.mangabat = mangabat
 
     def get(self, site: MangaSiteEnum) -> Union[MSSService, ASSService]:
         return getattr(self, site.value)

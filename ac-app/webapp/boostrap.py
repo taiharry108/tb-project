@@ -14,6 +14,7 @@ from core.scraping_service import (
     Anime1ScrapingService,
     CopyMangaScrapingService,
     ManhuarenScrapingService,
+    MangaBatScrapingService,
 )
 from database import DatabaseService, CRUDService
 from download_service import DownloadService
@@ -110,9 +111,13 @@ def bootstrap_di() -> None:
     di.factories[ManhuarenScrapingService] = lambda di: ManhuarenScrapingService(
         di[DownloadService]
     )
+    di.factories[MangaBatScrapingService] = lambda di: MangaBatScrapingService(
+        di[DownloadService]
+    )
 
     di[ScrapingServiceFactory] = lambda di: ScrapingServiceFactory(
         anime1=di[Anime1ScrapingService],
         copymanga=di[CopyMangaScrapingService],
         manhuaren=di[ManhuarenScrapingService],
+        mangabat=di[MangaBatScrapingService],
     )

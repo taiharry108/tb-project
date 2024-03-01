@@ -11,7 +11,12 @@ from core.models.manga import MangaSimple
 
 
 from core.models.manga_site_enum import MangaSiteEnum
-from core.models.mock import MOCK_MANGA, MOCK_CHAPTER, Manga as MangaPy, Chapter as ChapterPy
+from core.models.mock import (
+    MOCK_MANGA,
+    MOCK_CHAPTER,
+    Manga as MangaPy,
+    Chapter as ChapterPy,
+)
 from core.scraping_service.mock_manga_scraping_service import MockMangaScrapingService
 from database import CRUDService
 from database import DatabaseService
@@ -73,7 +78,6 @@ def meta_path():
 @pytest.fixture(scope="module")
 def pages_path():
     return "/api/pages"
-
 
 
 @pytest.fixture(scope="module")
@@ -143,8 +147,6 @@ async def test_get_manga_site_id(
         manga_site, session=db_session, crud_service=crud_service
     )
     assert db_manga_site.id == site_id
-
-
 
 
 async def test_search_manga(
@@ -217,7 +219,9 @@ async def test_get_pages_successful(
     db_session: AsyncSession,
     chapter: ChapterPy,
 ):
-    chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", str(chapter.page_url))
+    chapter_id = await crud_service.get_id_by_attr(
+        db_session, Chapter, "page_url", str(chapter.page_url)
+    )
     pic_dict = {}
     with TestClient(app) as client:
         with client.stream("GET", pages_path, params={"chapter_id": chapter_id}) as r:
@@ -247,7 +251,9 @@ async def test_save_pages(
     pic_path: str,
     chapter: ChapterPy,
 ):
-    chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", str(chapter.page_url))
+    chapter_id = await crud_service.get_id_by_attr(
+        db_session, Chapter, "page_url", str(chapter.page_url)
+    )
     pages = [{"pic_path": pic_path, "idx": 0, "total": 1, "chapter_id": chapter_id}]
     await save_pages(pages, chapter_id, db_session, crud_service)
     async with database.new_session() as session:
@@ -267,9 +273,11 @@ async def test_get_pages_from_db(
     client: AsyncClient,
     crud_service: CRUDService,
     db_session: AsyncSession,
-    chapter: ChapterPy
+    chapter: ChapterPy,
 ):
-    chapter_id = await crud_service.get_id_by_attr(db_session, Chapter, "page_url", str(chapter.page_url))
+    chapter_id = await crud_service.get_id_by_attr(
+        db_session, Chapter, "page_url", str(chapter.page_url)
+    )
     pages = await crud_service.get_items_by_same_attr(
         db_session, Page, "chapter_id", chapter_id
     )
@@ -300,9 +308,7 @@ async def test_get_manga_successful(
         print(resp.json())
         manga_simple = MangaSimple(**resp.json())
 
-        db_manga = await crud_service.get_item_by_id(
-            db_session, Manga, manga_id
-        )
+        db_manga = await crud_service.get_item_by_id(db_session, Manga, manga_id)
 
         assert manga_simple.id == db_manga.id
         assert str(manga_simple.url) == db_manga.url
