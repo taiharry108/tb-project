@@ -43,27 +43,6 @@ $(function ($) {
         });
     }
 
-    const getHistoryPage = async () => {
-        const data = { manga_id: mangaId }
-        let resp = await $.ajax({
-            type: 'GET',
-            url: historyPageEndpoint,
-            data: data,
-        });
-        return resp
-    }
-
-    const updateHistoryPage = (pageIdx) => {
-        const data = { manga_id: mangaId, page_idx: pageIdx };
-        $.ajax({
-            type: 'PUT',
-            url: historyPageEndpoint,
-            data: data,
-            success: (response) => {
-                console.log(response);
-            }
-        });
-    }
 
     const getHistoryPage = async () => {
         const data = { manga_id: mangaId }
