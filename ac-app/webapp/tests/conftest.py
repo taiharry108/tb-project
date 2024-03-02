@@ -34,32 +34,13 @@ async def setup_logging() -> None:
     yield
 
 
-# @pytest.fixture(autouse=True, scope="module")
-# @inject
-# async def database(container: Container) -> DatabaseService:
-#     container.db_engine.override(
-#         providers.Singleton(
-#             create_async_engine, container.config.db.test_url, echo=False
-#         )
-#     )
-#     db = container.db_service()
-#     await db.create_database()
-#     return db
-
-
 @pytest.fixture(autouse=True, scope="module")
 def db_engine() -> AsyncEngine:
-    di.factories[AsyncEngine] = lambda di: create_async_engine(
-        di["db"]["test_url"], echo=False
-    )
     return di[AsyncEngine]
 
 
 @pytest.fixture(autouse=True, scope="module")
 async def database() -> DatabaseService:
-    di.factories[AsyncEngine] = lambda di: create_async_engine(
-        di["db"]["test_url"], echo=False
-    )
     di.factories[orm.sessionmaker] = lambda di: orm.sessionmaker(
         autocommit=False,
         autoflush=False,

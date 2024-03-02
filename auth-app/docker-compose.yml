@@ -27,13 +27,15 @@ services:
       - ./webapp:/webapp
       - ../core-repo/database/:/core/database
       - ../core-repo/session/:/core/session
+      - ../core-repo/secret_service/:/core/secret_service
       - ./client:/client
+      - ../jwt.key:/etc/secrets/jwt.key
     networks:
       - core_default
     environment:
       - PYTHONPATH=/core
-      - JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY}
-      - JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY}
+      - DB_URL=${DB_URL}
+      - REDIS_URL=${REDIS_URL}
   test-db:
     container_name: core-test-db
     image: postgres:alpine

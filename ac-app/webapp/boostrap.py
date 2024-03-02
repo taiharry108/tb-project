@@ -51,12 +51,11 @@ def bootstrap_di() -> None:
     for key, value in config_obj.items():
         di[key] = value
 
-    di["store_service"] = FSStoreService()    
+    di["store_service"] = FSStoreService()
     di["algorithm"] = di["security_service"]["algorithm"]
     di[SecretService] = lambda di: SecretService()
     di["public_key"] = di[SecretService].get_secret("jwt.key.pub")
     di[SecurityService] = lambda di: SecurityService(di["public_key"], di["algorithm"])
-    
     di.factories[AsyncEngine] = lambda di: create_async_engine(
         di[SecretService].get_secret("DB_URL"), echo=False
     )
@@ -69,7 +68,9 @@ def bootstrap_di() -> None:
     )
 
     di["auth_server_url"] = di[SecretService].get_secret("AUTH_SERVER_URL")
-    di["auth_server_redirect_url"] = di[SecretService].get_secret("AUTH_SERVER_REDIRECT_URL")
+    di["auth_server_redirect_url"] = di[SecretService].get_secret(
+        "AUTH_SERVER_REDIRECT_URL"
+    )
 
     di[Redis] = lambda di: create_redis(di[SecretService].get_secret("REDIS_URL"))
     di["message_cls"] = EncryptMessage

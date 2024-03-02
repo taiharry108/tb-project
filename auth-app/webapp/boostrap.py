@@ -40,7 +40,7 @@ def bootstrap_di() -> None:
 
     for key, value in config_obj.items():
         di[key] = value
-    
+
     di[SecretService] = lambda di: SecretService()
     di["private_key"] = di[SecretService].get_secret("jwt.key")
 

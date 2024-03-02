@@ -1,5 +1,6 @@
 import os
 
+
 class SecretService:
     def get_secret(self, secret_name: str) -> str:
         # check if secret_name is under /etc/secrets/{secret_name}

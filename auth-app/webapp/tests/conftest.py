@@ -23,9 +23,6 @@ def event_loop():
 
 @pytest.fixture(autouse=True, scope="module")
 async def db_service() -> DatabaseService:
-    di.factories[AsyncEngine] = lambda di: create_async_engine(
-        di["db"]["test_url"], echo=False
-    )
     di.factories[orm.sessionmaker] = lambda di: orm.sessionmaker(
         autocommit=False,
         autoflush=False,
