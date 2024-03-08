@@ -39,10 +39,13 @@ services:
       - demo_net
   core:
     image: core-python:1.0
+    build:
+      context: ./
+      dockerfile: ./core-app/dockerfiles/app.dockerfile
     container_name: core-python
     volumes:
       - ./core-repo/database:/src/database
-      - ./core-repo/src/alembic_demo:/src/alembic
+      - ./core-repo/src/alembic:/src/alembic
       - ./core-repo/queue_service:/src/queue_service
       - ./core-repo/store_service:/src/store_service
       - ./core-repo/download_service:/src/download_service
