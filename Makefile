@@ -1,8 +1,5 @@
 include .env
 
-JWT_PRIVATE_KEY := `cat jwt.key`
-JWT_PUBLIC_KEY := `cat jwt.key.pub`
-
 COMPOSE_FILE := ./auth-app-home/docker-compose.yml
 SRC_DIR := ./ac-app/webapp
 
@@ -11,16 +8,14 @@ gen-key:
 	@openssl rsa -in jwt.key -pubout -outform PEM -out jwt.key.pub
 
 build:
-	@export JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY} && \
-		export JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY} && \
-		docker compose -f ${COMPOSE_FILE} build
+	@docker compose -f ${COMPOSE_FILE} build
 
 run:
 	@export POSTGRES_PASSWORD=${POSTGRES_PASSWORD} && \
 		export POSTGRES_USER=${POSTGRES_USER} && \
-		export JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY} && \
-		export JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY} && \
-		docker compose -f ${COMPOSE_FILE} up
+		export DB_URL=${DB_URL} && \
+		export REDIS_URL=${REDIS_URL} && \
+		docker compose -f ${COMPOSE_FILE} up web
 build-client:
 	@docker compose -f ${COMPOSE_FILE} run --rm frontend npm run start
 
@@ -41,9 +36,10 @@ export-history:
 	@docker compose -f ./ac-app/docker-compose.yml run --rm web python export_history.py
 
 run-tests:
-	@export JWT_PRIVATE_KEY=${JWT_PRIVATE_KEY} && \
-		export JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY} && \
+	@export JWT_PUBLIC_KEY=${JWT_PUBLIC_KEY} && \
+		export COMPOSE_FILE=${COMPOSE_FILE} && \
 		export POSTGRES_PASSWORD=${POSTGRES_PASSWORD} && \
 		export POSTGRES_USER=${POSTGRES_USER} && \
-		export COMPOSE_FILE=${COMPOSE_FILE} && \
+		export DB_URL=${TEST_DB_URL} && \
+		export REDIS_URL=${REDIS_URL} && \
 		./run_tests.sh
