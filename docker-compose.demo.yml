@@ -41,7 +41,7 @@ services:
     image: core-python:1.0
     build:
       context: ./
-      dockerfile: ./core-app/dockerfiles/app.dockerfile
+      dockerfile: ./core-repo/dockerfiles/app-demo.dockerfile
     container_name: core-python
     volumes:
       - ./core-repo/database:/src/database
