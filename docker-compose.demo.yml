@@ -1,0 +1,88 @@
+version: '3.7'
+
+networks:
+  demo_net:
+    external: true
+    name: demo_net
+
+services:
+  ac-app:
+    build:
+      context: ./
+      dockerfile: ./ac-app/dockerfiles/app-demo.dockerfile
+    image: demo-ac-app:1.0
+    container_name: demo-ac-app
+    volumes:
+      - ./jwt.key.pub:/etc/secrets/jwt.key.pub
+      - ./static-demo:/downloaded
+    environment:
+      - PYTHONPATH=/core
+      - DB_URL=${DB_URL}
+      - REDIS_URL=${REDIS_URL}
+      - AUTH_SERVER_URL=/auth
+      - AUTH_SERVER_REDIRECT_URL=/ac/auth
+    networks:
+      - demo_net
+  auth-app:
+    build:
+      context: ./
+      dockerfile: ./auth-app/dockerfiles/app-demo.dockerfile
+    image: demo-auth-app:1.0
+    container_name: demo-auth-app
+    volumes:
+      - ./jwt.key:/etc/secrets/jwt.key
+    environment:
+      - PYTHONPATH=/core
+      - DB_URL=${DB_URL}
+      - REDIS_URL=${REDIS_URL}
+    networks:
+      - demo_net
+  core:
+    image: core-python:1.0
+    container_name: core-python
+    volumes:
+      - ./core-repo/database:/src/database
+      - ./core-repo/src/alembic_demo:/src/alembic
+      - ./core-repo/queue_service:/src/queue_service
+      - ./core-repo/store_service:/src/store_service
+      - ./core-repo/download_service:/src/download_service
+      - ./core-repo/async_service:/src/async_service
+      - ./core-repo/tests:/src/tests
+      - ./core-repo/.vscode-server:/root/.vscode-server
+      - ./core-repo/src/alembic.ini:/src/alembic.ini
+      - ./core-repo/src/Makefile:/src/Makefile
+    networks:
+      - demo_net
+    deploy:
+      replicas: 0
+  web:
+    image: nginx:alpine
+    volumes:
+      - ./static-demo:/static:ro
+      - ./core-repo/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./core-repo/nginx/cache:/data/nginx/cache      
+    container_name: demo-core-nginx
+    ports:
+      - 81:80
+    networks:
+      - demo_net
+  db:
+    container_name: demo-core-db
+    image: postgres:alpine
+    # restart: always
+    ports:
+      - 65433:5432
+    volumes:
+      - ./postgres-data-demo:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_DB: mydb
+    networks:
+      - demo_net
+  redis:
+    container_name: ${REDIS_URL}
+    image: redis:alpine
+    networks:
+      - demo_net
+

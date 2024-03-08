@@ -12,20 +12,9 @@ security_service:
 store_service:
   name: fs
 
-db:
-  url: "postgresql+asyncpg://POSTGRES_USER:POSTGRES_PASSWORD@core-db/mydb"
-  test_url: "postgresql+asyncpg://POSTGRES_USER:POSTGRES_PASSWORD@core-test-db/mydb"
-
 api:
   download_path: /downloaded
 
 async_service:
   num_workers: 5
   delay: 1
-
-auth_server:
-  url: "/auth"
-  redirect_url: "/ac/auth"
-
-redis:
-  url: "default-redis"
