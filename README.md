@@ -15,7 +15,11 @@ It is the centralized authentcation application.
 ### Prerequisites
 All applications are containerized so you just need docker to get everything running! My docker version is `24.0.5`.
 ### Run Instructions
-1. Create a `.env` in the root directory with these two vairables `POSTGRES_PASSWORD` and `POSTGRES_USER`.
-2. Run `setup-env.sh`. It generates private and public keys for JWT, creates docker network interface and other necessarily config files.
-3. Run `docker compose -f ./docker-compose.demo.yml up` to spin up all servers.
-4. Run `make migrate-db COMPOSE_FILE=./docker-compose.demo.yml MIGRATION_MESSAGE='init db'` to initialize database
+1. Create a `.env` in the root directory the following vairables:
+  - `POSTGRES_PASSWORD`, if you are creating a local database, this is the password of the root user.
+  - `POSTGRES_USER`, if you are creating a local database, this is the user name of the root user.
+  - `REDIS_URL`, URL of Redis database.
+  - `DB_URL`, Postgres DB URL. If you are creating a local database, it should be of this form postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@db/mydb
+3. Run `setup-env.sh`. It generates private and public keys for JWT, creates docker network interface and other necessarily config files.
+4. Run `docker compose -f ./docker-compose.demo.yml up` to spin up all servers.
+5. Run `make migrate-db COMPOSE_FILE=./docker-compose.demo.yml MIGRATION_MESSAGE='init db'` to initialize database
