@@ -4,6 +4,8 @@ You can view a live demo of the application at [https://dev.ht-chan.com/ac/](htt
 - username: test_user@test.com
 - password: 123456
 
+Another restriction is that there is only one manga and one chapter that you can read it on.
+
 ## Documentated Applications
 ### AC App
 It is a web application that allows you to read manga and watch anime from scraping different websites. You can create more scraping service under `ac-app/webapp/core/scraping_service`.
@@ -12,20 +14,8 @@ It is the centralized authentcation application.
 ## Getting Started
 ### Prerequisites
 All applications are containerized so you just need docker to get everything running! My docker version is `24.0.5`.
-### Environment Setup
+### Run Instructions
 1. Create a `.env` in the root directory with these two vairables `POSTGRES_PASSWORD` and `POSTGRES_USER`.
 2. Run `setup-env.sh`. It generates private and public keys for JWT, creates docker network interface and other necessarily config files.
-### Running app servers
-Start the application servers
-```
-make run COMPOSE_FILE=./ac-app/docker-compose.yml
-make run COMPOSE_FILE=./auth-app/docker-compose.yml
-make run COMPOSE_FILE=./core-repo/docker-compose.yml
-```
-Note: `core-repo` should be run at last. It creates a postgres, redis, and nginx server, which acts as a reverse proxy server.
-
-Now you should be able to access the AC app by 
-`
-http://localhost/ac/
-`
-, which should prompt you to sign in. 
+3. Run `docker compose -f ./docker-compose.demo.yml up` to spin up all servers.
+4. Run `make migrate-db COMPOSE_FILE=./docker-compose.demo.yml MIGRATION_MESSAGE='init db'` to initialize database
