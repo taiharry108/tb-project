@@ -1,4 +1,9 @@
 # Manga viewer FastAPI application with a SSO authentication application
+## Demo
+You can view a live demo of the application at [https://dev.ht-chan.com/ac/](https://dev.ht-chan.com/ac/). For this demo, you can only use the test user with the following credentials:
+- username: test_user@test.com
+- password: 123456
+
 ## Documentated Applications
 ### AC App
 It is a web application that allows you to read manga and watch anime from scraping different websites. You can create more scraping service under `ac-app/webapp/core/scraping_service`.
