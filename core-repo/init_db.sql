@@ -3,4 +3,6 @@ INSERT INTO
 VALUES
     ('manhuaren', 'https://www.manhuaren.com/'),
     ('copymanga', 'https://copymanga.tv/'),
-    ('anime1', 'https://anime1.me/');
+    ('anime1', 'https://anime1.me/'),
+    ('mangabat', 'https://readmangabat.com/')
+    ;
