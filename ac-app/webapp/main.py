@@ -1,7 +1,7 @@
 """Application module."""
 
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from logging import config as log_config
@@ -47,3 +47,10 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
+
+
+@app.get("/test")
+async def test(request: Request):
+    return {
+        "message": f"Hello World {request.headers['x-forwarded-for'].split(',')[0]}"
+    }

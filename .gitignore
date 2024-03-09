@@ -156,7 +156,10 @@ config.yml
 .vscode-server
 downloaded
 static
+static-demo
 **/templates/*.html
 *.ovpn
 *.key
 *.pub
+.vscode
+alembic_demo
