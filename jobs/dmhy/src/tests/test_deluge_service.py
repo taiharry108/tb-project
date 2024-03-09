@@ -37,6 +37,11 @@ def deluge_url(httpserver: HTTPServer) -> str:
 
 
 @pytest.fixture
+def download_path() -> str:
+    return "/downloads/test"
+
+
+@pytest.fixture
 def deluge_service(
     download_service: DownloadService,
     deluge_url: str,
@@ -77,6 +82,7 @@ async def test_add_torrent_magnet(
     deluge_id: int,
     magnet_url: str,
     torrent_id: str,
+    download_path: str,
 ):
     httpserver.expect_request(
         "/json",
@@ -84,10 +90,12 @@ async def test_add_torrent_magnet(
         json={
             "id": deluge_id,
             "method": "core.add_torrent_magnet",
-            "params": [magnet_url, {}],
+            "params": [magnet_url, {"download_location": download_path}],
         },
     ).respond_with_json({"result": torrent_id, "error": None, "id": deluge_id})
-    assert await deluge_service.add_torrent_magnet(magnet_url) == torrent_id
+    assert (
+        await deluge_service.add_torrent_magnet(magnet_url, download_path) == torrent_id
+    )
 
 
 async def test_get_torrent_status(

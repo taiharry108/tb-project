@@ -21,11 +21,14 @@ class DelugeService:
         )
         return result["result"]
 
-    async def add_torrent_magnet(self, magnet_url: str) -> str:
+    async def add_torrent_magnet(
+        self, magnet_url: str, download_path: str = "/downloads"
+    ) -> str:
         result = await self.download_service.post_json(
             f"{self.url}/json",
             json=self._create_json(
-                method="core.add_torrent_magnet", params=[magnet_url, {}]
+                method="core.add_torrent_magnet",
+                params=[magnet_url, {"download_location": download_path}],
             ),
         )
         return result["result"]

@@ -16,7 +16,6 @@ class DMHYScapingService:
         self, keyword: str, team: DMHYTeamEnum, idx: int
     ) -> tuple[list[DMHYSearchResult], int]:
         """Search manga with keyword, return a list of manga"""
-
         url = f"https://share.dmhy.org/topics/list?keyword={keyword}&sort_id=0&team_id={team.value}&order=date-desc"
         soup: BeautifulSoup = await self.download_service.get_soup(url)
         try:

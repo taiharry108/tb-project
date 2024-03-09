@@ -18,6 +18,7 @@ class Anime(BaseModel):
     name: str
     team: DMHYTeamEnum
     ep: int
+    download_path: str
 
 
 class AnimeList(BaseModel):
@@ -49,7 +50,9 @@ async def main(
             continue
         result.sort(key=lambda x: x.post_datetime, reverse=True)
 
-        torrent_id = await deluge_service.add_torrent_magnet(result[0].url)
+        torrent_id = await deluge_service.add_torrent_magnet(
+            result[0].url, download_path=anime_list.animes[idx].download_path
+        )
 
         anime_list.animes[idx].ep += 1
 
