@@ -1,0 +1,4 @@
+black==24.3.0
+httpx[http2]==0.24.1
+meross_iot==0.4.6.2
+python-dotenv==0.21.0

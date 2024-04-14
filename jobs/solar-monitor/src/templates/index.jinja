@@ -1,0 +1,40 @@
+<!-- Create a bare bone landing page with a sign in button in the middle -->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Solar Monitor</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+  <div class="container">
+    <h1>Solar Monitor</h1>
+    <!-- show user id if logged in -->
+    <h3>{{ user_id }}</h3>
+
+    <!-- Create a table of vehicles
+      columns: vehicle_id, vin, display_name, state, wake up button
+      row: item in vehicles-->
+    <table>
+      <tr>
+        <th>Vehicle ID</th>
+        <th>VIN</th>
+        <th>Display Name</th>
+        <th>State</th>
+        <th>Wakeup</th>
+      </tr>
+      {% for vehicle in vehicles %}
+      <tr>
+        <td>{{ vehicle.id }}</td>
+        <td>{{ vehicle.vin }}</td>
+        <td>{{ vehicle.display_name }}</td>
+        <td>{{ vehicle.state }}</td>
+        <td><a href="api/vehicles/{{ vehicle.id }}/wakeup">Wakeup</a></td>
+      </tr>
+      {% endfor %}
+
+  </div>
+</body>
+
+</html>
