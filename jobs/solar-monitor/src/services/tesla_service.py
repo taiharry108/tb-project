@@ -2,7 +2,7 @@ import httpx
 
 from datetime import datetime
 
-from models import SessionData, TeslaAccessTokenRequest, TeslaRefreshTokenRequest, Vehicle
+from models import SessionData, TeslaAccessTokenRequest, TeslaRefreshTokenRequest, Vehicle, TeslaCommand
 
 
 class TeslaService:
@@ -13,7 +13,8 @@ class TeslaService:
         redirect_uri: str,
         audience: str,
         tesla_auth_api_domain: str,
-        tesla_fleet_api_domain: str
+        tesla_fleet_api_domain: str,
+        tesla_ble_api_domain: str,
     ):
         self.client_id = client_id
         self.client_secret = client_secret
@@ -21,6 +22,7 @@ class TeslaService:
         self.audience = audience
         self.tesla_auth_api_domain = tesla_auth_api_domain
         self.tesla_fleet_api_domain = tesla_fleet_api_domain
+        self.tesla_ble_api_domain = tesla_ble_api_domain
 
     async def fresh_token(self, refresh_token: str) -> SessionData:
         refresh_token_request_data = self.create_refresh_token_request(refresh_token)
@@ -95,3 +97,19 @@ class TeslaService:
                 for vehicle in resp_json
             ]
             return vehicles
+
+    async def wake_up(self, session_data: SessionData, vehicle_id: int):
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"https://{self.tesla_fleet_api_domain}/api/1/vehicles/{vehicle_id}/wake_up",
+                headers={"Authorization": f"Bearer {session_data.access_token}"},
+            )
+            return response.json()
+    
+    async def send_command(self, tesla_command: TeslaCommand, params: dict):
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                f"http://{self.tesla_ble_api_domain}:8000/api/tesla-control", json={"command": tesla_command.value, "params": params}
+            )
+            print(response.content)
+            return response.json()

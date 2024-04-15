@@ -8,6 +8,14 @@ from services import RedisService, TeslaService
 
 load_dotenv()
 
+class Controller:
+    def __init__(self):
+        self.is_stopped = False
+    def stop(self):
+        self.is_stopped = True
+    def __repr__(self):
+        return f"Control({id(self)}) {self.is_stopped}"
+
 def bootstrap_di() -> None:
     di[Redis] = lambda di: Redis()
     di[RedisService] = lambda di: RedisService(os.getenv("APP_NAME"), di[Redis])
@@ -17,5 +25,9 @@ def bootstrap_di() -> None:
         os.getenv("REDIRECT_URI"),
         os.getenv("AUDIENCE"),
         os.getenv("TESLA_AUTH_API_DOMAIN"),
-        os.getenv("TESLA_FLEET_API_DOMAIN")
+        os.getenv("TESLA_FLEET_API_DOMAIN"),
+        os.getenv("TESLA_BLE_API_DOMAIN"),
     )
+    di['cookie'] = os.getenv("COOKIE")
+    di[Controller] = Controller()
+
