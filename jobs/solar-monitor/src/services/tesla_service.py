@@ -1,8 +1,18 @@
+import asyncio
 import httpx
+import json
 
 from datetime import datetime
 
-from models import SessionData, TeslaAccessTokenRequest, TeslaRefreshTokenRequest, Vehicle, TeslaCommand
+from client import TeslaClientProtocol
+from models import (
+    SessionData,
+    TeslaAccessTokenRequest,
+    TeslaRefreshTokenRequest,
+    Vehicle,
+    VehicleData,
+    TeslaCommand,
+)
 
 
 class TeslaService:
@@ -15,6 +25,7 @@ class TeslaService:
         tesla_auth_api_domain: str,
         tesla_fleet_api_domain: str,
         tesla_ble_api_domain: str,
+        client: TeslaClientProtocol,
     ):
         self.client_id = client_id
         self.client_secret = client_secret
@@ -23,25 +34,22 @@ class TeslaService:
         self.tesla_auth_api_domain = tesla_auth_api_domain
         self.tesla_fleet_api_domain = tesla_fleet_api_domain
         self.tesla_ble_api_domain = tesla_ble_api_domain
+        self.charging_amps = 0
+        self.is_charging = False
+        self.client = client
 
-    async def fresh_token(self, refresh_token: str) -> SessionData:
+    async def refresh_token(self, refresh_token: str) -> SessionData:
         refresh_token_request_data = self.create_refresh_token_request(refresh_token)
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"https://{self.tesla_auth_api_domain}/oauth2/v3/token",
-                data=refresh_token_request_data.model_dump(),
-            )
-            json_resp = response.json()
-            access_token = json_resp["access_token"]
-            refresh_token = json_resp["refresh_token"]
-            expires_in = json_resp["expires_in"]
-            expires_at = datetime.now().timestamp() + expires_in - 600
+        access_token_response = await self.client.refresh_token(refresh_token_request_data)
 
-            return SessionData(
-                access_token=access_token,
-                refresh_token=refresh_token,
-                expires_at=expires_at,
-            )
+        expires_in = access_token_response.expires_in
+        expires_at = datetime.now().timestamp() + expires_in - 600
+
+        return SessionData(
+            access_token=access_token_response.access_token,
+            refresh_token=access_token_response.refresh_token,
+            expires_at=expires_at,
+        )
 
     def create_refresh_token_request(self, refresh_token: str):
         return TeslaRefreshTokenRequest(
@@ -62,54 +70,79 @@ class TeslaService:
 
     async def fetch_access_token(self, code: str) -> SessionData:
         access_token_request_data = self.create_access_token_request(code)
+        access_token_response = await self.client.access_token(access_token_request_data)
 
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"https://{self.tesla_auth_api_domain}/oauth2/v3/token",
-                data=access_token_request_data.model_dump(),
-            )
-            json_resp = response.json()
-            access_token = json_resp["access_token"]
-            refresh_token = json_resp["refresh_token"]
-            expires_in = json_resp["expires_in"]
-            expires_at = datetime.now().timestamp() + expires_in - 600
+        expires_in = access_token_response.expires_in
+        expires_at = datetime.now().timestamp() + expires_in - 600
 
-            return SessionData(
-                access_token=access_token,
-                refresh_token=refresh_token,
-                expires_at=expires_at,
-            )
+        return SessionData(
+            access_token=access_token_response.access_token,
+            refresh_token=access_token_response.refresh_token,
+            expires_at=expires_at,
+        )
 
-    async def get_vehicles(self, session_data: SessionData):
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                f"https://{self.tesla_fleet_api_domain}/api/1/vehicles",
-                headers={"Authorization": f"Bearer {session_data.access_token}"},
-            )
-            resp_json = response.json()["response"]
-            vehicles = [
-                Vehicle(
-                    id=vehicle["id"],
-                    display_name=vehicle["display_name"],
-                    vin=vehicle["vin"],
-                    state=vehicle["state"],
-                )
-                for vehicle in resp_json
-            ]
-            return vehicles
+    async def get_vehicles(self, session_data: SessionData) -> list[Vehicle]:
+        return await self.client.get_vehicles(session_data.access_token)
+    
+    def create_vehicle_data(self, response: dict) -> VehicleData:
+        charge_state = response.get("charge_state", {})
+        battery_level = charge_state.get("battery_level", 0)
+        charge_amps = charge_state.get("charge_amps", 0)
+        charging_state = charge_state.get("charging_state", "")
+        minutes_to_full_charge = charge_state.get("minutes_to_full_charge", 0)
+        return VehicleData(
+            battery_level=battery_level,
+            charge_amps=charge_amps,
+            charging_state=charging_state,
+            minutes_to_full_charge=minutes_to_full_charge
+        )
+
+    
+    async def get_vehicle_data(self, session_data: SessionData, vehicle_id: int):
+        response = await self.client.get_vehicle_data(session_data.access_token, vehicle_id)
+        return self.create_vehicle_data(response)
 
     async def wake_up(self, session_data: SessionData, vehicle_id: int):
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"https://{self.tesla_fleet_api_domain}/api/1/vehicles/{vehicle_id}/wake_up",
-                headers={"Authorization": f"Bearer {session_data.access_token}"},
-            )
-            return response.json()
-    
+        return await self.client.wake_up(session_data.access_token, vehicle_id)     
+
     async def send_command(self, tesla_command: TeslaCommand, params: dict):
-        async with httpx.AsyncClient() as client:
-            response = await client.post(
-                f"http://{self.tesla_ble_api_domain}:8000/api/tesla-control", json={"command": tesla_command.value, "params": params}
-            )
-            print(response.content)
-            return response.json()
+        print(f"Sending command: {tesla_command.value} with params: {params}")
+        return await self.client.send_command(tesla_command, params)
+        # url = f"http://{self.tesla_ble_api_domain}:8000/api/tesla-control/"
+        # data = {"command": tesla_command.value, "params": params}
+        # print(f"making request to {url} with data: {data}")
+        # async with httpx.AsyncClient() as client:
+        #     response = await client.post(
+        #         url,
+        #         json=data,
+        #         follow_redirects=True,
+        #         timeout=60
+        #     )
+        #     return response.json()
+
+    async def adjust_current(self, net_power: float):
+        old_charge_amps = self.charging_amps
+        new_charging_amps = self.charging_amps + net_power * 1000 / 220
+        self.charging_amps = min(int(new_charging_amps), 24)
+
+        print(
+            f"{net_power=:.2f},{old_charge_amps=}, {self.charging_amps=}, {self.is_charging=}"
+        )
+
+        if self.charging_amps >= 5:
+            if not self.is_charging:
+                await self.send_command(TeslaCommand.CHARGING_START, {})
+            if abs(old_charge_amps - self.charging_amps) > 1:
+                await self.send_command(
+                    TeslaCommand.CHARGING_SET_AMPS, {"value": self.charging_amps}
+                )
+                print("sleep for 10s")
+                await asyncio.sleep(10)
+            else:
+                self.charging_amps = old_charge_amps
+            self.is_charging = True
+        else:
+            if self.is_charging:
+                await self.send_command(TeslaCommand.CHARGING_STOP, {})
+            self.is_charging = False
+            self.charging_amps = 0

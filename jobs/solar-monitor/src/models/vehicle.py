@@ -13,3 +13,9 @@ class Vehicle(BaseModel):
     display_name: str
     vin: str
     state: str
+
+class VehicleData(BaseModel):
+    battery_level: int
+    charge_amps: int
+    charging_state: str
+    minutes_to_full_charge: int

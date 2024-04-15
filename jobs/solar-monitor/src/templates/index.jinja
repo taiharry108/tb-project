@@ -18,22 +18,26 @@
       row: item in vehicles-->
     <table>
       <tr>
-        <th>Vehicle ID</th>
-        <th>VIN</th>
         <th>Display Name</th>
         <th>State</th>
         <th>Wakeup</th>
+        <th>Charging State</th>
+        <th>Charge Amps</th>
+        <th>Battery Level</th>
+        <th>Minutes to Full Charge</th>
       </tr>
       {% for vehicle in vehicles %}
       <tr>
-        <td>{{ vehicle.id }}</td>
-        <td>{{ vehicle.vin }}</td>
         <td>{{ vehicle.display_name }}</td>
         <td>{{ vehicle.state }}</td>
         <td><a href="api/vehicles/{{ vehicle.id }}/wakeup">Wakeup</a></td>
+        <td>{{ vehicle_data.charging_state }}</td>
+        <td>{{ vehicle_data.charge_amps }}</td>
+        <td>{{ vehicle_data.battery_level }}</td>
+        <td>{{ vehicle_data.minutes_to_full_charge }}</td>
       </tr>
       {% endfor %}
-
+      
   </div>
 </body>
 

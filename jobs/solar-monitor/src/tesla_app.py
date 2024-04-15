@@ -1,17 +1,17 @@
-import asyncio
-import httpx
+import json
 
-from fastapi import FastAPI, Request, Response, Depends, BackgroundTasks
+from fastapi import FastAPI, Request, Depends, BackgroundTasks
 from fastapi.responses import RedirectResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
 from kink import di
 from logging import getLogger
 
-from bootstrap import bootstrap_di, Controller
-from models import SessionData, SolarPower, TeslaCommand
+from bootstrap import bootstrap_di
+from models import SessionData, TeslaCommand
 from routers import auth_router
 from routers.auth import verify_user
-from services import TeslaService, RedisService
+from services import TeslaService, RedisService, SolarMonitorService
+from services.solar_monitor_service import CancellationToken
 
 bootstrap_di()
 
@@ -35,19 +35,19 @@ async def main_page(
     redis_service: RedisService = Depends(lambda: di[RedisService]),
     tesla_service: TeslaService = Depends(lambda: di[TeslaService]),
     session_data: SessionData | RedirectResponse = Depends(verify_user),
-    controller: Controller = Depends(lambda: di[Controller]),
 ):
     if isinstance(session_data, RedirectResponse):
         return session_data
+    vehicles = await tesla_service.get_vehicles(session_data)
     return templates.TemplateResponse(
         "index.jinja",
         {
             "request": request,
             "user_id": request.cookies.get("user_session_id"),
-            "vehicles": await tesla_service.get_vehicles(session_data),
+            "vehicles": vehicles,
+            "vehicle_data": await tesla_service.get_vehicle_data(session_data, vehicles[0].id),
         },
     )
-
 
 @app.get("/api/vehicles/{vehicle_id}/wakeup", dependencies=[Depends(verify_user)])
 async def vehicles(
@@ -60,46 +60,29 @@ async def vehicles(
     result = await tesla_service.wake_up(session_data, vehicle_id)
     return RedirectResponse("/")
 
-# send tesla control to 192.168.2.50:8000
 @app.post("/api/vehicles/command/{command}")
-async def command(command: str, params: dict, tesla_service: TeslaService = Depends(lambda: di[TeslaService])):
-    for t_command in TeslaCommand:
-        if command == t_command.value:
-            return await tesla_service.send_command(t_command, params)
-
-
-async def get_current_solar(cookie: str, controller: Controller) -> SolarPower:
-    while True:
-        print(f"{controller}")
-        if controller.is_stopped:
-            print(f"{controller} going to break loop")
-            break
-        async with httpx.AsyncClient() as client:
-            response = await client.get(
-                "https://monitoring.solaredge.com/services/powerflow/site/4150036/latest",
-                headers={"Cookie": cookie},
-            )
-            result = response.json()
-            solar_power = SolarPower(
-                current_production=result["pv"]["currentPower"],
-                current_consumption=result["load"]["currentPower"],
-            )
-            await asyncio.sleep(5)
+async def command(command: TeslaCommand, params: dict, tesla_service: TeslaService = Depends(lambda: di[TeslaService])):
+    return await tesla_service.send_command(command, params)
 
 
 @app.get("/api/solar-monitor-start", dependencies=[Depends(verify_user)])
 async def solar_monitor(
     background_task: BackgroundTasks,
     cookie: str = Depends(lambda: di["cookie"]),
-    controller: Controller = Depends(lambda: di[Controller]),
+    cancel_token: CancellationToken = Depends(lambda: di[CancellationToken]),
+    solar_monitor_service: SolarMonitorService = Depends(lambda: di[SolarMonitorService]),
+    tesla_service: TeslaService = Depends(lambda: di[TeslaService])
 ):
-    background_task.add_task(get_current_solar, cookie, controller)
+    # await tesla_service.send_command(TeslaCommand.CHARGING_STOP, {})
+    tesla_service.is_charging = True
+    tesla_service.charging_amps = 16
+    background_task.add_task(solar_monitor_service.monitor_solar, cookie, [tesla_service.adjust_current], cancel_token)
     return {"message": "Solar monitor started"}
 
 
 @app.get("/api/solar-monitor-stop", dependencies=[Depends(verify_user)])
 async def solar_monitor_stop(
-    controller: Controller = Depends(lambda: di[Controller]),
+    cancel_token: CancellationToken = Depends(lambda: di[CancellationToken]),
 ):
-    controller.stop()
+    cancel_token.stop()
     return {"message": "Solar monitor stopped"}
