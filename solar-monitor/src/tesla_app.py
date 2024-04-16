@@ -1,5 +1,3 @@
-import json
-
 from fastapi import FastAPI, Request, Depends, BackgroundTasks
 from fastapi.responses import RedirectResponse, PlainTextResponse
 from fastapi.templating import Jinja2Templates
@@ -10,7 +8,7 @@ from bootstrap import bootstrap_di
 from models import SessionData, TeslaCommand
 from routers import auth_router
 from routers.auth import verify_user
-from services import TeslaService, RedisService, SolarMonitorService
+from services import TeslaService, SolarMonitorService
 from services.solar_monitor_service import CancellationToken
 
 bootstrap_di()
@@ -32,7 +30,6 @@ async def well_known():
 @app.get("/", dependencies=[Depends(verify_user)])
 async def main_page(
     request: Request,
-    redis_service: RedisService = Depends(lambda: di[RedisService]),
     tesla_service: TeslaService = Depends(lambda: di[TeslaService]),
     session_data: SessionData | RedirectResponse = Depends(verify_user),
 ):
@@ -45,23 +42,29 @@ async def main_page(
             "request": request,
             "user_id": request.cookies.get("user_session_id"),
             "vehicles": vehicles,
-            "vehicle_data": await tesla_service.get_vehicle_data(session_data, vehicles[0].id),
+            "vehicle_data": await tesla_service.get_vehicle_data(
+                session_data, vehicles[0].id
+            ),
         },
     )
+
 
 @app.get("/api/vehicles/{vehicle_id}/wakeup", dependencies=[Depends(verify_user)])
 async def vehicles(
     vehicle_id: int,
-    request: Request,
-    redis_service: RedisService = Depends(lambda: di[RedisService]),
     tesla_service: TeslaService = Depends(lambda: di[TeslaService]),
     session_data: SessionData = Depends(verify_user),
 ):
     result = await tesla_service.wake_up(session_data, vehicle_id)
     return RedirectResponse("/")
 
+
 @app.post("/api/vehicles/command/{command}")
-async def command(command: TeslaCommand, params: dict, tesla_service: TeslaService = Depends(lambda: di[TeslaService])):
+async def command(
+    command: TeslaCommand,
+    params: dict,
+    tesla_service: TeslaService = Depends(lambda: di[TeslaService]),
+):
     return await tesla_service.send_command(command, params)
 
 
@@ -70,13 +73,20 @@ async def solar_monitor(
     background_task: BackgroundTasks,
     cookie: str = Depends(lambda: di["cookie"]),
     cancel_token: CancellationToken = Depends(lambda: di[CancellationToken]),
-    solar_monitor_service: SolarMonitorService = Depends(lambda: di[SolarMonitorService]),
-    tesla_service: TeslaService = Depends(lambda: di[TeslaService])
+    solar_monitor_service: SolarMonitorService = Depends(
+        lambda: di[SolarMonitorService]
+    ),
+    tesla_service: TeslaService = Depends(lambda: di[TeslaService]),
 ):
     # await tesla_service.send_command(TeslaCommand.CHARGING_STOP, {})
     tesla_service.is_charging = True
     tesla_service.charging_amps = 16
-    background_task.add_task(solar_monitor_service.monitor_solar, cookie, [tesla_service.adjust_current], cancel_token)
+    background_task.add_task(
+        solar_monitor_service.monitor_solar,
+        cookie,
+        [tesla_service.adjust_current],
+        cancel_token,
+    )
     return {"message": "Solar monitor started"}
 
 

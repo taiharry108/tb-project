@@ -93,7 +93,6 @@ class TeslaClient(TeslaClientProtocol):
     async def access_token(
         self, tesla_access_token_request: TeslaAccessTokenRequest
     ) -> TeslaAccessTokenResponse:
-        breakpoint()
         async with httpx.AsyncClient() as client:
             response = await client.post(
                 f"https://{self.tesla_auth_api_domain}/oauth2/v3/token",
@@ -177,13 +176,6 @@ class MockTeslaClient(TeslaClientProtocol):
         return True
 
     async def send_command(self, tesla_command: TeslaCommand, params: dict) -> dict:
-        """
-        Send a command to the vehicle
-
-        :param tesla_command: TeslaCommand
-        :param params: dict
-        :return: dict
-        """
         return {
             "status": True
         }

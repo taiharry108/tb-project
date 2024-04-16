@@ -22,6 +22,7 @@ class TeslaService:
         client_secret: str,
         redirect_uri: str,
         audience: str,
+        tesla_auth_api_domain: str,
         client: TeslaClientProtocol,
     ):
         self.client_id = client_id
@@ -30,6 +31,7 @@ class TeslaService:
         self.audience = audience
         self.charging_amps = 0
         self.is_charging = False
+        self.tesla_auth_api_domain = tesla_auth_api_domain
         self.client = client
 
     async def refresh_token(self, refresh_token: str) -> SessionData:

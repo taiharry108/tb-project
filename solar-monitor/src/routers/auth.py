@@ -49,7 +49,7 @@ async def refresh(
     user_session_id = request.cookies.get("user_session_id")
     session_data = redis_service.get_session_data(user_session_id)
     try:
-        new_session_data = await tesla_service.fresh_token(session_data.refresh_token)
+        new_session_data = await tesla_service.refresh_token(session_data.refresh_token)
     except:
         return RedirectResponse("/auth/login")
 

@@ -29,6 +29,7 @@ def bootstrap_di() -> None:
         os.getenv("CLIENT_SECRET"),
         os.getenv("REDIRECT_URI"),
         os.getenv("AUDIENCE"),
+        os.getenv("TESLA_AUTH_API_DOMAIN"),
         client,
     )
     di["cookie"] = os.getenv("COOKIE")
