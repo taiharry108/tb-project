@@ -12,7 +12,7 @@ load_dotenv()
 
 
 def bootstrap_di() -> None:
-    di[Redis] = lambda di: Redis()
+    di[Redis] = lambda di: Redis(os.getenv("REDIS_HOST"))
     di[RedisService] = lambda di: RedisService(os.getenv("APP_NAME"), di[Redis])
     di[MockTeslaClient] = MockTeslaClient()
     di[TeslaClient] = TeslaClient(

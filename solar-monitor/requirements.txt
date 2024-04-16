@@ -1,4 +1,8 @@
-black==24.3.0
-httpx[http2]==0.24.1
-meross_iot==0.4.6.2
-python-dotenv==0.21.0
+black>=24.3.0,<25.0
+httpx>=0.26.0,<1.0
+fastapi>=0.103.0,<0.110.0
+Jinja2>=3.1.2,<4.0
+kink>=0.7.0,<1.0
+python-dotenv>=0.21.0,<0.22.0
+redis>=5.0.3,<6.0
+uvicorn>=0.20.0,<0.21.0

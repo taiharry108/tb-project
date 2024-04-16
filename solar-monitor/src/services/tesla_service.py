@@ -85,6 +85,13 @@ class TeslaService:
         return await self.client.get_vehicles(session_data.access_token)
 
     def create_vehicle_data(self, response: dict) -> VehicleData:
+        if not response:
+            return VehicleData(
+                battery_level=0,
+                charge_amps=0,
+                charging_state="",
+                minutes_to_full_charge=0,
+            )
         charge_state = response.get("charge_state", {})
         battery_level = charge_state.get("battery_level", 0)
         charge_amps = charge_state.get("charge_amps", 0)
@@ -97,7 +104,9 @@ class TeslaService:
             minutes_to_full_charge=minutes_to_full_charge,
         )
 
-    async def get_vehicle_data(self, session_data: SessionData, vehicle_id: int):
+    async def get_vehicle_data(
+        self, session_data: SessionData, vehicle_id: int
+    ) -> VehicleData:
         response = await self.client.get_vehicle_data(
             session_data.access_token, vehicle_id
         )
