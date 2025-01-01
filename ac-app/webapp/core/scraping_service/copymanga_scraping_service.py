@@ -60,7 +60,7 @@ class CopyMangaScrapingService(MangaSiteScrapingService):
         def construct_url(path_word: str):
             return f"{self.url}comic/{path_word}"
 
-        search_url = f"{self.url}api/kb/web/searcha/comics?offset=0&platform=2&limit=12&q={keyword}&q_type="
+        search_url = f"{self.url}api/kb/web/searchb/comics?offset=0&platform=2&limit=12&q={keyword}&q_type="
 
         result = await self.download_service.get_json(search_url)
         result = result["results"]["list"]

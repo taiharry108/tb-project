@@ -13,10 +13,13 @@ class DMHYScapingService:
         self.download_service = download_service
 
     async def search_anime(
-        self, keyword: str, team: DMHYTeamEnum, idx: int
+        self, keyword: str, team: DMHYTeamEnum | None, idx: int
     ) -> tuple[list[DMHYSearchResult], int]:
         """Search manga with keyword, return a list of manga"""
-        url = f"https://share.dmhy.org/topics/list?keyword={keyword}&sort_id=0&team_id={team.value}&order=date-desc"
+        if team:
+            url = f"https://share.dmhy.org/topics/list?keyword={keyword}&sort_id=0&team_id={team.value}&order=date-desc"
+        else:
+            url = f"https://share.dmhy.org/topics/list?keyword={keyword}&sort_id=0&order=date-desc"
         soup: BeautifulSoup = await self.download_service.get_soup(url)
         try:
             trs = soup.find("tbody").find_all("tr")
@@ -25,10 +28,13 @@ class DMHYScapingService:
 
         def parse_tag(tr: Tag) -> DMHYSearchResult:
             d = {}
-            d["team"] = getattr(
-                DMHYTeamEnum,
-                tr.find("td", class_="title").find("span", class_="tag").text.strip(),
-            )
+            if team:
+                d["team"] = getattr(
+                    DMHYTeamEnum,
+                    tr.find("td", class_="title").find("span", class_="tag").text.strip().split("-")[0],
+                )
+            else:
+                d["team"] = None
             d["name"] = tr.find("td", class_="title").find_all("a")[-1].text.strip()
             d["post_datetime"] = (
                 tr.find_all("td")[0].find("span").text.strip().replace("/", "-")

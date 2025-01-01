@@ -55,6 +55,8 @@ services:
   redis:
     container_name: default-redis
     image: redis:alpine
+    ports:
+      - 6379:6379
     networks:
       - core_default
 

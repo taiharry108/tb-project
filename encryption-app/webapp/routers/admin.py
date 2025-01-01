@@ -13,7 +13,7 @@ router = APIRouter()
 
 
 async def check_host(request: Request):
-    if request.client.host != "127.0.0.1":
+    if request.headers["x-forwarded-for"].split(",")[0] != "127.0.0.1":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Not authorized"
         )

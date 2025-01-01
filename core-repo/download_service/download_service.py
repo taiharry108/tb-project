@@ -165,7 +165,7 @@ class DownloadService:
         self, resp: Response, download_path: Path = None, filename: str = None, **kwargs
     ) -> Dict:
         content_type = resp.headers["content-type"]
-        if not content_type.startswith("image"):
+        if not content_type.startswith("image") and not content_type.endswith('octet-stream'):
             raise RuntimeError("Response is not an image")
 
         file_path = self.generate_file_path(content_type, download_path, filename)

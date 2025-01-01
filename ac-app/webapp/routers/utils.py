@@ -1,3 +1,5 @@
+import ipaddress
+
 from fastapi import Depends
 from fastapi.responses import RedirectResponse
 from kink import di
@@ -34,3 +36,7 @@ async def get_redirect_response(
     redirect_url: str = Depends(lambda: di["auth_server_redirect_url"]),
 ):
     return RedirectResponse(f"{auth_server_url}/user/auth?redirect_url={redirect_url}")
+
+
+def is_private(ip):
+    return ipaddress.ip_address(ip).is_private

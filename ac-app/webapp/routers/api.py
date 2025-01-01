@@ -2,7 +2,7 @@ import asyncio
 import json
 
 from collections import defaultdict
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import StreamingResponse
 from kink import di, inject as kink_inject
 from logging import getLogger
@@ -16,9 +16,11 @@ from core.models.chapter import Chapter
 from core.models.anime import AnimeBase, AnimeSimple
 from core.models.episode import Episode
 from core.models.manga import MangaBase, MangaSimple
+from core.models.manga_site_enum import MangaSiteEnum
 from core.models.manga_index_type_enum import MangaIndexTypeEnum, m_types
 from core.models.meta import Meta
 from core.models.site import Site
+from core.scraping_service import ScrapingServiceFactory
 from core.scraping_service.anime_site_scraping_service import (
     AnimeSiteScrapingService as ASSService,
 )
@@ -39,7 +41,7 @@ from database.models import (
 from download_service import DownloadService
 from routers import db_utils
 from routers.user import get_user_id_from_session_data
-from routers.utils import get_db_session
+from routers.utils import get_db_session, is_private
 from sqlalchemy.exc import NoResultFound
 
 router = APIRouter()
@@ -77,7 +79,6 @@ async def _search_manga(
     session: AsyncSession = Depends(get_db_session),
     scraping_service: MSSService = Depends(db_utils.get_scraping_service_from_site),
 ) -> list[MangaBase] | None:
-    print(scraping_service)
     if isinstance(scraping_service, Anime1ScrapingService):
         return None
     mangas = await scraping_service.search_manga(keyword)
@@ -124,9 +125,18 @@ async def _search_anime(
     "/search",
 )
 async def search(
+    request: Request,
     manga_result: list[MangaBase] = Depends(_search_manga),
     anime_result: list[AnimeBase] = Depends(_search_anime),
 ):
+    # if "x-forwarded-for" in request.headers and not is_private(
+    #     request.headers["x-forwarded-for"].split(",")[0]
+    # ):
+    #     return [
+    #         MangaBase(
+    #             id=23, name="Naruto", url="https://readmangabat.com/read-sl358578"
+    #         )
+    #     ]
     if manga_result:
         return manga_result
     if anime_result:
@@ -135,11 +145,16 @@ async def search(
 
 @router.get("/manga", response_model=MangaSimple)
 async def get_manga(
+    request: Request,
     user_id: int = Depends(get_user_id_from_session_data),
     crud_service: CRUDService = Depends(lambda: di[CRUDService]),
     db_session: AsyncSession = Depends(get_db_session),
     db_manga: Manga = Depends(db_utils.get_db_manga_from_id),
 ):
+    # if "x-forwarded-for" in request.headers and not is_private(
+    #     request.headers["x-forwarded-for"].split(",")[0]
+    # ):
+    #     db_manga = await db_utils.get_db_manga_from_id(23, db_session, crud_service)
     manga = MangaSimple.model_validate(db_manga)
     q = (
         select(History)
@@ -209,11 +224,18 @@ async def get_episodes(
 
 @router.get("/chapters", response_model=Dict[MangaIndexTypeEnum, List[Chapter]])
 async def get_chapters(
+    request: Request,
     crud_service: CRUDService = Depends(lambda: di[CRUDService]),
     session: AsyncSession = Depends(get_db_session),
     db_manga: Manga = Depends(db_utils.get_db_manga_from_id),
     scraping_service: MSSService = Depends(db_utils.get_scraping_service_from_manga),
+    ss_factory: ScrapingServiceFactory = Depends(lambda: di[ScrapingServiceFactory]),
 ) -> list[Chapter]:
+    # if "x-forwarded-for" in request.headers and not is_private(
+    #     request.headers["x-forwarded-for"].split(",")[0]
+    # ):
+    #     db_manga = await db_utils.get_db_manga_from_id(23, session, crud_service)
+    #     scraping_service = ss_factory.get(MangaSiteEnum.MangaBat)
     chapters = await scraping_service.get_chapters(db_manga.url)
     chapters_to_insert = []
 
@@ -258,13 +280,20 @@ def get_download_service():
 
 @router.get("/meta", response_model=Meta)
 async def get_meta(
+    request: Request,
     db_manga: Manga = Depends(db_utils.get_db_manga_from_id),
     scraping_service: MSSService = Depends(db_utils.get_scraping_service_from_manga),
     download_service: DownloadService = Depends(get_download_service),
     download_path: str = Depends(lambda: di["api"]["download_path"]),
     crud_service: CRUDService = Depends(lambda: di[CRUDService]),
     db_session: AsyncSession = Depends(get_db_session),
+    ss_factory: ScrapingServiceFactory = Depends(lambda: di[ScrapingServiceFactory]),
 ):
+    # if "x-forwarded-for" in request.headers and not is_private(
+    #     request.headers["x-forwarded-for"].split(",")[0]
+    # ):
+    #     db_manga = await db_utils.get_db_manga_from_id(23, db_session, crud_service)
+    #     scraping_service = ss_factory.get(MangaSiteEnum.MangaBat)
     meta = await scraping_service.get_meta(db_manga.url)
 
     download_result = await _download_thum_img(
@@ -358,6 +387,7 @@ def _check_pages_exist(pages: Page):
 
 @router.get("/pages")
 async def get_pages(
+    request: Request,
     db_chapter: DBChapter = Depends(db_utils.get_chapter_from_id),
     db_manga: Manga = Depends(db_utils.get_manga_from_chapter_id),
     session: AsyncSession = Depends(get_db_session),
@@ -367,9 +397,16 @@ async def get_pages(
     download_service: DownloadService = Depends(get_download_service),
     async_service: AsyncService = Depends(lambda: di[AsyncService]),
 ):
-    pages = await crud_service.get_items_by_same_attr(
-        session, Page, "chapter_id", db_chapter.id
-    )
+    if "x-forwarded-for" in request.headers and not is_private(
+        request.headers["x-forwarded-for"].split(",")[0]
+    ):
+        pages = await crud_service.get_items_by_same_attr(
+            session, Page, "chapter_id", 1
+        )
+    else:
+        pages = await crud_service.get_items_by_same_attr(
+            session, Page, "chapter_id", db_chapter.id
+        )
     download_pages = not _check_pages_exist(pages)
 
     if download_pages:

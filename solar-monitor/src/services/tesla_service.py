@@ -35,7 +35,7 @@ class TeslaService:
         self.client = client
 
     async def refresh_token(self, refresh_token: str) -> SessionData:
-        refresh_token_request_data = self.create_refresh_token_request(refresh_token)
+        refresh_token_request_data = self._create_refresh_token_request(refresh_token)
         access_token_response = await self.client.refresh_token(
             refresh_token_request_data
         )
@@ -49,25 +49,8 @@ class TeslaService:
             expires_at=expires_at,
         )
 
-    def create_refresh_token_request(self, refresh_token: str):
-        return TeslaRefreshTokenRequest(
-            grant_type="refresh_token",
-            client_id=self.client_id,
-            refresh_token=refresh_token,
-        )
-
-    def create_access_token_request(self, code: str):
-        return TeslaAccessTokenRequest(
-            grant_type="authorization_code",
-            client_id=self.client_id,
-            client_secret=self.client_secret,
-            code=code,
-            redirect_uri=self.redirect_uri,
-            audience=self.audience,
-        )
-
     async def fetch_access_token(self, code: str) -> SessionData:
-        access_token_request_data = self.create_access_token_request(code)
+        access_token_request_data = self._create_access_token_request(code)
         access_token_response = await self.client.access_token(
             access_token_request_data
         )
@@ -145,3 +128,20 @@ class TeslaService:
                 await self.send_command(TeslaCommand.CHARGING_STOP, {})
             self.is_charging = False
             self.charging_amps = 0
+
+    def _create_refresh_token_request(self, refresh_token: str):
+        return TeslaRefreshTokenRequest(
+            grant_type="refresh_token",
+            client_id=self.client_id,
+            refresh_token=refresh_token,
+        )
+
+    def _create_access_token_request(self, code: str):
+        return TeslaAccessTokenRequest(
+            grant_type="authorization_code",
+            client_id=self.client_id,
+            client_secret=self.client_secret,
+            code=code,
+            redirect_uri=self.redirect_uri,
+            audience=self.audience,
+        )

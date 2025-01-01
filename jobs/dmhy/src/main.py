@@ -16,7 +16,7 @@ bootstrap_di()
 
 class Anime(BaseModel):
     name: str
-    team: DMHYTeamEnum
+    team: DMHYTeamEnum | None
     ep: int
     download_path: str
 
@@ -57,7 +57,7 @@ async def main(
         anime_list.animes[idx].ep += 1
 
     with open(data_file, "w") as f:
-        f.write(anime_list.model_dump_json())
+        f.write(anime_list.model_dump_json(indent=4))
 
 
 if __name__ == "__main__":

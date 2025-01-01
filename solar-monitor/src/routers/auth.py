@@ -1,9 +1,8 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, HTTPException, status
 from fastapi.responses import RedirectResponse
 from kink import di
 from uuid import uuid4
 
-from models import SessionData
 from services import TeslaService, RedisService
 
 router = APIRouter()
@@ -59,14 +58,24 @@ async def refresh(
 
 async def verify_user(
     request: Request, redis_service: RedisService = Depends(lambda: di[RedisService])
-) -> SessionData | RedirectResponse:
+) -> bool:
     user_session_id = request.cookies.get("user_session_id")
 
     if not user_session_id:
-        return RedirectResponse("/auth/login")
+        raise HTTPException(
+            status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+            headers={"Location": "/auth/login"},
+        )
     if session_data := redis_service.get_session_data(user_session_id):
         if session_data.is_expired:
-            return RedirectResponse("/auth/refresh")
+            raise HTTPException(
+                status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+                headers={"Location": "/auth/refresh"},
+            )
     else:
-        return RedirectResponse("/auth/login")
-    return session_data
+        raise HTTPException(
+            status_code=status.HTTP_307_TEMPORARY_REDIRECT,
+            headers={"Location": "/auth/login"},
+        )
+    request.state.session_data = session_data
+    return True

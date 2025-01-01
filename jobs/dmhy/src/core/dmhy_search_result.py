@@ -9,6 +9,6 @@ class DMHYSearchResult(BaseModel):
     id: Optional[int] = None
     url: str
     post_datetime: datetime
-    team: DMHYTeamEnum
+    team: DMHYTeamEnum | None
     name: str
     model_config = ConfigDict(from_attributes=True)

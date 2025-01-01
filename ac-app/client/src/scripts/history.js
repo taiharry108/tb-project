@@ -7,7 +7,8 @@ $(function ($) {
     const addHistory = (history) => {
         history.forEach(manga => {
             let histTemplate = $($("#history-card-template").html());
-            histTemplate.find("img").attr("src", manga.thum_img.replace("/downloaded", staticFilesEndpoint));
+            if (manga.thum_img)
+                histTemplate.find("img").attr("src", manga.thum_img.replace("/downloaded", staticFilesEndpoint));
             histTemplate.find(".title").text(manga.name);
             const dateStr = (new Date(manga.last_update)).toISOString().substring(0, 10);
             histTemplate.find(".last-update-txt").text(dateStr);

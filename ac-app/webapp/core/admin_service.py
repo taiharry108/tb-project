@@ -77,18 +77,23 @@ async def get_all_mangas_in_history(db_engine: AsyncEngine) -> list[MangaWithSit
 async def get_meta_for_manga(
     manga_url: str,
     manga_name: str,
+    manga_id: int,
     scraping_service: MangaSiteScrapingService,
     download_service: DownloadService,
-    download_path: str,
+    download_path: str,    
 ) -> Meta:
-    meta = await scraping_service.get_meta(manga_url)
+    try:
+        meta = await scraping_service.get_meta(manga_url)
 
-    download_path = Path(download_path) / scraping_service.site.name / manga_name
+        download_path = Path(download_path) / scraping_service.site.name / manga_name
 
-    download_result = await download_service.download_img(
-        url=str(meta.thum_img), download_path=download_path, filename="thum_img"
-    )
-    meta.thum_img = download_result["pic_path"]
+        download_result = await download_service.download_img(
+            url=str(meta.thum_img), download_path=download_path, filename="thum_img"
+        )
+        meta.thum_img = download_result["pic_path"]
+        meta.manga_id = manga_id
+    except:
+        return Meta(manga_id=manga_id)    
     return meta
 
 
@@ -154,6 +159,7 @@ async def update_meta(
         get_meta_for_manga(
             str(manga.url),
             manga.manga_name,
+            manga.id,
             getattr(ss_factory, manga.manga_site_name),
             download_service,
             download_path,
@@ -166,10 +172,10 @@ async def update_meta(
 
     async with db_engine.begin() as conn:
         last_update_map = {
-            manga.id: meta.last_update for manga, meta in zip(mangas, result)
-        }
-        thum_img_map = {manga.id: meta.thum_img for manga, meta in zip(mangas, result)}
-        finished_map = {manga.id: meta.finished for manga, meta in zip(mangas, result)}
+            meta.manga_id: meta.last_update for meta in result if meta.last_update
+        }        
+        thum_img_map = {meta.manga_id: meta.thum_img for meta in result if meta.thum_img}
+        finished_map = {meta.manga_id: meta.finished for meta in result if meta.finished}
         manga_table = await get_table("mangas", conn)
         stmt = (
             manga_table.update()
